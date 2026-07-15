@@ -258,6 +258,7 @@
     <input type="number" id="amountInput" placeholder="0.00" inputmode="decimal">
     <label>الفئة</label>
     <div class="cat-grid" id="catGrid"></div>
+    <button type="button" class="cancel-link" id="catGridToggle" style="display:none; margin-top:8px;"></button>
     <label>التاريخ</label>
     <input type="date" id="dateInput">
     <label>ملاحظة (اختياري)</label>
@@ -453,21 +454,38 @@ function switchTab(name){
 document.querySelectorAll('.navbtn').forEach(b=>b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
 
 /* ---------- Add / Edit form ---------- */
+let catGridExpanded=false;
+const CAT_GRID_LIMIT=8;
 function renderCatGrid(){
   const grid=document.getElementById('catGrid');
+  const toggleBtn=document.getElementById('catGridToggle');
   const cats=catsByType(currentType);
   if(!selectedCategory || !cats.find(c=>c.id===selectedCategory)) selectedCategory = cats.length? cats[0].id : null;
-  grid.innerHTML=cats.map(c=>`<div class="cat-chip ${c.id===selectedCategory?'sel':''}" data-id="${c.id}">
+  const selIdx=cats.findIndex(c=>c.id===selectedCategory);
+  if(selIdx>=CAT_GRID_LIMIT) catGridExpanded=true;
+  const showToggle=cats.length>CAT_GRID_LIMIT;
+  const visibleCats=(catGridExpanded || !showToggle) ? cats : cats.slice(0,CAT_GRID_LIMIT);
+  grid.innerHTML=visibleCats.map(c=>`<div class="cat-chip ${c.id===selectedCategory?'sel':''}" data-id="${c.id}">
     <span class="ic">${c.icon}</span><span class="lbl">${escapeHtml(c.label)}</span></div>`).join('');
   grid.querySelectorAll('.cat-chip').forEach(el=>{
     el.addEventListener('click', ()=>{ selectedCategory=el.dataset.id; renderCatGrid(); });
   });
+  if(showToggle){
+    toggleBtn.style.display='block';
+    toggleBtn.textContent = catGridExpanded ? 'عرض أقل ▴' : `عرض المزيد (+${cats.length-CAT_GRID_LIMIT}) ▾`;
+  }else{
+    toggleBtn.style.display='none';
+  }
 }
+document.getElementById('catGridToggle').addEventListener('click', ()=>{
+  catGridExpanded=!catGridExpanded;
+  renderCatGrid();
+});
 document.querySelectorAll('.type-toggle button').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    currentType=btn.dataset.type; selectedCategory=null; renderCatGrid();
+    currentType=btn.dataset.type; selectedCategory=null; catGridExpanded=false; renderCatGrid();
   });
 });
 function resetAddForm(){
@@ -475,7 +493,7 @@ function resetAddForm(){
   document.getElementById('amountInput').value='';
   document.getElementById('noteInput').value='';
   document.getElementById('dateInput').value=new Date().toISOString().slice(0,10);
-  currentType='expense'; selectedCategory=null;
+  currentType='expense'; selectedCategory=null; catGridExpanded=false;
   document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.type==='expense'));
   renderCatGrid();
   document.getElementById('saveBtn').textContent='حفظ الحركة';
