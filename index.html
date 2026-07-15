@@ -27,7 +27,7 @@
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:'Tajawal',sans-serif;}
   body{min-height:100vh; transition:background .2s,color .2s;}
-  .wrap{max-width:480px; margin:0 auto; padding:18px 16px 90px;}
+  .wrap{max-width:480px; margin:0 auto; padding:calc(18px + env(safe-area-inset-top)) 16px 90px;}
   main{display:none;} main.active{display:block;}
   h1,h2,h3{margin:0;}
 
@@ -144,6 +144,10 @@
 
   .toast{position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:var(--card-2); border:1px solid var(--line); color:var(--ink); padding:10px 18px; border-radius:99px; font-size:13px; z-index:60; opacity:0; transition:opacity .25s; white-space:nowrap;}
   .toast.show{opacity:1;}
+
+  .shortcut-banner{display:flex; align-items:center; gap:10px; background:var(--card-2); border:1px dashed var(--gold-dim); border-radius:14px; padding:11px 13px; margin-bottom:14px; font-size:12px; color:var(--muted); line-height:1.7;}
+  .shortcut-banner .ic{font-size:20px; flex-shrink:0;}
+  .shortcut-banner button{background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; padding:2px 4px; flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -181,6 +185,12 @@
   </main>
 
   <main id="tabAdd">
+    <div class="shortcut-banner" id="shortcutBanner" style="display:none;">
+      <span class="ic">📲</span>
+      <span style="flex:1;">أضف اختصارًا على الشاشة الرئيسية يفتح هذه الصفحة مباشرة لتسجيل عملية دفع بضغطة واحدة. اضغط على ⋯ بالأسفل لمعرفة الطريقة.</span>
+      <button id="shortcutInfoBtn">ℹ️</button>
+      <button id="shortcutDismissBtn">✕</button>
+    </div>
     <div class="type-toggle">
       <button data-type="expense" class="active">مصروف</button>
       <button data-type="income">دخل</button>
@@ -237,6 +247,15 @@
       </div>
     </div>
 
+    <div class="section-title">اختصار الشاشة الرئيسية</div>
+    <div class="card-box">
+      <div class="set-row">
+        <div><div class="lab">📲 اختصار "تسجيل دفعة"</div><div class="sub">أضف أيقونة ثانية على شاشتك الرئيسية تفتح التطبيق مباشرة على صفحة الإضافة</div></div>
+      </div>
+      <button class="save-btn" id="howToShortcutBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);">كيف أضيف الاختصار؟</button>
+      <div class="info-note" id="shortcutHowTo" style="display:none;"></div>
+    </div>
+
     <div class="section-title">النسخ الاحتياطي</div>
     <div class="card-box">
       <div class="set-row"><div class="lab">⬇️ تصدير نسخة احتياطية</div></div>
@@ -274,7 +293,7 @@
       <button class="save-btn" id="clearAllBtn" style="background:var(--rust); color:#fff;">🗑️ مسح كل الحركات نهائيًا</button>
     </div>
 
-    <div class="info-note" style="margin-top:16px;">ℹ️ عن الـ Widget: تعذّر إضافة ودجت حقيقي على الشاشة الرئيسية لأن ذلك يتطلب تطبيق iOS أصلي (Swift/WidgetKit عبر Xcode) — تطبيقات الويب لا تدعم هذه الميزة على iOS إطلاقًا.</div>
+    <div class="info-note" style="margin-top:16px;">ℹ️ عن الـ Widget: تعذّر إضافة ودجت حقيقي على الشاشة الرئيسية لأن ذلك يتطلب تطبيق iOS أصلي (Swift/WidgetKit عبر Xcode) — تطبيقات الويب لا تدعم هذه الميزة على iOS إطلاقًا. لكن يمكنك إضافة اختصار أيقونة يفتح مباشرة على صفحة "تسجيل دفعة" (انظر أعلاه).</div>
   </main>
 </div>
 
@@ -694,6 +713,58 @@ document.getElementById('clearAllBtn').addEventListener('click', ()=>{
   }
 });
 
+/* ---------- Home Screen shortcut (Add Payment) ---------- */
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function isIOS(){
+  return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+}
+function shortcutURL(){
+  const url=new URL(window.location.href);
+  url.search=''; url.hash='';
+  url.searchParams.set('action','add');
+  return url.toString();
+}
+function shortcutHowToHtml(){
+  if(isIOS()){
+    return `للحصول على أيقونة مستقلة تفتح مباشرة على "إضافة عملية دفع":<br>
+    1) افتح هذا الرابط في Safari: <span style="direction:ltr; display:inline-block; word-break:break-all;">${escapeHtml(shortcutURL())}</span><br>
+    2) اضغط زر المشاركة (المربع بالسهم) بالأسفل.<br>
+    3) اختر "إضافة إلى الشاشة الرئيسية".<br>
+    4) سمِّها مثلاً "دفعة سريعة" واضغط "إضافة".<br>
+    ستحصل على أيقونة ثانية بجانب أيقونة دفتري تفتح مباشرة صفحة الإضافة. (iOS لا يدعم اختصارات الضغط المطوّل على أيقونة واحدة، لذلك هذه أيقونة مستقلة).`;
+  }
+  return `اضغط مطولًا (أو انقر بزر الفأرة الأيمن) على أيقونة دفتري على الشاشة الرئيسية أو شريط المهام، وسيظهر خيار "تسجيل دفعة" مباشرة ضمن قائمة الاختصارات — بفضل تسجيله في ملف التطبيق (manifest).<br><br>
+  إن لم تظهر القائمة، يمكنك أيضًا إضافة هذا الرابط كاختصار مستقل: <span style="direction:ltr; display:inline-block; word-break:break-all;">${escapeHtml(shortcutURL())}</span>`;
+}
+document.getElementById('howToShortcutBtn').addEventListener('click', ()=>{
+  const box=document.getElementById('shortcutHowTo');
+  box.innerHTML=shortcutHowToHtml();
+  box.style.display = box.style.display==='none' ? 'block' : 'none';
+});
+document.getElementById('shortcutInfoBtn').addEventListener('click', ()=>{
+  switchTab('tabSettings');
+  setTimeout(()=>{
+    document.getElementById('shortcutHowTo').innerHTML=shortcutHowToHtml();
+    document.getElementById('shortcutHowTo').style.display='block';
+    document.getElementById('howToShortcutBtn').scrollIntoView({behavior:'smooth', block:'center'});
+  }, 30);
+});
+document.getElementById('shortcutDismissBtn').addEventListener('click', ()=>{
+  document.getElementById('shortcutBanner').style.display='none';
+  try{ localStorage.setItem('daftari_shortcut_banner_dismissed','1'); }catch(e){}
+});
+function maybeShowShortcutBanner(){
+  let dismissed=false;
+  try{ dismissed = localStorage.getItem('daftari_shortcut_banner_dismissed')==='1'; }catch(e){}
+  const params=new URLSearchParams(window.location.search);
+  const openedViaShortcut = params.get('action')==='add';
+  if(!dismissed && !openedViaShortcut && isStandalone()){
+    document.getElementById('shortcutBanner').style.display='flex';
+  }
+}
+
 /* ---------- PIN lock ---------- */
 async function sha256(str){
   const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -785,7 +856,10 @@ async function init(){
     applyTheme();
     document.getElementById('dateInput').value=new Date().toISOString().slice(0,10);
     renderCatGrid();
-    switchTab('tabHome');
+    const params=new URLSearchParams(window.location.search);
+    const startTab = params.get('action')==='add' ? 'tabAdd' : 'tabHome';
+    switchTab(startTab);
+    maybeShowShortcutBanner();
     if(settings.pinEnabled && !unlockedThisSession){ openLock('unlock'); }
   }catch(e){
     console.error('init failed:', e);
