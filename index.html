@@ -198,6 +198,37 @@
   .budget-alert-card{background:var(--card); border:1px solid var(--rust); border-radius:16px; padding:12px 14px; margin-top:14px;}
   .budget-alert-card .title{font-size:12.5px; font-weight:700; color:var(--rust); margin-bottom:8px; display:flex; align-items:center; gap:6px;}
   .budget-alert-item{display:flex; align-items:center; justify-content:space-between; font-size:12px; padding:5px 0;}
+
+  /* recurring */
+  .recur-box{background:var(--card-2); border-radius:12px; padding:12px; margin-top:12px;}
+  .recur-row-toggle{display:flex; align-items:center; justify-content:space-between;}
+  .recur-freq{display:flex; gap:8px; margin-top:10px;}
+  .recur-freq select{margin:0;}
+  .recur-manage-row{display:flex; align-items:center; gap:10px; padding:9px 2px; border-bottom:1px solid var(--line); font-size:13px;}
+  .recur-manage-row:last-child{border-bottom:none;}
+  .recur-manage-row .ic{font-size:16px; width:22px; text-align:center;}
+  .recur-manage-row .info{flex:1; min-width:0;}
+  .recur-manage-row .sub{font-size:10.5px; color:var(--muted);}
+  .recur-manage-row button{background:none; border:none; color:var(--muted); font-size:14px; cursor:pointer; padding:4px;}
+  .upcoming-banner{display:flex; align-items:center; gap:9px; background:var(--card); border:1px solid var(--gold-dim); border-radius:14px; padding:10px 12px; margin-bottom:12px; font-size:12px;}
+  .upcoming-banner .ic{font-size:17px; flex-shrink:0;}
+
+  /* undo toast */
+  .undo-toast{position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:var(--card-2); border:1px solid var(--line); color:var(--ink); padding:9px 8px 9px 16px; border-radius:99px; font-size:12.5px; z-index:61; display:none; align-items:center; gap:10px; white-space:nowrap;}
+  .undo-toast.show{display:flex;}
+  .undo-toast button{background:var(--gold); color:#191308; border:none; border-radius:99px; padding:6px 14px; font-family:'Tajawal'; font-weight:700; font-size:12px; cursor:pointer;}
+
+  #printReport{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printReport, #printReport *{visibility:visible;}
+    #printReport{display:block; position:absolute; top:0; left:0; width:100%; padding:20px; color:#000; background:#fff;}
+    #printReport h2{font-size:18px; margin-bottom:4px;}
+    #printReport .pr-sub{font-size:12px; color:#555; margin-bottom:16px;}
+    #printReport table{width:100%; border-collapse:collapse; font-size:12px; margin-top:10px;}
+    #printReport th, #printReport td{border:1px solid #ccc; padding:6px 8px; text-align:right;}
+    #printReport .pr-totals{display:flex; gap:20px; margin:14px 0; font-size:13px;}
+  }
   .budget-alert-item .name{display:flex; align-items:center; gap:6px; color:var(--ink);}
   .budget-alert-item .stat{direction:ltr; font-size:11px; font-weight:700;}
   .budget-alert-item .stat.over{color:var(--rust);}
@@ -237,6 +268,7 @@
       </div>
     </div>
     <div id="budgetAlerts"></div>
+    <div id="upcomingRecurring"></div>
     <div class="section-title">آخر 6 أشهر</div>
     <div class="card-box"><div class="chart-box"><canvas id="homeChart"></canvas></div></div>
     <div class="section-title">آخر 5 عمليات</div>
@@ -263,6 +295,19 @@
     <input type="date" id="dateInput">
     <label>ملاحظة (اختياري)</label>
     <input type="text" id="noteInput" placeholder="مثال: غداء مع الأصدقاء">
+    <div class="recur-box" id="recurBox">
+      <div class="recur-row-toggle">
+        <div><div class="lab">🔁 تكرار هذه الحركة تلقائيًا</div><div class="sub">مفيد للإيجار، الاشتراكات، الراتب...</div></div>
+        <div class="switch" id="recurSwitch"><div class="knob"></div></div>
+      </div>
+      <div class="recur-freq" id="recurFreqRow" style="display:none;">
+        <select id="recurFreqSelect" style="flex:1;">
+          <option value="monthly">كل شهر</option>
+          <option value="weekly">كل أسبوع</option>
+          <option value="yearly">كل سنة</option>
+        </select>
+      </div>
+    </div>
     <button class="save-btn" id="saveBtn">حفظ الحركة</button>
     <button class="cancel-link" id="cancelEditBtn" style="display:none;">إلغاء التعديل</button>
   </main>
@@ -296,6 +341,7 @@
     <div class="card-box"><div class="chart-box"><canvas id="chartMonthly"></canvas></div></div>
     <div class="section-title">مقارنة سنوية</div>
     <div class="card-box"><div class="chart-box"><canvas id="chartYearly"></canvas></div></div>
+    <button class="save-btn" id="exportPDFBtn" style="margin-top:16px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);">🖨️ تصدير تقرير الشهر الحالي PDF</button>
   </main>
 
   <main id="tabSettings">
@@ -317,6 +363,12 @@
       <div id="budgetSettingsList"></div>
     </div>
 
+    <div class="section-title">🔁 المعاملات المتكررة</div>
+    <div class="card-box">
+      <div class="info-note" style="margin-top:0; margin-bottom:10px;">الحركات التي فعّلت لها التكرار من شاشة "إضافة" تظهر هنا. يتم إنشاء الحركة الجديدة تلقائيًا في كل مرة تفتح فيها التطبيق بعد حلول موعدها — لا حاجة لإنترنت أو خادم.</div>
+      <div id="recurManageList"></div>
+    </div>
+
     <div class="section-title">اختصار الشاشة الرئيسية</div>
     <div class="card-box">
       <div class="set-row">
@@ -333,6 +385,15 @@
       <button class="save-btn" id="exportBtn" style="margin-top:0;">تنزيل نسخة احتياطية</button>
       <button class="save-btn" id="importBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);">استعادة من نسخة احتياطية</button>
       <input type="file" id="importFile" accept="application/json,.json" style="display:none;">
+    </div>
+
+    <div class="section-title">🔔 الإشعارات</div>
+    <div class="card-box">
+      <div class="set-row">
+        <div><div class="lab">تنبيه المعاملات المستحقة</div><div class="sub">إشعار من نظام التشغيل عند فتح التطبيق إن وُجدت معاملة متكررة مستحقة خلال يوم أو يومين</div></div>
+        <div class="switch" id="notifSwitch"><div class="knob"></div></div>
+      </div>
+      <div class="info-note">ℹ️ إشعار محلي بالكامل ومجاني — لا خادم ولا حساب مطلوب. يعمل فقط عند فتح التطبيق (وليس وأنت خارجه تمامًا)، وهذا قيد تقني في كل تطبيقات الويب بدون خادم دفع (push server).</div>
     </div>
 
     <div class="section-title">الأمان</div>
@@ -376,14 +437,21 @@
 </nav>
 
 <div class="toast" id="toast"></div>
+<div class="undo-toast" id="undoToast">
+  <span id="undoMsg">تم حذف الحركة</span>
+  <button id="undoBtn">تراجع</button>
+</div>
+<div id="printReport"></div>
 
 <script>
-const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1';
-let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', pinEnabled:false, pinHash:'', budgets:{}};
+const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1', REC_KEY='daftari_recurring_v1';
+let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', pinEnabled:false, pinHash:'', budgets:{}, notifEnabled:false};
+let recurring=[];
 let editingId=null, currentType='expense', selectedCategory=null;
 let charts={};
 let pinMode='unlock', pinBuffer='', pinFirstEntry='';
 let unlockedThisSession=false;
+let lastDeleted=null, lastDeletedIndex=-1, undoTimer=null;
 
 const DEFAULT_CATS=[
   {id:'food', label:'طعام', icon:'🍔', type:'expense'},
@@ -425,10 +493,12 @@ async function load(){
     const s = localStorage.getItem(SET_KEY);
     if(s) settings=Object.assign(settings, JSON.parse(s));
   }catch(e){}
+  try{ recurring = JSON.parse(localStorage.getItem(REC_KEY) || '[]'); }catch(e){ recurring=[]; }
 }
 async function saveTx(){ try{ localStorage.setItem(TX_KEY, JSON.stringify(transactions)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } }
 async function saveCats(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(categories)); }catch(e){} }
 async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){} }
+async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){} }
 
 /* ---------- theme ---------- */
 function applyTheme(){
@@ -498,6 +568,9 @@ function resetAddForm(){
   renderCatGrid();
   document.getElementById('saveBtn').textContent='حفظ الحركة';
   document.getElementById('cancelEditBtn').style.display='none';
+  document.getElementById('recurBox').style.display='block';
+  document.getElementById('recurSwitch').classList.remove('on');
+  document.getElementById('recurFreqRow').style.display='none';
 }
 function openEdit(tx){
   editingId=tx.id;
@@ -510,9 +583,17 @@ function openEdit(tx){
   document.getElementById('dateInput').value=tx.date;
   document.getElementById('saveBtn').textContent='تحديث الحركة';
   document.getElementById('cancelEditBtn').style.display='block';
+  document.getElementById('recurBox').style.display='none';
+  document.getElementById('recurSwitch').classList.remove('on');
+  document.getElementById('recurFreqRow').style.display='none';
   switchTab('tabAdd');
 }
 document.getElementById('cancelEditBtn').addEventListener('click', resetAddForm);
+document.getElementById('recurSwitch').addEventListener('click', ()=>{
+  const sw=document.getElementById('recurSwitch');
+  sw.classList.toggle('on');
+  document.getElementById('recurFreqRow').style.display = sw.classList.contains('on') ? 'flex' : 'none';
+});
 document.getElementById('saveBtn').addEventListener('click', ()=>{
   const amount=parseFloat(document.getElementById('amountInput').value);
   const date=document.getElementById('dateInput').value || new Date().toISOString().slice(0,10);
@@ -525,18 +606,47 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
     showToast('تم تحديث الحركة ✓');
   }else{
     transactions.push({id:Date.now().toString()+Math.random().toString(36).slice(2,6), type:currentType, category:selectedCategory, amount, note, date});
-    showToast('تم الحفظ ✓');
+    const recurOn = document.getElementById('recurSwitch').classList.contains('on');
+    if(recurOn){
+      const freq = document.getElementById('recurFreqSelect').value;
+      recurring.push({id:'r_'+Date.now(), type:currentType, category:selectedCategory, amount, note, freq, lastDate:date});
+      saveRecurring();
+      showToast('تم الحفظ، وسيتكرر تلقائيًا ✓');
+    }else{
+      showToast('تم الحفظ ✓');
+    }
   }
   saveTx();
   resetAddForm();
   switchTab('tabHome');
 });
 function deleteTx(id){
-  if(!confirm('حذف هذه الحركة؟')) return;
-  transactions=transactions.filter(t=>t.id!==id);
+  const idx=transactions.findIndex(t=>t.id===id);
+  if(idx===-1) return;
+  lastDeleted=transactions[idx]; lastDeletedIndex=idx;
+  transactions.splice(idx,1);
   saveTx();
   switchTab(document.querySelector('main.active').id);
+  showUndoToast('تم حذف الحركة');
 }
+function showUndoToast(msg){
+  const el=document.getElementById('undoToast');
+  document.getElementById('undoMsg').textContent=msg;
+  el.classList.add('show');
+  if(undoTimer) clearTimeout(undoTimer);
+  undoTimer=setTimeout(()=>{ el.classList.remove('show'); lastDeleted=null; lastDeletedIndex=-1; }, 5000);
+}
+document.getElementById('undoBtn').addEventListener('click', ()=>{
+  if(!lastDeleted) return;
+  const idx=Math.min(lastDeletedIndex, transactions.length);
+  transactions.splice(idx,0,lastDeleted);
+  saveTx();
+  lastDeleted=null; lastDeletedIndex=-1;
+  if(undoTimer) clearTimeout(undoTimer);
+  document.getElementById('undoToast').classList.remove('show');
+  switchTab(document.querySelector('main.active').id);
+  showToast('تم التراجع عن الحذف ✓');
+});
 
 /* ---------- Home ---------- */
 function renderHome(){
@@ -571,6 +681,7 @@ function renderHome(){
     datasets:[{label:'صافي', data:netByMonth, backgroundColor:netByMonth.map(v=>v>=0?'#6fa287':'#c1594a'), borderRadius:6}]
   }, simpleOpts());
   renderBudgetAlerts(ym);
+  renderUpcomingRecurring();
 }
 function txRowHtml(t){
   const c=findCat(t.category);
@@ -736,8 +847,10 @@ function renderSettings(){
   csel.innerHTML=Object.keys(CURRENCIES).map(k=>`<option value="${k}">${k} (${CURRENCIES[k]})</option>`).join('');
   csel.value=settings.currency;
   document.getElementById('pinSwitch').classList.toggle('on', settings.pinEnabled);
+  document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled);
   renderCatManage();
   renderBudgetSettings();
+  renderRecurringSettings();
 }
 document.getElementById('currencySelect').addEventListener('change', (e)=>{
   settings.currency=e.target.value; saveSettings(); showToast('تم تغيير العملة');
@@ -746,6 +859,51 @@ document.getElementById('darkSwitch').addEventListener('click', ()=>{
   settings.theme = settings.theme==='dark' ? 'light' : 'dark';
   saveSettings(); applyTheme();
 });
+document.getElementById('notifSwitch').addEventListener('click', async ()=>{
+  if(!settings.notifEnabled){
+    if(typeof Notification==='undefined'){ showToast('متصفحك لا يدعم الإشعارات'); return; }
+    let perm=Notification.permission;
+    if(perm==='default') perm=await Notification.requestPermission();
+    if(perm!=='granted'){ showToast('الإذن مرفوض من إعدادات المتصفح'); return; }
+    settings.notifEnabled=true;
+    showToast('تم تفعيل الإشعارات ✓');
+  }else{
+    settings.notifEnabled=false;
+    showToast('تم إيقاف الإشعارات');
+  }
+  saveSettings();
+  document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled);
+});
+function maybeNotifyDueRecurring(){
+  if(!settings.notifEnabled) return;
+  if(typeof Notification==='undefined' || Notification.permission!=='granted') return;
+  const today=new Date().toISOString().slice(0,10);
+  let lastNotified=null;
+  try{ lastNotified=localStorage.getItem('daftari_last_notif_date'); }catch(e){}
+  if(lastNotified===today) return;
+  const now=new Date(); now.setHours(0,0,0,0);
+  const dueSoon=recurring.map(r=>({r,next:nextDate(r.lastDate,r.freq)})).filter(x=>{
+    const d=new Date(x.next+'T00:00:00');
+    const diff=Math.round((d-now)/86400000);
+    return diff>=0 && diff<=1;
+  });
+  if(dueSoon.length===0) return;
+  const body=dueSoon.map(x=>`${findCat(x.r.category).icon} ${findCat(x.r.category).label}: ${fmt(x.r.amount)}`).join(' · ');
+  const title='دفتري — معاملات مستحقة قريبًا';
+  const opts={body, icon:'./icon-192.png', badge:'./icon-192.png', tag:'daftari-due'};
+  const fire=()=>{
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistration().then(reg=>{
+        if(reg && reg.showNotification) reg.showNotification(title, opts);
+        else new Notification(title, opts);
+      }).catch(()=>{ try{ new Notification(title, opts); }catch(e){} });
+    }else{
+      try{ new Notification(title, opts); }catch(e){}
+    }
+  };
+  fire();
+  try{ localStorage.setItem('daftari_last_notif_date', today); }catch(e){}
+}
 
 /* ---------- Budgets ---------- */
 function renderBudgetSettings(){
@@ -830,6 +988,88 @@ function renderBudgetAlerts(ym){
   </div>`;
 }
 
+/* ---------- Recurring transactions (100% local, no server/notifications needed) ---------- */
+function nextDate(dateStr, freq){
+  const d=new Date(dateStr+'T00:00:00');
+  if(freq==='weekly') d.setDate(d.getDate()+7);
+  else if(freq==='yearly') d.setFullYear(d.getFullYear()+1);
+  else d.setMonth(d.getMonth()+1);
+  return d.toISOString().slice(0,10);
+}
+function freqLabel(f){ return f==='weekly'?'أسبوعيًا':(f==='yearly'?'سنويًا':'شهريًا'); }
+function processRecurring(){
+  const today=new Date().toISOString().slice(0,10);
+  let changedTx=false, changedRec=false;
+  recurring.forEach(r=>{
+    let guard=0, next=nextDate(r.lastDate, r.freq);
+    while(next<=today && guard<36){
+      transactions.push({id:'rt_'+r.id+'_'+next, type:r.type, category:r.category, amount:r.amount, note:r.note, date:next});
+      r.lastDate=next; changedTx=true; changedRec=true;
+      next=nextDate(r.lastDate, r.freq); guard++;
+    }
+  });
+  if(changedTx) saveTx();
+  if(changedRec) saveRecurring();
+}
+function renderRecurringSettings(){
+  const el=document.getElementById('recurManageList');
+  if(recurring.length===0){ el.innerHTML='<div class="empty" style="padding:12px;"><p>لا توجد معاملات متكررة بعد. فعّلها من شاشة "إضافة".</p></div>'; return; }
+  el.innerHTML=recurring.map(r=>{
+    const c=findCat(r.category);
+    return `<div class="recur-manage-row">
+      <span class="ic">${c.icon}</span>
+      <div class="info"><div>${escapeHtml(c.label)} — ${fmt(r.amount)}</div><div class="sub">${freqLabel(r.freq)} · القادمة: ${nextDate(r.lastDate,r.freq)}</div></div>
+      <button class="rec-del" data-id="${r.id}">🗑️</button>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.rec-del').forEach(b=>b.addEventListener('click', ()=>{
+    if(!confirm('إيقاف هذه المعاملة المتكررة؟ الحركات السابقة التي أُنشئت منها ستبقى محفوظة.')) return;
+    recurring=recurring.filter(r=>r.id!==b.dataset.id);
+    saveRecurring(); renderRecurringSettings(); showToast('تم إيقاف التكرار');
+  }));
+}
+function renderUpcomingRecurring(){
+  const el=document.getElementById('upcomingRecurring');
+  if(!el) return;
+  if(recurring.length===0){ el.innerHTML=''; return; }
+  const today=new Date(); today.setHours(0,0,0,0);
+  const soon=recurring.map(r=>({r, next:nextDate(r.lastDate,r.freq)})).filter(x=>{
+    const d=new Date(x.next+'T00:00:00');
+    const diff=Math.round((d-today)/86400000);
+    return diff>=0 && diff<=3;
+  });
+  if(soon.length===0){ el.innerHTML=''; return; }
+  el.innerHTML=soon.map(x=>{
+    const c=findCat(x.r.category);
+    return `<div class="upcoming-banner"><span class="ic">📅</span><span>${c.icon} ${escapeHtml(c.label)} — ${fmt(x.r.amount)} مستحقة بتاريخ ${x.next}</span></div>`;
+  }).join('');
+}
+
+/* ---------- PDF report export (uses the browser's built-in print-to-PDF — no library, fully offline) ---------- */
+function buildPrintReport(){
+  const now=new Date(); const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const monthTx=transactions.filter(t=>t.date.slice(0,7)===ym);
+  const totalIn=monthTx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const totalOut=monthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const byCat={};
+  monthTx.filter(t=>t.type==='expense').forEach(t=>{ byCat[t.category]=(byCat[t.category]||0)+t.amount; });
+  const rows=[...monthTx].sort((a,b)=>a.date.localeCompare(b.date));
+  const monthLabel=MONTHS[now.getMonth()]+' '+now.getFullYear();
+  let html=`<h2>دفتري — تقرير ${monthLabel}</h2><div class="pr-sub">تم إنشاؤه بتاريخ ${new Date().toLocaleDateString('ar',{numberingSystem:'latn'})}</div>`;
+  html+=`<div class="pr-totals"><div>إجمالي الدخل: ${fmt(totalIn)}</div><div>إجمالي المصروف: ${fmt(totalOut)}</div><div>الصافي: ${fmt(totalIn-totalOut)}</div></div>`;
+  html+=`<h3 style="font-size:14px;">الإنفاق حسب الفئة</h3><table><tr><th>الفئة</th><th>المبلغ</th></tr>`;
+  Object.entries(byCat).sort((a,b)=>b[1]-a[1]).forEach(([id,amt])=>{ html+=`<tr><td>${escapeHtml(findCat(id).label)}</td><td>${fmt(amt)}</td></tr>`; });
+  html+=`</table><h3 style="font-size:14px; margin-top:16px;">كل حركات الشهر</h3><table><tr><th>التاريخ</th><th>الفئة</th><th>ملاحظة</th><th>المبلغ</th></tr>`;
+  rows.forEach(t=>{ html+=`<tr><td>${t.date}</td><td>${escapeHtml(findCat(t.category).label)}</td><td>${escapeHtml(t.note||'')}</td><td>${t.type==='income'?'+':'-'}${fmt(t.amount)}</td></tr>`; });
+  html+=`</table>`;
+  document.getElementById('printReport').innerHTML=html;
+}
+document.getElementById('exportPDFBtn').addEventListener('click', ()=>{
+  if(transactions.length===0){ showToast('لا توجد بيانات لتصديرها'); return; }
+  buildPrintReport();
+  setTimeout(()=>window.print(), 50);
+});
+
 function renderCatManage(){
   const el=document.getElementById('catManageList');
   el.innerHTML = categories.map(c=>`
@@ -871,7 +1111,7 @@ document.getElementById('addCatBtn').addEventListener('click', ()=>{
 /* ---------- backup ---------- */
 document.getElementById('exportBtn').addEventListener('click', ()=>{
   if(transactions.length===0){ showToast('لا توجد بيانات لتصديرها'); return; }
-  const payload={app:'daftari', version:2, exportedAt:new Date().toISOString(), transactions, categories, settings};
+  const payload={app:'daftari', version:3, exportedAt:new Date().toISOString(), transactions, categories, settings, recurring};
   const blob=new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='daftari-backup-'+new Date().toISOString().slice(0,10)+'.json';
@@ -891,11 +1131,16 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
       if(replace){
         transactions=incoming;
         if(parsed.categories) categories=parsed.categories;
+        if(Array.isArray(parsed.recurring)) recurring=parsed.recurring;
       }else{
         const ids=new Set(transactions.map(t=>t.id));
         incoming.forEach(t=>{ if(!ids.has(t.id)) transactions.push(t); });
+        if(Array.isArray(parsed.recurring)){
+          const rids=new Set(recurring.map(r=>r.id));
+          parsed.recurring.forEach(r=>{ if(!rids.has(r.id)) recurring.push(r); });
+        }
       }
-      saveTx(); saveCats();
+      saveTx(); saveCats(); saveRecurring();
       showToast('تم استيراد النسخة الاحتياطية ✓');
       switchTab('tabHome');
     }catch(err){ showToast('ملف النسخة الاحتياطية غير صالح'); }
@@ -905,8 +1150,8 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
 });
 document.getElementById('clearAllBtn').addEventListener('click', ()=>{
   if(transactions.length===0) return;
-  if(confirm('سيتم حذف كل الحركات نهائيًا من هذا الجهاز. ننصح بأخذ نسخة احتياطية أولاً. متابعة؟')){
-    transactions=[]; saveTx(); switchTab('tabHome');
+  if(confirm('سيتم حذف كل الحركات والمعاملات المتكررة نهائيًا من هذا الجهاز. ننصح بأخذ نسخة احتياطية أولاً. متابعة؟')){
+    transactions=[]; recurring=[]; saveTx(); saveRecurring(); switchTab('tabHome');
   }
 });
 
@@ -1050,6 +1295,8 @@ document.getElementById('forgotBtn').addEventListener('click', async ()=>{
 async function init(){
   try{
     await load();
+    processRecurring();
+    maybeNotifyDueRecurring();
     applyTheme();
     document.getElementById('dateInput').value=new Date().toISOString().slice(0,10);
     renderCatGrid();
