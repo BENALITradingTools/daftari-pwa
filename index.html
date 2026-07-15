@@ -871,7 +871,12 @@ window.addEventListener('error', function(e){
 });
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('./sw.js').catch(e=>console.error('sw register failed:', e));
+    fetch('./sw.js', {method:'HEAD'}).then(res=>{
+      if(res.ok){
+        navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('sw register failed:', e));
+      }
+      // else: no sw.js on this host (e.g. a preview) — skip silently, app works fine without it.
+    }).catch(()=>{ /* no network / sw.js not reachable — skip silently */ });
   });
 }
 init();
