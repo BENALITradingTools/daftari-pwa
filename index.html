@@ -102,6 +102,15 @@
     border-radius:10px; padding:12px; font-family:'Tajawal'; font-size:14.5px; direction:rtl;
   }
   input[type="number"]{direction:ltr; text-align:right; font-size:20px; font-weight:700;}
+  input[type="date"]{
+    direction:ltr; text-align:right; font-size:14px;
+    -webkit-appearance:none; appearance:none;
+    min-width:0; max-width:100%; box-sizing:border-box;
+    color-scheme:dark;
+  }
+  body.light input[type="date"]{ color-scheme:light; }
+  input[type="date"]::-webkit-date-and-time-value{ text-align:right; margin:0; }
+  input[type="date"]::-webkit-calendar-picker-indicator{ margin-inline-start:6px; padding:0; }
   .type-toggle{display:flex; background:var(--card-2); border-radius:12px; padding:4px; margin-bottom:6px;}
   .type-toggle button{flex:1; border:none; background:none; color:var(--muted); padding:10px; border-radius:9px; font-family:'Tajawal'; font-weight:700; font-size:14px; cursor:pointer;}
   .type-toggle button.active[data-type="expense"]{background:var(--rust); color:#fff;}
@@ -168,6 +177,32 @@
   .toast{position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:var(--card-2); border:1px solid var(--line); color:var(--ink); padding:10px 18px; border-radius:99px; font-size:13px; z-index:60; opacity:0; transition:opacity .25s; white-space:nowrap;}
   .toast.show{opacity:1;}
 
+  /* budgets */
+  .budget-row{display:flex; align-items:center; gap:10px; padding:9px 2px; border-bottom:1px solid var(--line);}
+  .budget-row:last-child{border-bottom:none;}
+  .budget-row .ic{font-size:16px; width:22px; text-align:center; flex-shrink:0;}
+  .budget-row .lbl{flex:1; font-size:13.5px;}
+  .budget-row input{width:110px; padding:8px 10px; font-size:13px; direction:ltr; text-align:right; flex-shrink:0;}
+
+  .bud-prog-row{margin-bottom:12px;}
+  .bud-prog-row:last-child{margin-bottom:0;}
+  .bud-prog-top{display:flex; align-items:center; justify-content:space-between; font-size:12.5px; margin-bottom:5px;}
+  .bud-prog-top .name{display:flex; align-items:center; gap:6px;}
+  .bud-prog-top .amt{color:var(--muted); font-size:11px; direction:ltr;}
+  .bud-prog-track{height:8px; background:var(--line); border-radius:99px; overflow:hidden;}
+  .bud-prog-fill{height:100%; border-radius:99px; background:var(--sage);}
+  .bud-prog-fill.warn{background:var(--gold);}
+  .bud-prog-fill.over{background:var(--rust);}
+  .bud-prog-pct{font-size:10.5px; color:var(--muted); margin-top:3px; direction:ltr; text-align:left;}
+
+  .budget-alert-card{background:var(--card); border:1px solid var(--rust); border-radius:16px; padding:12px 14px; margin-top:14px;}
+  .budget-alert-card .title{font-size:12.5px; font-weight:700; color:var(--rust); margin-bottom:8px; display:flex; align-items:center; gap:6px;}
+  .budget-alert-item{display:flex; align-items:center; justify-content:space-between; font-size:12px; padding:5px 0;}
+  .budget-alert-item .name{display:flex; align-items:center; gap:6px; color:var(--ink);}
+  .budget-alert-item .stat{direction:ltr; font-size:11px; font-weight:700;}
+  .budget-alert-item .stat.over{color:var(--rust);}
+  .budget-alert-item .stat.warn{color:var(--gold);}
+
   .shortcut-banner{display:flex; align-items:center; gap:10px; background:var(--card-2); border:1px dashed var(--gold-dim); border-radius:14px; padding:11px 13px; margin-bottom:14px; font-size:12px; color:var(--muted); line-height:1.7;}
   .shortcut-banner .ic{font-size:20px; flex-shrink:0;}
   .shortcut-banner button{background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; padding:2px 4px; flex-shrink:0;}
@@ -201,6 +236,7 @@
         <div class="mini-stat"><div class="lbl">📅 مصروف هذا الشهر</div><div class="val" id="homeMonthExpense">0.00</div></div>
       </div>
     </div>
+    <div id="budgetAlerts"></div>
     <div class="section-title">آخر 6 أشهر</div>
     <div class="card-box"><div class="chart-box"><canvas id="homeChart"></canvas></div></div>
     <div class="section-title">آخر 5 عمليات</div>
@@ -244,6 +280,10 @@
   </main>
 
   <main id="tabReports">
+    <div class="section-title" id="budgetSectionTitle" style="display:none;">🎯 الميزانية الشهرية</div>
+    <div class="card-box" id="budgetProgressBox" style="display:none;">
+      <div id="budgetProgressRows"></div>
+    </div>
     <div class="section-title">الإنفاق حسب الفئة (هذا الشهر)</div>
     <div class="card-box">
       <div class="chart-box"><canvas id="chartCategory"></canvas></div>
@@ -268,6 +308,12 @@
         <div><div class="lab">الوضع الداكن</div></div>
         <div class="switch" id="darkSwitch"><div class="knob"></div></div>
       </div>
+    </div>
+
+    <div class="section-title">🎯 الميزانية الشهرية</div>
+    <div class="card-box">
+      <div class="info-note" style="margin-top:0; margin-bottom:10px;">حدّد سقفًا شهريًا لأي فئة مصروف تريد مراقبتها. اترك الحقل فارغًا أو صفرًا لإلغاء الميزانية عن تلك الفئة.</div>
+      <div id="budgetSettingsList"></div>
     </div>
 
     <div class="section-title">اختصار الشاشة الرئيسية</div>
@@ -332,7 +378,7 @@
 
 <script>
 const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1';
-let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', pinEnabled:false, pinHash:''};
+let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', pinEnabled:false, pinHash:'', budgets:{}};
 let editingId=null, currentType='expense', selectedCategory=null;
 let charts={};
 let pinMode='unlock', pinBuffer='', pinFirstEntry='';
@@ -506,6 +552,7 @@ function renderHome(){
     labels:months.map(m=>m.label),
     datasets:[{label:'صافي', data:netByMonth, backgroundColor:netByMonth.map(v=>v>=0?'#6fa287':'#c1594a'), borderRadius:6}]
   }, simpleOpts());
+  renderBudgetAlerts(ym);
 }
 function txRowHtml(t){
   const c=findCat(t.category);
@@ -620,6 +667,7 @@ function renderReports(){
   const monthExpenses=transactions.filter(t=>t.type==='expense'&&t.date.slice(0,7)===ym);
   const byCat={};
   monthExpenses.forEach(t=>{ byCat[t.category]=(byCat[t.category]||0)+t.amount; });
+  renderBudgetProgress(byCat);
   const entries=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
   const bdRows=document.getElementById('breakdownRows');
   if(entries.length===0){
@@ -671,6 +719,7 @@ function renderSettings(){
   csel.value=settings.currency;
   document.getElementById('pinSwitch').classList.toggle('on', settings.pinEnabled);
   renderCatManage();
+  renderBudgetSettings();
 }
 document.getElementById('currencySelect').addEventListener('change', (e)=>{
   settings.currency=e.target.value; saveSettings(); showToast('تم تغيير العملة');
@@ -679,6 +728,89 @@ document.getElementById('darkSwitch').addEventListener('click', ()=>{
   settings.theme = settings.theme==='dark' ? 'light' : 'dark';
   saveSettings(); applyTheme();
 });
+
+/* ---------- Budgets ---------- */
+function renderBudgetSettings(){
+  const el=document.getElementById('budgetSettingsList');
+  const expCats=catsByType('expense');
+  if(expCats.length===0){
+    el.innerHTML='<div class="empty" style="padding:12px;"><p>لا توجد فئات مصروف بعد</p></div>';
+    return;
+  }
+  el.innerHTML=expCats.map(c=>`
+    <div class="budget-row">
+      <span class="ic">${c.icon}</span>
+      <span class="lbl">${escapeHtml(c.label)}</span>
+      <input type="number" inputmode="decimal" min="0" step="1" class="budget-input" data-id="${c.id}"
+        placeholder="بدون حد" value="${settings.budgets && settings.budgets[c.id] ? settings.budgets[c.id] : ''}">
+    </div>`).join('');
+  el.querySelectorAll('.budget-input').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      if(!settings.budgets) settings.budgets={};
+      const v=parseFloat(inp.value);
+      if(!v || v<=0){ delete settings.budgets[inp.dataset.id]; inp.value=''; }
+      else{ settings.budgets[inp.dataset.id]=v; }
+      saveSettings();
+      showToast('تم حفظ الميزانية');
+    });
+  });
+}
+function budgetStatusClass(pct){
+  if(pct>=100) return 'over';
+  if(pct>=80) return 'warn';
+  return '';
+}
+function renderBudgetProgress(byCat){
+  const box=document.getElementById('budgetProgressBox');
+  const title=document.getElementById('budgetSectionTitle');
+  const rowsEl=document.getElementById('budgetProgressRows');
+  const budgets=settings.budgets||{};
+  const budgetedIds=Object.keys(budgets).filter(id=>budgets[id]>0);
+  if(budgetedIds.length===0){
+    box.style.display='none'; title.style.display='none';
+    return;
+  }
+  box.style.display='block'; title.style.display='block';
+  rowsEl.innerHTML=budgetedIds.map(id=>{
+    const c=findCat(id);
+    const spent=byCat[id]||0;
+    const budget=budgets[id];
+    const pct=Math.min(100, Math.round((spent/budget)*100));
+    const cls=budgetStatusClass(Math.round((spent/budget)*100));
+    return `<div class="bud-prog-row">
+      <div class="bud-prog-top">
+        <span class="name">${c.icon} ${escapeHtml(c.label)}</span>
+        <span class="amt">${fmt(spent)} / ${fmt(budget)}</span>
+      </div>
+      <div class="bud-prog-track"><div class="bud-prog-fill ${cls}" style="width:${pct}%"></div></div>
+      <div class="bud-prog-pct">${Math.round((spent/budget)*100)}%</div>
+    </div>`;
+  }).join('');
+}
+function renderBudgetAlerts(ym){
+  const el=document.getElementById('budgetAlerts');
+  const budgets=settings.budgets||{};
+  const budgetedIds=Object.keys(budgets).filter(id=>budgets[id]>0);
+  if(budgetedIds.length===0){ el.innerHTML=''; return; }
+  const monthExpenses=transactions.filter(t=>t.type==='expense'&&t.date.slice(0,7)===ym);
+  const byCat={};
+  monthExpenses.forEach(t=>{ byCat[t.category]=(byCat[t.category]||0)+t.amount; });
+  const alerts=budgetedIds.map(id=>{
+    const spent=byCat[id]||0; const budget=budgets[id];
+    const pct=Math.round((spent/budget)*100);
+    return {id, spent, budget, pct};
+  }).filter(a=>a.pct>=80).sort((a,b)=>b.pct-a.pct);
+  if(alerts.length===0){ el.innerHTML=''; return; }
+  el.innerHTML=`<div class="budget-alert-card">
+    <div class="title">⚠️ تنبيه ميزانية</div>
+    ${alerts.map(a=>{
+      const c=findCat(a.id);
+      const cls=a.pct>=100?'over':'warn';
+      const label=a.pct>=100?`تجاوزت بـ ${fmt(a.spent-a.budget)}`:`${a.pct}% من الحد`;
+      return `<div class="budget-alert-item"><span class="name">${c.icon} ${escapeHtml(c.label)}</span><span class="stat ${cls}">${label}</span></div>`;
+    }).join('')}
+  </div>`;
+}
 
 function renderCatManage(){
   const el=document.getElementById('catManageList');
@@ -701,7 +833,8 @@ function renderCatManage(){
   el.querySelectorAll('.cm-del').forEach(b=>b.addEventListener('click', ()=>{
     if(!confirm('حذف هذه الفئة؟ العمليات المسجّلة بها ستبقى لكن ستظهر كـ"أخرى".')) return;
     categories=categories.filter(c=>c.id!==b.dataset.id);
-    saveCats(); renderCatManage(); showToast('تم حذف الفئة');
+    if(settings.budgets && settings.budgets[b.dataset.id]) delete settings.budgets[b.dataset.id];
+    saveCats(); saveSettings(); renderCatManage(); renderBudgetSettings(); showToast('تم حذف الفئة');
   }));
 }
 document.getElementById('addCatBtn').addEventListener('click', ()=>{
@@ -713,6 +846,7 @@ document.getElementById('addCatBtn').addEventListener('click', ()=>{
   saveCats();
   document.getElementById('newCatLabel').value=''; document.getElementById('newCatIcon').value='';
   renderCatManage();
+  renderBudgetSettings();
   showToast('تمت إضافة الفئة ✓');
 });
 
