@@ -219,15 +219,41 @@
   .undo-toast button{background:var(--gold); color:#191308; border:none; border-radius:99px; padding:6px 14px; font-family:'Tajawal'; font-weight:700; font-size:12px; cursor:pointer;}
 
   #printReport{display:none;}
+  #printReport *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  #printReport .pr-head{display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #c9a24a; padding-bottom:10px; margin-bottom:14px;}
+  #printReport .pr-brand{font-size:20px; font-weight:900; color:#191308;}
+  #printReport .pr-brand span{color:#c9a24a;}
+  #printReport .pr-period{font-size:13px; color:#555; text-align:left;}
+  #printReport .pr-sub{font-size:11px; color:#888; margin-bottom:16px;}
+  #printReport .pr-cards{display:flex; gap:10px; margin:14px 0 18px;}
+  #printReport .pr-card{flex:1; border-radius:10px; padding:10px 12px; border:1px solid #e2ddd0;}
+  #printReport .pr-card.in{background:#eef6f1; border-color:#bfe0cd;}
+  #printReport .pr-card.out{background:#fbeeec; border-color:#eec4bc;}
+  #printReport .pr-card.net{background:#faf5e8; border-color:#e8d9ae;}
+  #printReport .pr-card .lbl{font-size:10.5px; color:#666; margin-bottom:3px;}
+  #printReport .pr-card .val{font-size:16px; font-weight:900; direction:ltr; text-align:right;}
+  #printReport .pr-card.in .val{color:#3f7a5f;}
+  #printReport .pr-card.out .val{color:#b04c3c;}
+  #printReport .pr-card.net .val{color:#a8791f;}
+  #printReport h3{font-size:13.5px; margin:20px 0 8px; padding-bottom:5px; border-bottom:1px solid #e2ddd0; color:#191308;}
+  #printReport .pr-cat-row{display:flex; align-items:center; gap:8px; font-size:11.5px; margin-bottom:7px;}
+  #printReport .pr-cat-row .nm{width:100px; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  #printReport .pr-cat-row .track{flex:1; height:7px; background:#eee; border-radius:99px; overflow:hidden;}
+  #printReport .pr-cat-row .fill{height:100%; background:#c9a24a; border-radius:99px;}
+  #printReport .pr-cat-row .amt{width:80px; text-align:left; direction:ltr; color:#555; flex-shrink:0;}
+  #printReport table{width:100%; border-collapse:collapse; font-size:10.5px; margin-top:8px;}
+  #printReport th{background:#f5f1e8; color:#555; font-weight:700; text-transform:uppercase; font-size:9.5px; letter-spacing:.03em;}
+  #printReport th, #printReport td{border-bottom:1px solid #eee; padding:6px 7px; text-align:right;}
+  #printReport tr:nth-child(even) td{background:#fbfaf7;}
+  #printReport td.amt-in{color:#3f7a5f; font-weight:700; direction:ltr; text-align:left;}
+  #printReport td.amt-out{color:#b04c3c; font-weight:700; direction:ltr; text-align:left;}
+  #printReport td.rc-col{width:34px; text-align:center;}
+  #printReport td.rc-col img{width:26px; height:26px; object-fit:cover; border-radius:5px; border:1px solid #ddd;}
+  #printReport .pr-foot{margin-top:18px; font-size:9.5px; color:#999; text-align:center;}
   @media print{
     body *{visibility:hidden;}
     #printReport, #printReport *{visibility:visible;}
     #printReport{display:block; position:absolute; top:0; left:0; width:100%; padding:20px; color:#000; background:#fff;}
-    #printReport h2{font-size:18px; margin-bottom:4px;}
-    #printReport .pr-sub{font-size:12px; color:#555; margin-bottom:16px;}
-    #printReport table{width:100%; border-collapse:collapse; font-size:12px; margin-top:10px;}
-    #printReport th, #printReport td{border:1px solid #ccc; padding:6px 8px; text-align:right;}
-    #printReport .pr-totals{display:flex; gap:20px; margin:14px 0; font-size:13px;}
   }
   .budget-alert-item .name{display:flex; align-items:center; gap:6px; color:var(--ink);}
   .budget-alert-item .stat{direction:ltr; font-size:11px; font-weight:700;}
@@ -263,8 +289,8 @@
   .receipt-preview{position:relative; width:52px; height:52px; border-radius:10px; overflow:hidden; flex-shrink:0; border:1px solid var(--line);}
   .receipt-preview img{width:100%; height:100%; object-fit:cover; cursor:pointer;}
   .receipt-preview .rm{position:absolute; top:0; left:0; background:rgba(0,0,0,0.55); color:#fff; border:none; width:18px; height:18px; font-size:10px; line-height:18px; cursor:pointer; border-radius:0 0 6px 0;}
-  .tx .receipt-badge{font-size:11px; margin-inline-start:4px; cursor:pointer;}
   .tx .wal-badge{font-size:9.5px; color:var(--muted); background:var(--card-2); border-radius:6px; padding:1px 6px; margin-inline-start:5px;}
+  .tx .receipt-thumb{display:block; width:40px; height:40px; object-fit:cover; border-radius:8px; border:1px solid var(--line); margin:5px 0; cursor:pointer;}
 
   /* ---- receipt lightbox ---- */
   .lightbox{position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:90; display:none; align-items:center; justify-content:center; padding:24px;}
@@ -341,13 +367,18 @@
     <label data-i18n="amountLabel">المبلغ</label>
     <input type="number" id="amountInput" placeholder="0.00" inputmode="decimal">
 
+    <label data-i18n="categoryLabel">الفئة</label>
+    <div class="cat-grid" id="catGrid"></div>
+    <button type="button" class="cancel-link" id="catGridToggle" style="display:none; margin-top:8px;"></button>
+
+    <div id="billTypeRow" style="display:none;">
+      <label data-i18n="billTypeLabel">نوع الفاتورة</label>
+      <div class="cat-grid" id="billTypeGrid"></div>
+    </div>
+
     <button type="button" class="more-toggle-btn" id="addMoreToggle" data-i18n="showMore">عرض المزيد ▾</button>
 
     <div id="addMoreSection">
-      <label data-i18n="categoryLabel">الفئة</label>
-      <div class="cat-grid" id="catGrid"></div>
-      <button type="button" class="cancel-link" id="catGridToggle" style="display:none; margin-top:8px;"></button>
-
       <label data-i18n="walletLabel">المحفظة</label>
       <select id="walletSelect"></select>
 
@@ -565,6 +596,14 @@ const DEFAULT_CATS=[
 const DEFAULT_WALLETS=[
   {id:'default', label:'المحفظة الرئيسية', label_en:'Main Wallet', icon:'👛'}
 ];
+const BILL_TYPES=[
+  {id:'internet', label:'إنترنت', label_en:'Internet', icon:'🌐'},
+  {id:'phone', label:'تلفون', label_en:'Phone', icon:'📱'},
+  {id:'electricity', label:'كهرباء', label_en:'Electricity', icon:'💡'},
+  {id:'water', label:'ماء', label_en:'Water', icon:'💧'},
+  {id:'bill_other', label:'أخرى', label_en:'Other', icon:'📦'}
+];
+function findBillType(id){ return BILL_TYPES.find(b=>b.id===id) || null; }
 const CURRENCIES={DZD:'د.ج',SAR:'ر.س',USD:'$',EUR:'€',AED:'د.إ',EGP:'ج.م',KWD:'د.ك',QAR:'ر.ق',OMR:'ر.ع',BHD:'د.ب',MAD:'د.م',JOD:'د.أ',GBP:'£'};
 const MONTHS_AR=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 const MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -579,7 +618,7 @@ const I18N={
     emptyHomeTitle:'دفترك فارغ الآن', emptyHomeSub:'اضغط "إضافة" لتسجّل أول حركة',
     allWallets:'كل المحافظ',
     expense:'مصروف', income:'دخل',
-    amountLabel:'المبلغ', categoryLabel:'الفئة', dateLabel:'التاريخ', noteLabel:'ملاحظة (اختياري)', notePh:'مثال: غداء مع الأصدقاء',
+    amountLabel:'المبلغ', categoryLabel:'الفئة', billTypeLabel:'نوع الفاتورة', dateLabel:'التاريخ', noteLabel:'ملاحظة (اختياري)', notePh:'مثال: غداء مع الأصدقاء',
     walletLabel:'المحفظة', receiptLabel:'إيصال (اختياري)', receiptHint:'📎 أرفق صورة الإيصال',
     showMore:'عرض المزيد ▾', showLess:'عرض أقل ▴',
     recurTitle:'🔁 تكرار هذه الحركة تلقائيًا', recurSub:'مفيد للإيجار، الاشتراكات، الراتب...',
@@ -622,7 +661,7 @@ const I18N={
     confirmClearAll:'سيتم حذف كل الحركات والمعاملات المتكررة نهائيًا من هذا الجهاز. ننصح بأخذ نسخة احتياطية أولاً. متابعة؟',
     confirmDeleteWallet:'حذف هذه المحفظة؟ ستُنقل عملياتها إلى المحفظة الرئيسية المتبقية.', confirmForgotPin:'لا توجد وسيلة لاستعادة الرمز المنسي. المتابعة ستوقف قفل الرمز فقط (بياناتك المالية تبقى محفوظة كما هي). هل تريد المتابعة؟',
     printTitle:'دفتري — تقرير', printGenerated:'تم إنشاؤه بتاريخ', printIncome:'إجمالي الدخل', printExpense:'إجمالي المصروف', printNet:'الصافي',
-    printByCat:'الإنفاق حسب الفئة', printAllTx:'كل حركات الشهر', printDate:'التاريخ', printCat:'الفئة', printNote:'ملاحظة', printAmount:'المبلغ',
+    printByCat:'الإنفاق حسب الفئة', printAllTx:'كل حركات الشهر', printDate:'التاريخ', printCat:'الفئة', printNote:'ملاحظة', printAmount:'المبلغ', printWalletCol:'المحفظة', printReceiptCol:'🧾',
     otherCat:'أخرى'
   },
   en:{
@@ -633,7 +672,7 @@ const I18N={
     emptyHomeTitle:'Your ledger is empty', emptyHomeSub:'Tap "Add" to record your first transaction',
     allWallets:'All Wallets',
     expense:'Expense', income:'Income',
-    amountLabel:'Amount', categoryLabel:'Category', dateLabel:'Date', noteLabel:'Note (optional)', notePh:'e.g. Lunch with friends',
+    amountLabel:'Amount', categoryLabel:'Category', billTypeLabel:'Bill Type', dateLabel:'Date', noteLabel:'Note (optional)', notePh:'e.g. Lunch with friends',
     walletLabel:'Wallet', receiptLabel:'Receipt (optional)', receiptHint:'📎 Attach receipt photo',
     showMore:'Show more ▾', showLess:'Show less ▴',
     recurTitle:'🔁 Repeat this transaction automatically', recurSub:'Useful for rent, subscriptions, salary...',
@@ -676,7 +715,7 @@ const I18N={
     confirmClearAll:'All transactions and recurring transactions on this device will be permanently deleted. We recommend taking a backup first. Continue?',
     confirmDeleteWallet:'Delete this wallet? Its transactions will move to the remaining main wallet.', confirmForgotPin:'There\'s no way to recover a forgotten code. Continuing will only disable the PIN lock (your financial data stays intact). Continue?',
     printTitle:'Daftari — Report', printGenerated:'Generated on', printIncome:'Total Income', printExpense:'Total Expense', printNet:'Net',
-    printByCat:'Spending by Category', printAllTx:'All transactions this month', printDate:'Date', printCat:'Category', printNote:'Note', printAmount:'Amount',
+    printByCat:'Spending by Category', printAllTx:'All transactions this month', printDate:'Date', printCat:'Category', printNote:'Note', printAmount:'Amount', printWalletCol:'Wallet', printReceiptCol:'🧾',
     otherCat:'Other'
   }
 };
@@ -790,6 +829,7 @@ document.querySelectorAll('.navbtn').forEach(b=>b.addEventListener('click', ()=>
 
 /* ---------- Add / Edit form ---------- */
 let catGridExpanded=false;
+let selectedBillType=null;
 const CAT_GRID_LIMIT=8;
 function renderCatGrid(){
   const grid=document.getElementById('catGrid');
@@ -811,16 +851,32 @@ function renderCatGrid(){
   }else{
     toggleBtn.style.display='none';
   }
+  renderBillTypeRow();
 }
 document.getElementById('catGridToggle').addEventListener('click', ()=>{
   catGridExpanded=!catGridExpanded;
   renderCatGrid();
 });
+function renderBillTypeRow(){
+  const row=document.getElementById('billTypeRow');
+  const grid=document.getElementById('billTypeGrid');
+  if(currentType!=='expense' || selectedCategory!=='bills'){
+    row.style.display='none';
+    return;
+  }
+  row.style.display='block';
+  if(!selectedBillType) selectedBillType=BILL_TYPES[0].id;
+  grid.innerHTML=BILL_TYPES.map(b=>`<div class="cat-chip ${b.id===selectedBillType?'sel':''}" data-id="${b.id}">
+    <span class="ic">${b.icon}</span><span class="lbl">${escapeHtml(trLabel(b))}</span></div>`).join('');
+  grid.querySelectorAll('.cat-chip').forEach(el=>{
+    el.addEventListener('click', ()=>{ selectedBillType=el.dataset.id; renderBillTypeRow(); });
+  });
+}
 document.querySelectorAll('.type-toggle button').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    currentType=btn.dataset.type; selectedCategory=null; catGridExpanded=false; renderCatGrid();
+    currentType=btn.dataset.type; selectedCategory=null; catGridExpanded=false; selectedBillType=null; renderCatGrid();
   });
 });
 function setMoreOpen(open){
@@ -891,7 +947,7 @@ function resetAddForm(){
   document.getElementById('amountInput').value='';
   document.getElementById('noteInput').value='';
   document.getElementById('dateInput').value=new Date().toISOString().slice(0,10);
-  currentType='expense'; selectedCategory=null; catGridExpanded=false;
+  currentType='expense'; selectedCategory=null; catGridExpanded=false; selectedBillType=null;
   document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.type==='expense'));
   renderCatGrid();
   populateWalletSelect();
@@ -910,6 +966,7 @@ function openEdit(tx){
   editingId=tx.id;
   currentType=tx.type;
   selectedCategory=tx.category;
+  selectedBillType=tx.billType || null;
   document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.type===tx.type));
   renderCatGrid();
   populateWalletSelect();
@@ -940,16 +997,17 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
   if(!amount || amount<=0){ showToast(t('toastInvalidAmount')); return; }
   if(!selectedCategory){ setMoreOpen(true); showToast(t('toastChooseCat')); return; }
   const receipt=pendingReceipt || null;
+  const billType = (currentType==='expense' && selectedCategory==='bills') ? selectedBillType : null;
   if(editingId){
     const idx=transactions.findIndex(t=>t.id===editingId);
-    if(idx>-1) transactions[idx]={...transactions[idx], type:currentType, category:selectedCategory, amount, note, date, wallet, receipt};
+    if(idx>-1) transactions[idx]={...transactions[idx], type:currentType, category:selectedCategory, amount, note, date, wallet, receipt, billType};
     showToast(t('toastUpdated'));
   }else{
-    transactions.push({id:Date.now().toString()+Math.random().toString(36).slice(2,6), type:currentType, category:selectedCategory, amount, note, date, wallet, receipt});
+    transactions.push({id:Date.now().toString()+Math.random().toString(36).slice(2,6), type:currentType, category:selectedCategory, amount, note, date, wallet, receipt, billType});
     const recurOn = document.getElementById('recurSwitch').classList.contains('on');
     if(recurOn){
       const freq = document.getElementById('recurFreqSelect').value;
-      recurring.push({id:'r_'+Date.now(), type:currentType, category:selectedCategory, amount, note, freq, lastDate:date, wallet});
+      recurring.push({id:'r_'+Date.now(), type:currentType, category:selectedCategory, amount, note, freq, lastDate:date, wallet, billType});
       saveRecurring();
       showToast(t('toastSavedRecur'));
     }else{
@@ -1028,11 +1086,14 @@ function txRowHtml(t){
   const c=findCat(t.category);
   const showWalBadge = wallets.length>1 && walletFilter==='all';
   const walBadge = showWalBadge ? `<span class="wal-badge">${findWallet(t.wallet).icon||'👛'} ${escapeHtml(trLabel(findWallet(t.wallet)))}</span>` : '';
-  const receiptBadge = t.receipt ? `<span class="receipt-badge rc-view" data-id="${t.id}">🧾</span>` : '';
+  const bt = t.billType ? findBillType(t.billType) : null;
+  const billBadge = bt ? `<span class="wal-badge">${bt.icon} ${escapeHtml(trLabel(bt))}</span>` : '';
+  const receiptThumb = t.receipt ? `<img class="receipt-thumb rc-view" data-id="${t.id}" src="${t.receipt}" alt="receipt">` : '';
   return `<div class="tx">
     <div class="ic">${c.icon}</div>
     <div class="info">
-      <div class="cat">${escapeHtml(trLabel(c))}${receiptBadge}</div>
+      <div class="cat">${escapeHtml(trLabel(c))}${billBadge}</div>
+      ${receiptThumb}
       ${t.note?`<div class="note">${escapeHtml(t.note)}</div>`:''}
       <div class="date">${t.date}${walBadge}</div>
     </div>
@@ -1414,7 +1475,7 @@ function processRecurring(){
   recurring.forEach(r=>{
     let guard=0, next=nextDate(r.lastDate, r.freq);
     while(next<=today && guard<36){
-      transactions.push({id:'rt_'+r.id+'_'+next, type:r.type, category:r.category, amount:r.amount, note:r.note, date:next, wallet:r.wallet||wallets[0].id});
+      transactions.push({id:'rt_'+r.id+'_'+next, type:r.type, category:r.category, amount:r.amount, note:r.note, date:next, wallet:r.wallet||wallets[0].id, billType:r.billType||null});
       r.lastDate=next; changedTx=true; changedRec=true;
       next=nextDate(r.lastDate, r.freq); guard++;
     }
@@ -1465,15 +1526,49 @@ function buildPrintReport(){
   const totalOut=monthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
   const byCat={};
   monthTx.filter(t=>t.type==='expense').forEach(t=>{ byCat[t.category]=(byCat[t.category]||0)+t.amount; });
+  const catEntries=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const maxCat=catEntries.length? catEntries[0][1] : 0;
   const rows=[...monthTx].sort((a,b)=>a.date.localeCompare(b.date));
   const monthLabel=months()[now.getMonth()]+' '+now.getFullYear();
-  let html=`<h2>${t('printTitle')} ${monthLabel}</h2><div class="pr-sub">${t('printGenerated')} ${new Date().toLocaleDateString(locale(),{numberingSystem:'latn'})}</div>`;
-  html+=`<div class="pr-totals"><div>${t('printIncome')}: ${fmt(totalIn)}</div><div>${t('printExpense')}: ${fmt(totalOut)}</div><div>${t('printNet')}: ${fmt(totalIn-totalOut)}</div></div>`;
-  html+=`<h3 style="font-size:14px;">${t('printByCat')}</h3><table><tr><th>${t('printCat')}</th><th>${t('printAmount')}</th></tr>`;
-  Object.entries(byCat).sort((a,b)=>b[1]-a[1]).forEach(([id,amt])=>{ html+=`<tr><td>${escapeHtml(trLabel(findCat(id)))}</td><td>${fmt(amt)}</td></tr>`; });
-  html+=`</table><h3 style="font-size:14px; margin-top:16px;">${t('printAllTx')}</h3><table><tr><th>${t('printDate')}</th><th>${t('printCat')}</th><th>${t('printNote')}</th><th>${t('printAmount')}</th></tr>`;
-  rows.forEach(t2=>{ html+=`<tr><td>${t2.date}</td><td>${escapeHtml(trLabel(findCat(t2.category)))}</td><td>${escapeHtml(t2.note||'')}</td><td>${t2.type==='income'?'+':'-'}${fmt(t2.amount)}</td></tr>`; });
+  const walLabel = walletFilter==='all' ? t('allWallets') : trLabel(findWallet(walletFilter));
+  const showWalCol = walletFilter==='all' && wallets.length>1;
+
+  let html=`<div class="pr-head">
+    <div class="pr-brand">دفت<span>ري</span> — ${t('printTitle')}</div>
+    <div class="pr-period">${monthLabel}<br><span style="font-size:11px;">${t('printWalletCol')}: ${escapeHtml(walLabel)}</span></div>
+  </div>`;
+  html+=`<div class="pr-sub">${t('printGenerated')} ${new Date().toLocaleDateString(locale(),{numberingSystem:'latn'})}</div>`;
+
+  html+=`<div class="pr-cards">
+    <div class="pr-card in"><div class="lbl">${t('printIncome')}</div><div class="val">${fmt(totalIn)}</div></div>
+    <div class="pr-card out"><div class="lbl">${t('printExpense')}</div><div class="val">${fmt(totalOut)}</div></div>
+    <div class="pr-card net"><div class="lbl">${t('printNet')}</div><div class="val">${fmt(totalIn-totalOut)}</div></div>
+  </div>`;
+
+  html+=`<h3>${t('printByCat')}</h3>`;
+  if(catEntries.length===0){
+    html+=`<div style="font-size:11.5px; color:#888;">${escapeHtml(t('noExpenseMonth'))}</div>`;
+  }else{
+    catEntries.forEach(([id,amt])=>{
+      const c=findCat(id); const pct=Math.max(4, Math.round((amt/maxCat)*100));
+      html+=`<div class="pr-cat-row"><span class="nm">${c.icon} ${escapeHtml(trLabel(c))}</span><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="amt">${fmt(amt)}</span></div>`;
+    });
+  }
+
+  html+=`<h3>${t('printAllTx')}</h3><table><tr><th>${t('printDate')}</th><th>${t('printCat')}</th>${showWalCol?`<th>${t('printWalletCol')}</th>`:''}<th>${t('printNote')}</th><th class="rc-col">${t('printReceiptCol')}</th><th>${t('printAmount')}</th></tr>`;
+  if(rows.length===0){
+    html+=`<tr><td colspan="${showWalCol?6:5}" style="text-align:center; color:#999;">${escapeHtml(t('noMatch'))}</td></tr>`;
+  }
+  rows.forEach(t2=>{
+    const c=findCat(t2.category);
+    const bt = t2.billType ? findBillType(t2.billType) : null;
+    const catCell = bt ? `${c.icon} ${escapeHtml(trLabel(c))} — ${bt.icon} ${escapeHtml(trLabel(bt))}` : `${c.icon} ${escapeHtml(trLabel(c))}`;
+    const walCell = showWalCol ? `<td>${escapeHtml(trLabel(findWallet(t2.wallet)))}</td>` : '';
+    const rcCell = t2.receipt ? `<td class="rc-col"><img src="${t2.receipt}" alt=""></td>` : `<td class="rc-col"></td>`;
+    html+=`<tr><td>${t2.date}</td><td>${catCell}</td>${walCell}<td>${escapeHtml(t2.note||'')}</td>${rcCell}<td class="${t2.type==='income'?'amt-in':'amt-out'}">${t2.type==='income'?'+':'-'}${fmt(t2.amount)}</td></tr>`;
+  });
   html+=`</table>`;
+  html+=`<div class="pr-foot">دفتري — ${escapeHtml(t('tagline'))}</div>`;
   document.getElementById('printReport').innerHTML=html;
 }
 document.getElementById('exportPDFBtn').addEventListener('click', ()=>{
