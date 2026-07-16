@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daftari-cache-v5';
+const CACHE_NAME = 'daftari-cache-v6';
 const APP_SHELL = [
   './',
   './index.html',

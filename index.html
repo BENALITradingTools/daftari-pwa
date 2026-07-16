@@ -237,6 +237,57 @@
   .shortcut-banner{display:flex; align-items:center; gap:10px; background:var(--card-2); border:1px dashed var(--gold-dim); border-radius:14px; padding:11px 13px; margin-bottom:14px; font-size:12px; color:var(--muted); line-height:1.7;}
   .shortcut-banner .ic{font-size:20px; flex-shrink:0;}
   .shortcut-banner button{background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; padding:2px 4px; flex-shrink:0;}
+
+  /* ---- language / RTL-LTR ---- */
+  body.lang-en{ }
+  body.lang-en .balance-value{ text-align:left; }
+  body.lang-en input[type="text"]{ direction:ltr; text-align:left; }
+  body.lang-en .bd-row .name{ width:auto; max-width:110px; }
+  body.lang-en label{ text-align:left; }
+  html[dir="ltr"] .pin-forgot{ direction:ltr; }
+
+  /* ---- wallet chips (Home / account switcher) ---- */
+  .wallet-chips{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:12px; -webkit-overflow-scrolling:touch;}
+  .wallet-chips::-webkit-scrollbar{display:none;}
+  .wallet-chip{flex-shrink:0; background:var(--card); border:1.5px solid var(--line); color:var(--muted); border-radius:99px; padding:8px 14px; font-family:'Tajawal'; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:5px;}
+  .wallet-chip.sel{border-color:var(--gold); color:var(--gold); background:rgba(201,162,74,0.12);}
+
+  /* ---- add-form collapsible "more" section ---- */
+  .more-toggle-btn{width:100%; background:var(--card-2); border:1px solid var(--line); color:var(--ink); padding:11px; border-radius:12px; font-family:'Tajawal'; font-weight:700; font-size:13px; margin-top:14px; cursor:pointer;}
+  #addMoreSection{display:none;}
+  #addMoreSection.open{display:block;}
+
+  /* ---- receipt upload ---- */
+  .receipt-row{display:flex; align-items:center; gap:10px; margin-top:6px;}
+  .receipt-btn{flex:1; background:var(--card-2); border:1px dashed var(--gold-dim); color:var(--muted); padding:12px; border-radius:10px; font-family:'Tajawal'; font-size:13px; cursor:pointer; text-align:center;}
+  .receipt-preview{position:relative; width:52px; height:52px; border-radius:10px; overflow:hidden; flex-shrink:0; border:1px solid var(--line);}
+  .receipt-preview img{width:100%; height:100%; object-fit:cover; cursor:pointer;}
+  .receipt-preview .rm{position:absolute; top:0; left:0; background:rgba(0,0,0,0.55); color:#fff; border:none; width:18px; height:18px; font-size:10px; line-height:18px; cursor:pointer; border-radius:0 0 6px 0;}
+  .tx .receipt-badge{font-size:11px; margin-inline-start:4px; cursor:pointer;}
+  .tx .wal-badge{font-size:9.5px; color:var(--muted); background:var(--card-2); border-radius:6px; padding:1px 6px; margin-inline-start:5px;}
+
+  /* ---- receipt lightbox ---- */
+  .lightbox{position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:90; display:none; align-items:center; justify-content:center; padding:24px;}
+  .lightbox.open{display:flex;}
+  .lightbox img{max-width:100%; max-height:100%; border-radius:10px;}
+  .lightbox .lb-close{position:absolute; top:calc(16px + env(safe-area-inset-top)); left:16px; background:rgba(255,255,255,0.15); color:#fff; border:none; width:36px; height:36px; border-radius:50%; font-size:16px; cursor:pointer;}
+
+  /* ---- wallet management (settings) ---- */
+  .wallet-manage-row{display:flex; align-items:center; gap:10px; padding:9px 2px; border-bottom:1px solid var(--line); font-size:13.5px;}
+  .wallet-manage-row:last-child{border-bottom:none;}
+  .wallet-manage-row .ic{font-size:16px; width:22px; text-align:center;}
+  .wallet-manage-row .lbl{flex:1;}
+  .wallet-manage-row .bal{font-size:11px; color:var(--muted); direction:ltr;}
+  .wallet-manage-row button{background:none; border:none; color:var(--muted); font-size:14px; cursor:pointer; padding:4px;}
+  .add-wallet-form{display:flex; gap:6px; margin-top:12px;}
+  .add-wallet-form input{flex:1;}
+  .add-wallet-form input.icon-in{max-width:54px; text-align:center;}
+  .add-wallet-form button{background:var(--gold); border:none; color:#191308; border-radius:10px; padding:0 14px; font-weight:900; cursor:pointer;}
+
+  /* ---- language switch pill (settings) ---- */
+  .lang-pill{display:flex; background:var(--card-2); border-radius:99px; padding:3px; gap:2px;}
+  .lang-pill button{border:none; background:none; color:var(--muted); font-family:'Tajawal'; font-size:12px; font-weight:700; padding:6px 12px; border-radius:99px; cursor:pointer;}
+  .lang-pill button.active{background:var(--gold); color:#191308;}
 </style>
 </head>
 <body>
@@ -246,232 +297,409 @@
   <div class="pin-dots" id="pinDots"></div>
   <div class="pin-err" id="pinErr"></div>
   <div class="pin-pad" id="pinPad"></div>
-  <button class="pin-forgot" id="forgotBtn">نسيت الرمز؟</button>
+  <button class="pin-forgot" id="forgotBtn" data-i18n="forgotPin">نسيت الرمز؟</button>
 </div>
 
 <div class="wrap" id="appRoot">
   <header>
     <div>
       <h1>دفت<span>ري</span></h1>
-      <p>دفتر مصاريفك الشخصي — محفوظ على هذا الجهاز، ويعمل بدون إنترنت</p>
+      <p data-i18n="tagline">دفتر مصاريفك الشخصي — محفوظ على هذا الجهاز، ويعمل بدون إنترنت</p>
     </div>
   </header>
 
   <main id="tabHome" class="active">
+    <div class="wallet-chips" id="walletChips"></div>
     <div class="ledger-cover">
-      <p class="balance-label">الرصيد الحالي</p>
+      <p class="balance-label" data-i18n="balanceLabel">الرصيد الحالي</p>
       <div class="balance-value" id="homeBalance">0.00</div>
       <div class="mini-stats">
-        <div class="mini-stat"><div class="lbl"><span class="dot in"></span> إجمالي الدخل</div><div class="val" id="homeIncome">0.00</div></div>
-        <div class="mini-stat"><div class="lbl"><span class="dot out"></span> إجمالي المصروفات</div><div class="val" id="homeExpense">0.00</div></div>
-        <div class="mini-stat"><div class="lbl">📅 مصروف هذا الشهر</div><div class="val" id="homeMonthExpense">0.00</div></div>
+        <div class="mini-stat"><div class="lbl"><span class="dot in"></span> <span data-i18n="totalIncome">إجمالي الدخل</span></div><div class="val" id="homeIncome">0.00</div></div>
+        <div class="mini-stat"><div class="lbl"><span class="dot out"></span> <span data-i18n="totalExpense">إجمالي المصروفات</span></div><div class="val" id="homeExpense">0.00</div></div>
+        <div class="mini-stat"><div class="lbl" data-i18n="monthExpense">📅 مصروف هذا الشهر</div><div class="val" id="homeMonthExpense">0.00</div></div>
       </div>
     </div>
     <div id="budgetAlerts"></div>
     <div id="upcomingRecurring"></div>
-    <div class="section-title">آخر 6 أشهر</div>
+    <div class="section-title" data-i18n="last6months">آخر 6 أشهر</div>
     <div class="card-box"><div class="chart-box"><canvas id="homeChart"></canvas></div></div>
-    <div class="section-title">آخر 5 عمليات</div>
+    <div class="section-title" data-i18n="last5tx">آخر 5 عمليات</div>
     <div id="homeRecent"></div>
   </main>
 
   <main id="tabAdd">
     <div class="shortcut-banner" id="shortcutBanner" style="display:none;">
       <span class="ic">📲</span>
-      <span style="flex:1;">أضف اختصارًا على الشاشة الرئيسية يفتح هذه الصفحة مباشرة لتسجيل عملية دفع بضغطة واحدة. اضغط على ⋯ بالأسفل لمعرفة الطريقة.</span>
+      <span style="flex:1;" data-i18n="shortcutBannerText">أضف اختصارًا على الشاشة الرئيسية يفتح هذه الصفحة مباشرة لتسجيل عملية دفع بضغطة واحدة. اضغط على ⋯ بالأسفل لمعرفة الطريقة.</span>
       <button id="shortcutInfoBtn">ℹ️</button>
       <button id="shortcutDismissBtn">✕</button>
     </div>
     <div class="type-toggle">
-      <button data-type="expense" class="active">مصروف</button>
-      <button data-type="income">دخل</button>
+      <button data-type="expense" class="active" data-i18n="expense">مصروف</button>
+      <button data-type="income" data-i18n="income">دخل</button>
     </div>
-    <label>المبلغ</label>
+    <label data-i18n="amountLabel">المبلغ</label>
     <input type="number" id="amountInput" placeholder="0.00" inputmode="decimal">
-    <label>الفئة</label>
-    <div class="cat-grid" id="catGrid"></div>
-    <button type="button" class="cancel-link" id="catGridToggle" style="display:none; margin-top:8px;"></button>
-    <label>التاريخ</label>
-    <input type="date" id="dateInput">
-    <label>ملاحظة (اختياري)</label>
-    <input type="text" id="noteInput" placeholder="مثال: غداء مع الأصدقاء">
-    <div class="recur-box" id="recurBox">
-      <div class="recur-row-toggle">
-        <div><div class="lab">🔁 تكرار هذه الحركة تلقائيًا</div><div class="sub">مفيد للإيجار، الاشتراكات، الراتب...</div></div>
-        <div class="switch" id="recurSwitch"><div class="knob"></div></div>
+
+    <button type="button" class="more-toggle-btn" id="addMoreToggle" data-i18n="showMore">عرض المزيد ▾</button>
+
+    <div id="addMoreSection">
+      <label data-i18n="categoryLabel">الفئة</label>
+      <div class="cat-grid" id="catGrid"></div>
+      <button type="button" class="cancel-link" id="catGridToggle" style="display:none; margin-top:8px;"></button>
+
+      <label data-i18n="walletLabel">المحفظة</label>
+      <select id="walletSelect"></select>
+
+      <label data-i18n="dateLabel">التاريخ</label>
+      <input type="date" id="dateInput">
+
+      <label data-i18n="noteLabel">ملاحظة (اختياري)</label>
+      <input type="text" id="noteInput" placeholder="مثال: غداء مع الأصدقاء" data-i18n-ph="notePh">
+
+      <label data-i18n="receiptLabel">إيصال (اختياري)</label>
+      <div class="receipt-row" id="receiptRow">
+        <button type="button" class="receipt-btn" id="receiptAddBtn" data-i18n="receiptHint">📎 أرفق صورة الإيصال</button>
+        <input type="file" id="receiptFile" accept="image/*" style="display:none;">
       </div>
-      <div class="recur-freq" id="recurFreqRow" style="display:none;">
-        <select id="recurFreqSelect" style="flex:1;">
-          <option value="monthly">كل شهر</option>
-          <option value="weekly">كل أسبوع</option>
-          <option value="yearly">كل سنة</option>
-        </select>
+
+      <div class="recur-box" id="recurBox">
+        <div class="recur-row-toggle">
+          <div><div class="lab" data-i18n="recurTitle">🔁 تكرار هذه الحركة تلقائيًا</div><div class="sub" data-i18n="recurSub">مفيد للإيجار، الاشتراكات، الراتب...</div></div>
+          <div class="switch" id="recurSwitch"><div class="knob"></div></div>
+        </div>
+        <div class="recur-freq" id="recurFreqRow" style="display:none;">
+          <select id="recurFreqSelect" style="flex:1;">
+            <option value="monthly" data-i18n="monthly">كل شهر</option>
+            <option value="weekly" data-i18n="weekly">كل أسبوع</option>
+            <option value="yearly" data-i18n="yearly">كل سنة</option>
+          </select>
+        </div>
       </div>
     </div>
-    <button class="save-btn" id="saveBtn">حفظ الحركة</button>
-    <button class="cancel-link" id="cancelEditBtn" style="display:none;">إلغاء التعديل</button>
+
+    <button class="save-btn" id="saveBtn" data-i18n="saveBtn">حفظ الحركة</button>
+    <button class="cancel-link" id="cancelEditBtn" style="display:none;" data-i18n="cancelEdit">إلغاء التعديل</button>
   </main>
 
   <main id="tabLog">
-    <input type="text" id="searchInput" placeholder="🔍 ابحث في الملاحظات أو الفئات">
+    <input type="text" id="searchInput" placeholder="🔍 ابحث في الملاحظات أو الفئات" data-i18n-ph="searchPh">
     <div class="filters">
       <select id="filterMonth"></select>
       <select id="filterType">
-        <option value="all">الكل</option>
-        <option value="income">دخل فقط</option>
-        <option value="expense">مصروف فقط</option>
+        <option value="all" data-i18n="allTypes">الكل</option>
+        <option value="income" data-i18n="incomeOnly">دخل فقط</option>
+        <option value="expense" data-i18n="expenseOnly">مصروف فقط</option>
       </select>
     </div>
     <div id="logList"></div>
   </main>
 
   <main id="tabReports">
-    <div class="section-title" id="budgetSectionTitle" style="display:none;">🎯 الميزانية الشهرية</div>
+    <div class="section-title" id="budgetSectionTitle" style="display:none;" data-i18n="budgetSection">🎯 الميزانية الشهرية</div>
     <div class="card-box" id="budgetProgressBox" style="display:none;">
       <div id="budgetProgressRows"></div>
     </div>
-    <div class="section-title">الإنفاق حسب الفئة (هذا الشهر)</div>
+    <div class="section-title" data-i18n="catByMonth">الإنفاق حسب الفئة (هذا الشهر)</div>
     <div class="card-box">
       <div class="chart-box"><canvas id="chartCategory"></canvas></div>
       <div id="breakdownRows" style="margin-top:12px;"></div>
     </div>
-    <div class="section-title">الدخل مقابل المصروف (الإجمالي)</div>
+    <div class="section-title" data-i18n="incomeVsExpense">الدخل مقابل المصروف (الإجمالي)</div>
     <div class="card-box"><div class="chart-box"><canvas id="chartIncomeExpense"></canvas></div></div>
-    <div class="section-title">مقارنة شهرية (آخر 6 أشهر)</div>
+    <div class="section-title" data-i18n="monthlyCompare">مقارنة شهرية (آخر 6 أشهر)</div>
     <div class="card-box"><div class="chart-box"><canvas id="chartMonthly"></canvas></div></div>
-    <div class="section-title">مقارنة سنوية</div>
+    <div class="section-title" data-i18n="yearlyCompare">مقارنة سنوية</div>
     <div class="card-box"><div class="chart-box"><canvas id="chartYearly"></canvas></div></div>
-    <button class="save-btn" id="exportPDFBtn" style="margin-top:16px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);">🖨️ تصدير تقرير الشهر الحالي PDF</button>
+    <button class="save-btn" id="exportPDFBtn" style="margin-top:16px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="exportPDF">🖨️ تصدير تقرير الشهر الحالي PDF</button>
   </main>
 
   <main id="tabSettings">
-    <div class="section-title">عام</div>
+    <div class="section-title" data-i18n="general">عام</div>
     <div class="card-box">
       <div class="set-row">
-        <div><div class="lab">العملة</div></div>
+        <div><div class="lab" data-i18n="currency">العملة</div></div>
         <select id="currencySelect" style="width:auto;"></select>
       </div>
       <div class="set-row">
-        <div><div class="lab">الوضع الداكن</div></div>
+        <div><div class="lab" data-i18n="darkMode">الوضع الداكن</div></div>
         <div class="switch" id="darkSwitch"><div class="knob"></div></div>
+      </div>
+      <div class="set-row">
+        <div><div class="lab" data-i18n="language">اللغة</div></div>
+        <div class="lang-pill" id="langPill">
+          <button data-lang="ar">العربية</button>
+          <button data-lang="en">English</button>
+        </div>
       </div>
     </div>
 
-    <div class="section-title">🎯 الميزانية الشهرية</div>
+    <div class="section-title" data-i18n="walletsSection">👛 المحافظ / الحسابات</div>
     <div class="card-box">
-      <div class="info-note" style="margin-top:0; margin-bottom:10px;">حدّد سقفًا شهريًا لأي فئة مصروف تريد مراقبتها. اترك الحقل فارغًا أو صفرًا لإلغاء الميزانية عن تلك الفئة.</div>
+      <div class="info-note" style="margin-top:0; margin-bottom:10px;" data-i18n="walletsHint">أضف محافظ أو حسابات متعددة (نقدي، بنك، توفير...) وتتبع رصيد كل واحدة على حدة.</div>
+      <div id="walletManageList"></div>
+      <div class="add-wallet-form">
+        <input type="text" id="newWalletIcon" class="icon-in" placeholder="👛" maxlength="2">
+        <input type="text" id="newWalletName" placeholder="اسم المحفظة الجديدة" data-i18n-ph="newWalletName">
+        <button id="addWalletBtn">+</button>
+      </div>
+    </div>
+
+    <div class="section-title" data-i18n="budgetSection">🎯 الميزانية الشهرية</div>
+    <div class="card-box">
+      <div class="info-note" style="margin-top:0; margin-bottom:10px;" data-i18n="budgetHint">حدّد سقفًا شهريًا لأي فئة مصروف تريد مراقبتها. اترك الحقل فارغًا أو صفرًا لإلغاء الميزانية عن تلك الفئة.</div>
       <div id="budgetSettingsList"></div>
     </div>
 
-    <div class="section-title">🔁 المعاملات المتكررة</div>
+    <div class="section-title" data-i18n="recurringSection">🔁 المعاملات المتكررة</div>
     <div class="card-box">
-      <div class="info-note" style="margin-top:0; margin-bottom:10px;">الحركات التي فعّلت لها التكرار من شاشة "إضافة" تظهر هنا. يتم إنشاء الحركة الجديدة تلقائيًا في كل مرة تفتح فيها التطبيق بعد حلول موعدها — لا حاجة لإنترنت أو خادم.</div>
+      <div class="info-note" style="margin-top:0; margin-bottom:10px;" data-i18n="recurringHint">الحركات التي فعّلت لها التكرار من شاشة "إضافة" تظهر هنا. يتم إنشاء الحركة الجديدة تلقائيًا في كل مرة تفتح فيها التطبيق بعد حلول موعدها — لا حاجة لإنترنت أو خادم.</div>
       <div id="recurManageList"></div>
     </div>
 
-    <div class="section-title">اختصار الشاشة الرئيسية</div>
+    <div class="section-title" data-i18n="shortcutSection">اختصار الشاشة الرئيسية</div>
     <div class="card-box">
       <div class="set-row">
-        <div><div class="lab">📲 اختصار "تسجيل دفعة"</div><div class="sub">أضف أيقونة ثانية على شاشتك الرئيسية تفتح التطبيق مباشرة على صفحة الإضافة</div></div>
+        <div><div class="lab" data-i18n="shortcutRow">📲 اختصار "تسجيل دفعة"</div><div class="sub" data-i18n="shortcutSub">أضف أيقونة ثانية على شاشتك الرئيسية تفتح التطبيق مباشرة على صفحة الإضافة</div></div>
       </div>
-      <button class="save-btn" id="howToShortcutBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);">كيف أضيف الاختصار؟</button>
+      <button class="save-btn" id="howToShortcutBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="howToShortcut">كيف أضيف الاختصار؟</button>
       <div class="info-note" id="shortcutHowTo" style="display:none;"></div>
     </div>
 
-    <div class="section-title">النسخ الاحتياطي</div>
+    <div class="section-title" data-i18n="backupSection">النسخ الاحتياطي</div>
     <div class="card-box">
-      <div class="set-row"><div class="lab">⬇️ تصدير نسخة احتياطية</div></div>
+      <div class="set-row"><div class="lab" data-i18n="exportBackup">⬇️ تصدير نسخة احتياطية</div></div>
       <div style="height:8px;"></div>
-      <button class="save-btn" id="exportBtn" style="margin-top:0;">تنزيل نسخة احتياطية</button>
-      <button class="save-btn" id="importBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);">استعادة من نسخة احتياطية</button>
+      <button class="save-btn" id="exportBtn" style="margin-top:0;" data-i18n="downloadBackup">تنزيل نسخة احتياطية</button>
+      <button class="save-btn" id="importBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="restoreBackup">استعادة من نسخة احتياطية</button>
       <input type="file" id="importFile" accept="application/json,.json" style="display:none;">
     </div>
 
-    <div class="section-title">🔔 الإشعارات</div>
+    <div class="section-title" data-i18n="notifSection">🔔 الإشعارات</div>
     <div class="card-box">
       <div class="set-row">
-        <div><div class="lab">تنبيه المعاملات المستحقة</div><div class="sub">إشعار من نظام التشغيل عند فتح التطبيق إن وُجدت معاملة متكررة مستحقة خلال يوم أو يومين</div></div>
+        <div><div class="lab" data-i18n="notifRow">تنبيه المعاملات المستحقة</div><div class="sub" data-i18n="notifSub">إشعار من نظام التشغيل عند فتح التطبيق إن وُجدت معاملة متكررة مستحقة خلال يوم أو يومين</div></div>
         <div class="switch" id="notifSwitch"><div class="knob"></div></div>
       </div>
-      <div class="info-note">ℹ️ إشعار محلي بالكامل ومجاني — لا خادم ولا حساب مطلوب. يعمل فقط عند فتح التطبيق (وليس وأنت خارجه تمامًا)، وهذا قيد تقني في كل تطبيقات الويب بدون خادم دفع (push server).</div>
+      <div class="info-note" data-i18n="notifInfo">ℹ️ إشعار محلي بالكامل ومجاني — لا خادم ولا حساب مطلوب. يعمل فقط عند فتح التطبيق (وليس وأنت خارجه تمامًا)، وهذا قيد تقني في كل تطبيقات الويب بدون خادم دفع (push server).</div>
     </div>
 
-    <div class="section-title">الأمان</div>
+    <div class="section-title" data-i18n="securitySection">الأمان</div>
     <div class="card-box">
       <div class="set-row">
-        <div><div class="lab">قفل بالرمز (PIN)</div><div class="sub">يحمي فتح التطبيق برمز من 4 أرقام</div></div>
+        <div><div class="lab" data-i18n="pinRow">قفل بالرمز (PIN)</div><div class="sub" data-i18n="pinSub">يحمي فتح التطبيق برمز من 4 أرقام</div></div>
         <div class="switch" id="pinSwitch"><div class="knob"></div></div>
       </div>
-      <div class="info-note">ℹ️ Face ID / Touch ID غير مدعوم بشكل موثوق لتطبيقات الويب مثل هذا. الرمز (PIN) يحمي الواجهة فقط، والبيانات نفسها غير مشفّرة داخل تخزين المتصفح.</div>
+      <div class="info-note" data-i18n="pinInfo">ℹ️ Face ID / Touch ID غير مدعوم بشكل موثوق لتطبيقات الويب مثل هذا. الرمز (PIN) يحمي الواجهة فقط، والبيانات نفسها غير مشفّرة داخل تخزين المتصفح.</div>
     </div>
 
-    <div class="section-title">الفئات</div>
+    <div class="section-title" data-i18n="categoriesSection">الفئات</div>
     <div class="card-box">
       <div id="catManageList"></div>
       <div class="add-cat-form">
         <input type="text" id="newCatIcon" class="icon-in" placeholder="🏷️" maxlength="2">
-        <input type="text" id="newCatLabel" placeholder="اسم الفئة الجديدة">
+        <input type="text" id="newCatLabel" placeholder="اسم الفئة الجديدة" data-i18n-ph="newCatPh">
         <select id="newCatType" style="width:auto;">
-          <option value="expense">مصروف</option>
-          <option value="income">دخل</option>
+          <option value="expense" data-i18n="expense">مصروف</option>
+          <option value="income" data-i18n="income">دخل</option>
         </select>
         <button id="addCatBtn">+</button>
       </div>
     </div>
 
-    <div class="section-title">حذف كل البيانات</div>
+    <div class="section-title" data-i18n="clearAllSection">حذف كل البيانات</div>
     <div class="card-box">
-      <button class="save-btn" id="clearAllBtn" style="background:var(--rust); color:#fff;">🗑️ مسح كل الحركات نهائيًا</button>
+      <button class="save-btn" id="clearAllBtn" style="background:var(--rust); color:#fff;" data-i18n="clearAllBtn">🗑️ مسح كل الحركات نهائيًا</button>
     </div>
 
-    <div class="info-note" style="margin-top:16px;">ℹ️ عن الـ Widget: تعذّر إضافة ودجت حقيقي على الشاشة الرئيسية لأن ذلك يتطلب تطبيق iOS أصلي (Swift/WidgetKit عبر Xcode) — تطبيقات الويب لا تدعم هذه الميزة على iOS إطلاقًا. لكن يمكنك إضافة اختصار أيقونة يفتح مباشرة على صفحة "تسجيل دفعة" (انظر أعلاه).</div>
+    <div class="info-note" style="margin-top:16px;" data-i18n="widgetInfo">ℹ️ عن الـ Widget: تعذّر إضافة ودجت حقيقي على الشاشة الرئيسية لأن ذلك يتطلب تطبيق iOS أصلي (Swift/WidgetKit عبر Xcode) — تطبيقات الويب لا تدعم هذه الميزة على iOS إطلاقًا. لكن يمكنك إضافة اختصار أيقونة يفتح مباشرة على صفحة "تسجيل دفعة" (انظر أعلاه).</div>
   </main>
 </div>
 
 <nav class="bottomnav">
-  <button class="navbtn active" data-tab="tabHome"><span class="ic">🏠</span>الرئيسية</button>
-  <button class="navbtn" data-tab="tabAdd"><span class="ic">➕</span>إضافة</button>
-  <button class="navbtn" data-tab="tabLog"><span class="ic">📋</span>السجل</button>
-  <button class="navbtn" data-tab="tabReports"><span class="ic">📊</span>التقارير</button>
-  <button class="navbtn" data-tab="tabSettings"><span class="ic">⚙️</span>الإعدادات</button>
+  <button class="navbtn active" data-tab="tabHome"><span class="ic">🏠</span><span data-i18n="navHome">الرئيسية</span></button>
+  <button class="navbtn" data-tab="tabAdd"><span class="ic">➕</span><span data-i18n="navAdd">إضافة</span></button>
+  <button class="navbtn" data-tab="tabLog"><span class="ic">📋</span><span data-i18n="navLog">السجل</span></button>
+  <button class="navbtn" data-tab="tabReports"><span class="ic">📊</span><span data-i18n="navReports">التقارير</span></button>
+  <button class="navbtn" data-tab="tabSettings"><span class="ic">⚙️</span><span data-i18n="navSettings">الإعدادات</span></button>
 </nav>
 
 <div class="toast" id="toast"></div>
 <div class="undo-toast" id="undoToast">
   <span id="undoMsg">تم حذف الحركة</span>
-  <button id="undoBtn">تراجع</button>
+  <button id="undoBtn" data-i18n="undoBtn">تراجع</button>
+</div>
+<div class="lightbox" id="receiptLightbox">
+  <button class="lb-close" id="receiptLightboxClose">✕</button>
+  <img id="receiptLightboxImg" src="" alt="receipt">
 </div>
 <div id="printReport"></div>
 
 <script>
-const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1', REC_KEY='daftari_recurring_v1';
-let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', pinEnabled:false, pinHash:'', budgets:{}, notifEnabled:false};
+const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1', REC_KEY='daftari_recurring_v1', WAL_KEY='daftari_wallets_v1';
+let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', lang:'ar', pinEnabled:false, pinHash:'', budgets:{}, notifEnabled:false};
 let recurring=[];
+let wallets=[];
 let editingId=null, currentType='expense', selectedCategory=null;
 let charts={};
 let pinMode='unlock', pinBuffer='', pinFirstEntry='';
 let unlockedThisSession=false;
 let lastDeleted=null, lastDeletedIndex=-1, undoTimer=null;
+let walletFilter='all';
+let pendingReceipt=null;
 
 const DEFAULT_CATS=[
-  {id:'food', label:'طعام', icon:'🍔', type:'expense'},
-  {id:'transport', label:'مواصلات', icon:'🚗', type:'expense'},
-  {id:'home', label:'منزل', icon:'🏠', type:'expense'},
-  {id:'bills', label:'فواتير', icon:'💡', type:'expense'},
-  {id:'shopping', label:'تسوق', icon:'🛍️', type:'expense'},
-  {id:'fun', label:'ترفيه', icon:'🎮', type:'expense'},
-  {id:'health', label:'صحة', icon:'💊', type:'expense'},
-  {id:'edu', label:'تعليم', icon:'📚', type:'expense'},
-  {id:'other_exp', label:'أخرى', icon:'📦', type:'expense'},
-  {id:'salary', label:'راتب', icon:'💼', type:'income'},
-  {id:'invest', label:'استثمار', icon:'📈', type:'income'},
-  {id:'other_inc', label:'أخرى', icon:'📦', type:'income'}
+  {id:'food', label:'طعام', label_en:'Food', icon:'🍔', type:'expense'},
+  {id:'transport', label:'مواصلات', label_en:'Transport', icon:'🚗', type:'expense'},
+  {id:'home', label:'منزل', label_en:'Home', icon:'🏠', type:'expense'},
+  {id:'bills', label:'فواتير', label_en:'Bills', icon:'💡', type:'expense'},
+  {id:'shopping', label:'تسوق', label_en:'Shopping', icon:'🛍️', type:'expense'},
+  {id:'fun', label:'ترفيه', label_en:'Fun', icon:'🎮', type:'expense'},
+  {id:'health', label:'صحة', label_en:'Health', icon:'💊', type:'expense'},
+  {id:'edu', label:'تعليم', label_en:'Education', icon:'📚', type:'expense'},
+  {id:'other_exp', label:'أخرى', label_en:'Other', icon:'📦', type:'expense'},
+  {id:'salary', label:'راتب', label_en:'Salary', icon:'💼', type:'income'},
+  {id:'invest', label:'استثمار', label_en:'Investment', icon:'📈', type:'income'},
+  {id:'other_inc', label:'أخرى', label_en:'Other', icon:'📦', type:'income'}
+];
+const DEFAULT_WALLETS=[
+  {id:'default', label:'المحفظة الرئيسية', label_en:'Main Wallet', icon:'👛'}
 ];
 const CURRENCIES={DZD:'د.ج',SAR:'ر.س',USD:'$',EUR:'€',AED:'د.إ',EGP:'ج.م',KWD:'د.ك',QAR:'ر.ق',OMR:'ر.ع',BHD:'د.ب',MAD:'د.م',JOD:'د.أ',GBP:'£'};
-const MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const MONTHS_AR=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-function findCat(id){ return categories.find(c=>c.id===id) || {label:'أخرى', icon:'📦'}; }
+/* ---------- i18n ---------- */
+const I18N={
+  ar:{
+    tagline:'دفتر مصاريفك الشخصي — محفوظ على هذا الجهاز، ويعمل بدون إنترنت',
+    navHome:'الرئيسية', navAdd:'إضافة', navLog:'السجل', navReports:'التقارير', navSettings:'الإعدادات',
+    balanceLabel:'الرصيد الحالي', totalIncome:'إجمالي الدخل', totalExpense:'إجمالي المصروفات', monthExpense:'📅 مصروف هذا الشهر',
+    last6months:'آخر 6 أشهر', last5tx:'آخر 5 عمليات',
+    emptyHomeTitle:'دفترك فارغ الآن', emptyHomeSub:'اضغط "إضافة" لتسجّل أول حركة',
+    allWallets:'كل المحافظ',
+    expense:'مصروف', income:'دخل',
+    amountLabel:'المبلغ', categoryLabel:'الفئة', dateLabel:'التاريخ', noteLabel:'ملاحظة (اختياري)', notePh:'مثال: غداء مع الأصدقاء',
+    walletLabel:'المحفظة', receiptLabel:'إيصال (اختياري)', receiptHint:'📎 أرفق صورة الإيصال',
+    showMore:'عرض المزيد ▾', showLess:'عرض أقل ▴',
+    recurTitle:'🔁 تكرار هذه الحركة تلقائيًا', recurSub:'مفيد للإيجار، الاشتراكات، الراتب...',
+    monthly:'كل شهر', weekly:'كل أسبوع', yearly:'كل سنة',
+    freqMonthly:'شهريًا', freqWeekly:'أسبوعيًا', freqYearly:'سنويًا',
+    saveBtn:'حفظ الحركة', updateBtn:'تحديث الحركة', cancelEdit:'إلغاء التعديل',
+    searchPh:'🔍 ابحث في الملاحظات أو الفئات', allMonths:'كل الشهور والسنوات', allTypes:'الكل', incomeOnly:'دخل فقط', expenseOnly:'مصروف فقط',
+    catByMonth:'الإنفاق حسب الفئة (هذا الشهر)', incomeVsExpense:'الدخل مقابل المصروف (الإجمالي)', monthlyCompare:'مقارنة شهرية (آخر 6 أشهر)', yearlyCompare:'مقارنة سنوية',
+    exportPDF:'🖨️ تصدير تقرير الشهر الحالي PDF',
+    general:'عام', currency:'العملة', darkMode:'الوضع الداكن', language:'اللغة',
+    walletsSection:'👛 المحافظ / الحسابات', walletsHint:'أضف محافظ أو حسابات متعددة (نقدي، بنك، توفير...) وتتبع رصيد كل واحدة على حدة.', newWalletName:'اسم المحفظة الجديدة',
+    budgetSection:'🎯 الميزانية الشهرية', budgetHint:'حدّد سقفًا شهريًا لأي فئة مصروف تريد مراقبتها. اترك الحقل فارغًا أو صفرًا لإلغاء الميزانية عن تلك الفئة.',
+    recurringSection:'🔁 المعاملات المتكررة', recurringHint:'الحركات التي فعّلت لها التكرار من شاشة "إضافة" تظهر هنا. يتم إنشاء الحركة الجديدة تلقائيًا في كل مرة تفتح فيها التطبيق بعد حلول موعدها — لا حاجة لإنترنت أو خادم.',
+    shortcutSection:'اختصار الشاشة الرئيسية', shortcutRow:'📲 اختصار "تسجيل دفعة"', shortcutSub:'أضف أيقونة ثانية على شاشتك الرئيسية تفتح التطبيق مباشرة على صفحة الإضافة',
+    shortcutBannerText:'أضف اختصارًا على الشاشة الرئيسية يفتح هذه الصفحة مباشرة لتسجيل عملية دفع بضغطة واحدة. اضغط على ⋯ بالأسفل لمعرفة الطريقة.',
+    howToShortcut:'كيف أضيف الاختصار؟',
+    backupSection:'النسخ الاحتياطي', exportBackup:'⬇️ تصدير نسخة احتياطية', downloadBackup:'تنزيل نسخة احتياطية', restoreBackup:'استعادة من نسخة احتياطية',
+    notifSection:'🔔 الإشعارات', notifRow:'تنبيه المعاملات المستحقة', notifSub:'إشعار من نظام التشغيل عند فتح التطبيق إن وُجدت معاملة متكررة مستحقة خلال يوم أو يومين',
+    notifInfo:'ℹ️ إشعار محلي بالكامل ومجاني — لا خادم ولا حساب مطلوب. يعمل فقط عند فتح التطبيق (وليس وأنت خارجه تمامًا)، وهذا قيد تقني في كل تطبيقات الويب بدون خادم دفع (push server).',
+    securitySection:'الأمان', pinRow:'قفل بالرمز (PIN)', pinSub:'يحمي فتح التطبيق برمز من 4 أرقام',
+    pinInfo:'ℹ️ Face ID / Touch ID غير مدعوم بشكل موثوق لتطبيقات الويب مثل هذا. الرمز (PIN) يحمي الواجهة فقط، والبيانات نفسها غير مشفّرة داخل تخزين المتصفح.',
+    categoriesSection:'الفئات', newCatPh:'اسم الفئة الجديدة',
+    clearAllSection:'حذف كل البيانات', clearAllBtn:'🗑️ مسح كل الحركات نهائيًا',
+    widgetInfo:'ℹ️ عن الـ Widget: تعذّر إضافة ودجت حقيقي على الشاشة الرئيسية لأن ذلك يتطلب تطبيق iOS أصلي (Swift/WidgetKit عبر Xcode) — تطبيقات الويب لا تدعم هذه الميزة على iOS إطلاقًا. لكن يمكنك إضافة اختصار أيقونة يفتح مباشرة على صفحة "تسجيل دفعة" (انظر أعلاه).',
+    forgotPin:'نسيت الرمز؟', undoBtn:'تراجع', undoDeleteMsg:'تم حذف الحركة',
+    lockUnlock:'🔒 أدخل رمز القفل', lockSetFirst:'🔒 أدخل رمزًا جديدًا (4 أرقام)', lockSetConfirm:'🔒 أعد إدخال الرمز للتأكيد', lockVerifyDisable:'🔒 أدخل الرمز الحالي لإيقاف القفل', pinErrWrong:'رمز غير صحيح', pinErrMismatch:'الرمزان غير متطابقين، ابدأ من جديد',
+    noMatch:'لا توجد عمليات مطابقة', noExpenseMonth:'لا توجد مصروفات هذا الشهر', noBudgetCats:'لا توجد فئات مصروف بعد', noRecurYet:'لا توجد معاملات متكررة بعد. فعّلها من شاشة "إضافة".',
+    today:'اليوم', yesterday:'أمس',
+    toastInvalidAmount:'أدخل مبلغًا صحيحًا', toastChooseCat:'اختر فئة', toastUpdated:'تم تحديث الحركة ✓', toastSavedRecur:'تم الحفظ، وسيتكرر تلقائيًا ✓', toastSaved:'تم الحفظ ✓',
+    toastCurrencyChanged:'تم تغيير العملة', toastNotifOn:'تم تفعيل الإشعارات ✓', toastNotifOff:'تم إيقاف الإشعارات', toastNotifDenied:'الإذن مرفوض من إعدادات المتصفح', toastNoNotifSupport:'متصفحك لا يدعم الإشعارات',
+    toastBudgetSaved:'تم حفظ الميزانية',
+    toastNoDataExport:'لا توجد بيانات لتصديرها', toastBackupCreated:'تم إنشاء النسخة الاحتياطية', toastBackupImported:'تم استيراد النسخة الاحتياطية ✓', toastBackupInvalid:'ملف النسخة الاحتياطية غير صالح',
+    toastCatUpdated:'تم تحديث الفئة', toastCatDeleted:'تم حذف الفئة', toastCatAdded:'تمت إضافة الفئة ✓', toastEnterCatName:'أدخل اسم الفئة',
+    toastWalletAdded:'تمت إضافة المحفظة ✓', toastEnterWalletName:'أدخل اسم المحفظة', toastWalletDeleted:'تم حذف المحفظة', toastWalletUpdated:'تم تحديث المحفظة', toastCantDeleteLastWallet:'يجب أن تبقى محفظة واحدة على الأقل',
+    toastPinOff:'تم إيقاف القفل', toastPinOn:'تم تفعيل قفل الرمز', toastPinDisabled:'تم إيقاف قفل الرمز',
+    toastRecurStopped:'تم إيقاف التكرار', toastUndoDone:'تم التراجع عن الحذف ✓', toastReceiptTooBig:'تعذّر معالجة الصورة',
+    confirmDeleteCat:'حذف هذه الفئة؟ العمليات المسجّلة بها ستبقى لكن ستظهر كـ"أخرى".',
+    confirmStopRecur:'إيقاف هذه المعاملة المتكررة؟ الحركات السابقة التي أُنشئت منها ستبقى محفوظة.',
+    confirmReplaceOrMerge:'اضغط "موافق" لاستبدال بياناتك الحالية بالكامل، أو "إلغاء" لدمجها مع بياناتك الحالية.',
+    confirmClearAll:'سيتم حذف كل الحركات والمعاملات المتكررة نهائيًا من هذا الجهاز. ننصح بأخذ نسخة احتياطية أولاً. متابعة؟',
+    confirmDeleteWallet:'حذف هذه المحفظة؟ ستُنقل عملياتها إلى المحفظة الرئيسية المتبقية.', confirmForgotPin:'لا توجد وسيلة لاستعادة الرمز المنسي. المتابعة ستوقف قفل الرمز فقط (بياناتك المالية تبقى محفوظة كما هي). هل تريد المتابعة؟',
+    printTitle:'دفتري — تقرير', printGenerated:'تم إنشاؤه بتاريخ', printIncome:'إجمالي الدخل', printExpense:'إجمالي المصروف', printNet:'الصافي',
+    printByCat:'الإنفاق حسب الفئة', printAllTx:'كل حركات الشهر', printDate:'التاريخ', printCat:'الفئة', printNote:'ملاحظة', printAmount:'المبلغ',
+    otherCat:'أخرى'
+  },
+  en:{
+    tagline:'Your personal expense book — stored on this device, works offline',
+    navHome:'Home', navAdd:'Add', navLog:'Log', navReports:'Reports', navSettings:'Settings',
+    balanceLabel:'Current Balance', totalIncome:'Total Income', totalExpense:'Total Expenses', monthExpense:'📅 This Month\'s Expenses',
+    last6months:'Last 6 Months', last5tx:'Last 5 Transactions',
+    emptyHomeTitle:'Your ledger is empty', emptyHomeSub:'Tap "Add" to record your first transaction',
+    allWallets:'All Wallets',
+    expense:'Expense', income:'Income',
+    amountLabel:'Amount', categoryLabel:'Category', dateLabel:'Date', noteLabel:'Note (optional)', notePh:'e.g. Lunch with friends',
+    walletLabel:'Wallet', receiptLabel:'Receipt (optional)', receiptHint:'📎 Attach receipt photo',
+    showMore:'Show more ▾', showLess:'Show less ▴',
+    recurTitle:'🔁 Repeat this transaction automatically', recurSub:'Useful for rent, subscriptions, salary...',
+    monthly:'Every month', weekly:'Every week', yearly:'Every year',
+    freqMonthly:'Monthly', freqWeekly:'Weekly', freqYearly:'Yearly',
+    saveBtn:'Save Transaction', updateBtn:'Update Transaction', cancelEdit:'Cancel Edit',
+    searchPh:'🔍 Search notes or categories', allMonths:'All months & years', allTypes:'All', incomeOnly:'Income only', expenseOnly:'Expense only',
+    catByMonth:'Spending by Category (this month)', incomeVsExpense:'Income vs Expense (total)', monthlyCompare:'Monthly Comparison (last 6 months)', yearlyCompare:'Yearly Comparison',
+    exportPDF:'🖨️ Export current month report as PDF',
+    general:'General', currency:'Currency', darkMode:'Dark Mode', language:'Language',
+    walletsSection:'👛 Wallets / Accounts', walletsHint:'Add multiple wallets or accounts (cash, bank, savings...) and track each balance separately.', newWalletName:'New wallet name',
+    budgetSection:'🎯 Monthly Budget', budgetHint:'Set a monthly cap for any expense category you want to track. Leave empty or 0 to remove the budget for that category.',
+    recurringSection:'🔁 Recurring Transactions', recurringHint:'Transactions with recurrence enabled from the "Add" screen appear here. A new transaction is created automatically each time you open the app after its due date — no internet or server required.',
+    shortcutSection:'Home Screen Shortcut', shortcutRow:'📲 "Log Payment" Shortcut', shortcutSub:'Add a second icon to your home screen that opens the app straight to the add screen',
+    shortcutBannerText:'Add a home screen shortcut that opens this page directly to log a payment in one tap. Tap ⋯ below to learn how.',
+    howToShortcut:'How do I add the shortcut?',
+    backupSection:'Backup', exportBackup:'⬇️ Export Backup', downloadBackup:'Download Backup', restoreBackup:'Restore from Backup',
+    notifSection:'🔔 Notifications', notifRow:'Due Transaction Alerts', notifSub:'OS notification when opening the app if a recurring transaction is due within a day or two',
+    notifInfo:'ℹ️ Fully local and free notification — no server or account required. Only works while opening the app (not while fully closed), a technical limit of all server-less web apps.',
+    securitySection:'Security', pinRow:'PIN Lock', pinSub:'Protects app opening with a 4-digit code',
+    pinInfo:'ℹ️ Face ID / Touch ID isn\'t reliably supported for web apps like this. The PIN protects the interface only; the data itself isn\'t encrypted inside browser storage.',
+    categoriesSection:'Categories', newCatPh:'New category name',
+    clearAllSection:'Delete All Data', clearAllBtn:'🗑️ Erase all transactions permanently',
+    widgetInfo:'ℹ️ About the Widget: a real home screen widget isn\'t possible because that requires a native iOS app (Swift/WidgetKit via Xcode) — web apps don\'t support this on iOS at all. But you can add a shortcut icon that opens straight to the "Log Payment" page (see above).',
+    forgotPin:'Forgot code?', undoBtn:'Undo', undoDeleteMsg:'Transaction deleted',
+    lockUnlock:'🔒 Enter your PIN', lockSetFirst:'🔒 Enter a new 4-digit code', lockSetConfirm:'🔒 Re-enter the code to confirm', lockVerifyDisable:'🔒 Enter current code to disable lock', pinErrWrong:'Incorrect code', pinErrMismatch:'Codes don\'t match, start again',
+    noMatch:'No matching transactions', noExpenseMonth:'No expenses this month', noBudgetCats:'No expense categories yet', noRecurYet:'No recurring transactions yet. Enable one from the "Add" screen.',
+    today:'Today', yesterday:'Yesterday',
+    toastInvalidAmount:'Enter a valid amount', toastChooseCat:'Choose a category', toastUpdated:'Transaction updated ✓', toastSavedRecur:'Saved, will repeat automatically ✓', toastSaved:'Saved ✓',
+    toastCurrencyChanged:'Currency changed', toastNotifOn:'Notifications enabled ✓', toastNotifOff:'Notifications disabled', toastNotifDenied:'Permission denied in browser settings', toastNoNotifSupport:'Your browser doesn\'t support notifications',
+    toastBudgetSaved:'Budget saved',
+    toastNoDataExport:'No data to export', toastBackupCreated:'Backup created', toastBackupImported:'Backup imported ✓', toastBackupInvalid:'Invalid backup file',
+    toastCatUpdated:'Category updated', toastCatDeleted:'Category deleted', toastCatAdded:'Category added ✓', toastEnterCatName:'Enter a category name',
+    toastWalletAdded:'Wallet added ✓', toastEnterWalletName:'Enter a wallet name', toastWalletDeleted:'Wallet deleted', toastWalletUpdated:'Wallet updated', toastCantDeleteLastWallet:'At least one wallet must remain',
+    toastPinOff:'Lock disabled', toastPinOn:'PIN lock enabled', toastPinDisabled:'PIN lock disabled',
+    toastRecurStopped:'Recurrence stopped', toastUndoDone:'Delete undone ✓', toastReceiptTooBig:'Couldn\'t process the image',
+    confirmDeleteCat:'Delete this category? Existing transactions will remain but show as "Other".',
+    confirmStopRecur:'Stop this recurring transaction? Previously created transactions will stay saved.',
+    confirmReplaceOrMerge:'Press "OK" to fully replace your current data, or "Cancel" to merge with your current data.',
+    confirmClearAll:'All transactions and recurring transactions on this device will be permanently deleted. We recommend taking a backup first. Continue?',
+    confirmDeleteWallet:'Delete this wallet? Its transactions will move to the remaining main wallet.', confirmForgotPin:'There\'s no way to recover a forgotten code. Continuing will only disable the PIN lock (your financial data stays intact). Continue?',
+    printTitle:'Daftari — Report', printGenerated:'Generated on', printIncome:'Total Income', printExpense:'Total Expense', printNet:'Net',
+    printByCat:'Spending by Category', printAllTx:'All transactions this month', printDate:'Date', printCat:'Category', printNote:'Note', printAmount:'Amount',
+    otherCat:'Other'
+  }
+};
+function t(key){ return (I18N[settings.lang] && I18N[settings.lang][key]) || I18N.ar[key] || key; }
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder=t(el.dataset.i18nPh); });
+  document.getElementById('lockTitle').textContent = t('lockUnlock');
+}
+function applyLangDirection(){
+  const dir = settings.lang==='en' ? 'ltr' : 'rtl';
+  document.documentElement.setAttribute('dir', dir);
+  document.documentElement.setAttribute('lang', settings.lang);
+  document.body.classList.toggle('lang-en', settings.lang==='en');
+  document.querySelectorAll('#langPill button').forEach(b=>b.classList.toggle('active', b.dataset.lang===settings.lang));
+}
+function trLabel(o){ return (settings.lang==='en' && o && o.label_en) ? o.label_en : (o ? o.label : ''); }
+function months(){ return settings.lang==='en' ? MONTHS_EN : MONTHS_AR; }
+function locale(){ return settings.lang==='en' ? 'en' : 'ar'; }
+
+function findCat(id){ return categories.find(c=>c.id===id) || {label:'أخرى', label_en:'Other', icon:'📦'}; }
 function catsByType(t){ return categories.filter(c=>c.type===t); }
+function findWallet(id){ return wallets.find(w=>w.id===id) || wallets[0] || {id:'default', label:'المحفظة الرئيسية', label_en:'Main Wallet', icon:'👛'}; }
 function fmt(n){
   const v=Math.round((n||0)*100)/100;
   return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ' + (CURRENCIES[settings.currency]||settings.currency);
@@ -494,11 +722,23 @@ async function load(){
     if(s) settings=Object.assign(settings, JSON.parse(s));
   }catch(e){}
   try{ recurring = JSON.parse(localStorage.getItem(REC_KEY) || '[]'); }catch(e){ recurring=[]; }
+  try{
+    const w = localStorage.getItem(WAL_KEY);
+    wallets = w ? JSON.parse(w) : JSON.parse(JSON.stringify(DEFAULT_WALLETS));
+  }catch(e){ wallets=JSON.parse(JSON.stringify(DEFAULT_WALLETS)); }
+  if(!wallets.length) wallets=JSON.parse(JSON.stringify(DEFAULT_WALLETS));
+  // migrate transactions/recurring created before multi-wallet support
+  let migrated=false;
+  const defId=wallets[0].id;
+  transactions.forEach(tx=>{ if(!tx.wallet){ tx.wallet=defId; migrated=true; } });
+  recurring.forEach(r=>{ if(!r.wallet){ r.wallet=defId; migrated=true; } });
+  if(migrated){ saveTx(); saveRecurring(); }
 }
 async function saveTx(){ try{ localStorage.setItem(TX_KEY, JSON.stringify(transactions)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } }
 async function saveCats(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(categories)); }catch(e){} }
 async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){} }
 async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){} }
+async function saveWallets(){ try{ localStorage.setItem(WAL_KEY, JSON.stringify(wallets)); }catch(e){} }
 
 /* ---------- theme ---------- */
 function applyTheme(){
@@ -506,12 +746,37 @@ function applyTheme(){
   document.getElementById('darkSwitch').classList.toggle('on', settings.theme==='dark');
 }
 
+/* ---------- wallets (chips + selects) ---------- */
+function renderWalletChips(){
+  const el=document.getElementById('walletChips');
+  if(!el) return;
+  if(wallets.length<=1){ el.innerHTML=''; return; }
+  let html=`<div class="wallet-chip ${walletFilter==='all'?'sel':''}" data-id="all">🗂️ ${escapeHtml(t('allWallets'))}</div>`;
+  html+=wallets.map(w=>`<div class="wallet-chip ${walletFilter===w.id?'sel':''}" data-id="${w.id}">${w.icon||'👛'} ${escapeHtml(trLabel(w))}</div>`).join('');
+  el.innerHTML=html;
+  el.querySelectorAll('.wallet-chip').forEach(c=>{
+    c.addEventListener('click', ()=>{ walletFilter=c.dataset.id; renderWalletChips(); switchTab('tabHome'); });
+  });
+}
+function populateWalletSelect(){
+  const sel=document.getElementById('walletSelect');
+  if(!sel) return;
+  const cur=sel.value;
+  sel.innerHTML=wallets.map(w=>`<option value="${w.id}">${w.icon||'👛'} ${escapeHtml(trLabel(w))}</option>`).join('');
+  if(wallets.find(w=>w.id===cur)) sel.value=cur;
+  else if(walletFilter!=='all' && wallets.find(w=>w.id===walletFilter)) sel.value=walletFilter;
+}
+function txByWalletFilter(list){
+  if(walletFilter==='all') return list;
+  return list.filter(t=>t.wallet===walletFilter);
+}
+
 /* ---------- tabs ---------- */
 function switchTab(name){
   document.querySelectorAll('main').forEach(m=>m.classList.toggle('active', m.id===name));
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   try{
-    if(name==='tabHome') renderHome();
+    if(name==='tabHome'){ renderWalletChips(); renderHome(); }
     if(name==='tabAdd' && !editingId) resetAddForm();
     if(name==='tabLog') renderLog();
     if(name==='tabReports') renderReports();
@@ -536,13 +801,13 @@ function renderCatGrid(){
   const showToggle=cats.length>CAT_GRID_LIMIT;
   const visibleCats=(catGridExpanded || !showToggle) ? cats : cats.slice(0,CAT_GRID_LIMIT);
   grid.innerHTML=visibleCats.map(c=>`<div class="cat-chip ${c.id===selectedCategory?'sel':''}" data-id="${c.id}">
-    <span class="ic">${c.icon}</span><span class="lbl">${escapeHtml(c.label)}</span></div>`).join('');
+    <span class="ic">${c.icon}</span><span class="lbl">${escapeHtml(trLabel(c))}</span></div>`).join('');
   grid.querySelectorAll('.cat-chip').forEach(el=>{
     el.addEventListener('click', ()=>{ selectedCategory=el.dataset.id; renderCatGrid(); });
   });
   if(showToggle){
     toggleBtn.style.display='block';
-    toggleBtn.textContent = catGridExpanded ? 'عرض أقل ▴' : `عرض المزيد (+${cats.length-CAT_GRID_LIMIT}) ▾`;
+    toggleBtn.textContent = catGridExpanded ? t('showLess') : `${t('showMore').replace('▾','').trim()} (+${cats.length-CAT_GRID_LIMIT})`;
   }else{
     toggleBtn.style.display='none';
   }
@@ -558,6 +823,69 @@ document.querySelectorAll('.type-toggle button').forEach(btn=>{
     currentType=btn.dataset.type; selectedCategory=null; catGridExpanded=false; renderCatGrid();
   });
 });
+function setMoreOpen(open){
+  document.getElementById('addMoreSection').classList.toggle('open', open);
+  document.getElementById('addMoreToggle').textContent = open ? t('showLess') : t('showMore');
+}
+document.getElementById('addMoreToggle').addEventListener('click', ()=>{
+  const isOpen=document.getElementById('addMoreSection').classList.contains('open');
+  setMoreOpen(!isOpen);
+});
+function clearReceiptPreview(){
+  pendingReceipt=null;
+  const row=document.getElementById('receiptRow');
+  row.innerHTML=`<button type="button" class="receipt-btn" id="receiptAddBtn">${t('receiptHint')}</button><input type="file" id="receiptFile" accept="image/*" style="display:none;">`;
+  bindReceiptInputs();
+}
+function showReceiptPreview(dataUrl){
+  pendingReceipt=dataUrl;
+  const row=document.getElementById('receiptRow');
+  row.innerHTML=`<div class="receipt-preview"><img src="${dataUrl}" id="receiptPreviewImg"><button type="button" class="rm" id="receiptRemoveBtn">✕</button></div>
+    <button type="button" class="receipt-btn" id="receiptAddBtn" style="flex:1;">${t('receiptHint')}</button><input type="file" id="receiptFile" accept="image/*" style="display:none;">`;
+  document.getElementById('receiptPreviewImg').addEventListener('click', ()=>openLightbox(dataUrl));
+  document.getElementById('receiptRemoveBtn').addEventListener('click', clearReceiptPreview);
+  bindReceiptInputs();
+}
+function bindReceiptInputs(){
+  const btn=document.getElementById('receiptAddBtn');
+  const file=document.getElementById('receiptFile');
+  if(btn) btn.addEventListener('click', ()=>file.click());
+  if(file) file.addEventListener('change', onReceiptFileChosen);
+}
+function onReceiptFileChosen(e){
+  const f=e.target.files[0]; if(!f) return;
+  const img=new Image();
+  const reader=new FileReader();
+  reader.onload=(ev)=>{
+    img.onload=()=>{
+      try{
+        const maxW=900;
+        const scale=Math.min(1, maxW/img.width);
+        const canvas=document.createElement('canvas');
+        canvas.width=Math.round(img.width*scale);
+        canvas.height=Math.round(img.height*scale);
+        const ctx=canvas.getContext('2d');
+        ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        const dataUrl=canvas.toDataURL('image/jpeg', 0.72);
+        showReceiptPreview(dataUrl);
+      }catch(err){ showToast(t('toastReceiptTooBig')); }
+    };
+    img.onerror=()=>showToast(t('toastReceiptTooBig'));
+    img.src=ev.target.result;
+  };
+  reader.onerror=()=>showToast(t('toastReceiptTooBig'));
+  reader.readAsDataURL(f);
+}
+function openLightbox(src){
+  document.getElementById('receiptLightboxImg').src=src;
+  document.getElementById('receiptLightbox').classList.add('open');
+}
+document.getElementById('receiptLightboxClose').addEventListener('click', ()=>{
+  document.getElementById('receiptLightbox').classList.remove('open');
+});
+document.getElementById('receiptLightbox').addEventListener('click', (e)=>{
+  if(e.target.id==='receiptLightbox') document.getElementById('receiptLightbox').classList.remove('open');
+});
 function resetAddForm(){
   editingId=null;
   document.getElementById('amountInput').value='';
@@ -566,11 +894,17 @@ function resetAddForm(){
   currentType='expense'; selectedCategory=null; catGridExpanded=false;
   document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.type==='expense'));
   renderCatGrid();
-  document.getElementById('saveBtn').textContent='حفظ الحركة';
+  populateWalletSelect();
+  const sel=document.getElementById('walletSelect');
+  if(walletFilter!=='all' && wallets.find(w=>w.id===walletFilter)) sel.value=walletFilter;
+  else if(wallets[0]) sel.value=wallets[0].id;
+  clearReceiptPreview();
+  document.getElementById('saveBtn').textContent=t('saveBtn');
   document.getElementById('cancelEditBtn').style.display='none';
   document.getElementById('recurBox').style.display='block';
   document.getElementById('recurSwitch').classList.remove('on');
   document.getElementById('recurFreqRow').style.display='none';
+  setMoreOpen(false);
 }
 function openEdit(tx){
   editingId=tx.id;
@@ -578,14 +912,18 @@ function openEdit(tx){
   selectedCategory=tx.category;
   document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.type===tx.type));
   renderCatGrid();
+  populateWalletSelect();
+  document.getElementById('walletSelect').value=tx.wallet || wallets[0].id;
   document.getElementById('amountInput').value=tx.amount;
   document.getElementById('noteInput').value=tx.note||'';
   document.getElementById('dateInput').value=tx.date;
-  document.getElementById('saveBtn').textContent='تحديث الحركة';
+  if(tx.receipt) showReceiptPreview(tx.receipt); else clearReceiptPreview();
+  document.getElementById('saveBtn').textContent=t('updateBtn');
   document.getElementById('cancelEditBtn').style.display='block';
   document.getElementById('recurBox').style.display='none';
   document.getElementById('recurSwitch').classList.remove('on');
   document.getElementById('recurFreqRow').style.display='none';
+  setMoreOpen(true);
   switchTab('tabAdd');
 }
 document.getElementById('cancelEditBtn').addEventListener('click', resetAddForm);
@@ -598,22 +936,24 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
   const amount=parseFloat(document.getElementById('amountInput').value);
   const date=document.getElementById('dateInput').value || new Date().toISOString().slice(0,10);
   const note=document.getElementById('noteInput').value.trim();
-  if(!amount || amount<=0){ showToast('أدخل مبلغًا صحيحًا'); return; }
-  if(!selectedCategory){ showToast('اختر فئة'); return; }
+  const wallet=document.getElementById('walletSelect').value || wallets[0].id;
+  if(!amount || amount<=0){ showToast(t('toastInvalidAmount')); return; }
+  if(!selectedCategory){ setMoreOpen(true); showToast(t('toastChooseCat')); return; }
+  const receipt=pendingReceipt || null;
   if(editingId){
     const idx=transactions.findIndex(t=>t.id===editingId);
-    if(idx>-1) transactions[idx]={...transactions[idx], type:currentType, category:selectedCategory, amount, note, date};
-    showToast('تم تحديث الحركة ✓');
+    if(idx>-1) transactions[idx]={...transactions[idx], type:currentType, category:selectedCategory, amount, note, date, wallet, receipt};
+    showToast(t('toastUpdated'));
   }else{
-    transactions.push({id:Date.now().toString()+Math.random().toString(36).slice(2,6), type:currentType, category:selectedCategory, amount, note, date});
+    transactions.push({id:Date.now().toString()+Math.random().toString(36).slice(2,6), type:currentType, category:selectedCategory, amount, note, date, wallet, receipt});
     const recurOn = document.getElementById('recurSwitch').classList.contains('on');
     if(recurOn){
       const freq = document.getElementById('recurFreqSelect').value;
-      recurring.push({id:'r_'+Date.now(), type:currentType, category:selectedCategory, amount, note, freq, lastDate:date});
+      recurring.push({id:'r_'+Date.now(), type:currentType, category:selectedCategory, amount, note, freq, lastDate:date, wallet});
       saveRecurring();
-      showToast('تم الحفظ، وسيتكرر تلقائيًا ✓');
+      showToast(t('toastSavedRecur'));
     }else{
-      showToast('تم الحفظ ✓');
+      showToast(t('toastSaved'));
     }
   }
   saveTx();
@@ -627,7 +967,7 @@ function deleteTx(id){
   transactions.splice(idx,1);
   saveTx();
   switchTab(document.querySelector('main.active').id);
-  showUndoToast('تم حذف الحركة');
+  showUndoToast(t('undoDeleteMsg'));
 }
 function showUndoToast(msg){
   const el=document.getElementById('undoToast');
@@ -645,16 +985,17 @@ document.getElementById('undoBtn').addEventListener('click', ()=>{
   if(undoTimer) clearTimeout(undoTimer);
   document.getElementById('undoToast').classList.remove('show');
   switchTab(document.querySelector('main.active').id);
-  showToast('تم التراجع عن الحذف ✓');
+  showToast(t('toastUndoDone'));
 });
 
 /* ---------- Home ---------- */
 function renderHome(){
-  const balance=transactions.reduce((s,t)=>s+(t.type==='income'?t.amount:-t.amount),0);
-  const totalIn=transactions.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
-  const totalOut=transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const filtered=txByWalletFilter(transactions);
+  const balance=filtered.reduce((s,t)=>s+(t.type==='income'?t.amount:-t.amount),0);
+  const totalIn=filtered.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const totalOut=filtered.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
   const now=new Date(); const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  const monthOut=transactions.filter(t=>t.type==='expense'&&t.date.slice(0,7)===ym).reduce((s,t)=>s+t.amount,0);
+  const monthOut=filtered.filter(t=>t.type==='expense'&&t.date.slice(0,7)===ym).reduce((s,t)=>s+t.amount,0);
 
   const balEl=document.getElementById('homeBalance');
   balEl.textContent=fmt(balance); balEl.classList.toggle('neg', balance<0);
@@ -662,35 +1003,38 @@ function renderHome(){
   document.getElementById('homeExpense').textContent=fmt(totalOut);
   document.getElementById('homeMonthExpense').textContent=fmt(monthOut);
 
-  const recent=[...transactions].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).slice(0,5);
+  const recent=[...filtered].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).slice(0,5);
   const recentEl=document.getElementById('homeRecent');
   if(recent.length===0){
-    recentEl.innerHTML=`<div class="empty"><div class="em">📔</div><p>دفترك فارغ الآن<br>اضغط "إضافة" لتسجّل أول حركة</p></div>`;
+    recentEl.innerHTML=`<div class="empty"><div class="em">📔</div><p>${escapeHtml(t('emptyHomeTitle'))}<br>${escapeHtml(t('emptyHomeSub'))}</p></div>`;
   }else{
     recentEl.innerHTML=recent.map(t=>txRowHtml(t)).join('');
     bindTxActions(recentEl);
   }
 
-  const months=lastNMonths(6);
-  const netByMonth=months.map(m=>{
-    const list=transactions.filter(t=>t.date.slice(0,7)===m.key);
+  const months6=lastNMonths(6);
+  const netByMonth=months6.map(m=>{
+    const list=filtered.filter(t=>t.date.slice(0,7)===m.key);
     return list.reduce((s,t)=>s+(t.type==='income'?t.amount:-t.amount),0);
   });
   drawChart('homeChart','bar',{
-    labels:months.map(m=>m.label),
-    datasets:[{label:'صافي', data:netByMonth, backgroundColor:netByMonth.map(v=>v>=0?'#6fa287':'#c1594a'), borderRadius:6}]
+    labels:months6.map(m=>m.label),
+    datasets:[{label:t('last6months'), data:netByMonth, backgroundColor:netByMonth.map(v=>v>=0?'#6fa287':'#c1594a'), borderRadius:6}]
   }, simpleOpts());
   renderBudgetAlerts(ym);
   renderUpcomingRecurring();
 }
 function txRowHtml(t){
   const c=findCat(t.category);
+  const showWalBadge = wallets.length>1 && walletFilter==='all';
+  const walBadge = showWalBadge ? `<span class="wal-badge">${findWallet(t.wallet).icon||'👛'} ${escapeHtml(trLabel(findWallet(t.wallet)))}</span>` : '';
+  const receiptBadge = t.receipt ? `<span class="receipt-badge rc-view" data-id="${t.id}">🧾</span>` : '';
   return `<div class="tx">
     <div class="ic">${c.icon}</div>
     <div class="info">
-      <div class="cat">${escapeHtml(c.label)}</div>
+      <div class="cat">${escapeHtml(trLabel(c))}${receiptBadge}</div>
       ${t.note?`<div class="note">${escapeHtml(t.note)}</div>`:''}
-      <div class="date">${t.date}</div>
+      <div class="date">${t.date}${walBadge}</div>
     </div>
     <div class="amt ${t.type==='income'?'in':'out'}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
     <div class="actions">
@@ -704,12 +1048,17 @@ function bindTxActions(root){
     const tx=transactions.find(t=>t.id===b.dataset.id); if(tx) openEdit(tx);
   }));
   root.querySelectorAll('.del-b').forEach(b=>b.addEventListener('click', ()=>deleteTx(b.dataset.id)));
+  root.querySelectorAll('.rc-view').forEach(b=>b.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    const tx=transactions.find(t=>t.id===b.dataset.id);
+    if(tx && tx.receipt) openLightbox(tx.receipt);
+  }));
 }
 function lastNMonths(n){
   const arr=[]; const d=new Date();
   for(let i=n-1;i>=0;i--){
     const dt=new Date(d.getFullYear(), d.getMonth()-i, 1);
-    arr.push({key:dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'), label:MONTHS[dt.getMonth()].slice(0,3)+' '+String(dt.getFullYear()).slice(2)});
+    arr.push({key:dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'), label:months()[dt.getMonth()].slice(0,3)+' '+String(dt.getFullYear()).slice(2)});
   }
   return arr;
 }
@@ -717,10 +1066,10 @@ function lastNMonths(n){
 /* ---------- Log ---------- */
 function populateMonthFilter(){
   const sel=document.getElementById('filterMonth');
-  const keys=[...new Set(transactions.map(t=>t.date.slice(0,7)))].sort().reverse();
+  const keys=[...new Set(txByWalletFilter(transactions).map(t=>t.date.slice(0,7)))].sort().reverse();
   const cur=sel.value;
-  sel.innerHTML='<option value="all">كل الشهور والسنوات</option>' + keys.map(k=>{
-    const [y,m]=k.split('-'); return `<option value="${k}">${MONTHS[parseInt(m,10)-1]} ${y}</option>`;
+  sel.innerHTML=`<option value="all">${escapeHtml(t('allMonths'))}</option>` + keys.map(k=>{
+    const [y,m]=k.split('-'); return `<option value="${k}">${months()[parseInt(m,10)-1]} ${y}</option>`;
   }).join('');
   if(keys.includes(cur)) sel.value=cur;
 }
@@ -728,10 +1077,10 @@ function dateGroupLabel(dateStr){
   const d=new Date(dateStr+'T00:00:00');
   const today=new Date(); today.setHours(0,0,0,0);
   const diffDays=Math.round((today-d)/86400000);
-  const full=d.toLocaleDateString('ar', {day:'numeric', month:'long', year:'numeric', numberingSystem:'latn'});
-  if(diffDays===0) return 'اليوم — '+full;
-  if(diffDays===1) return 'أمس — '+full;
-  const weekday=d.toLocaleDateString('ar', {weekday:'long', numberingSystem:'latn'});
+  const full=d.toLocaleDateString(locale(), {day:'numeric', month:'long', year:'numeric', numberingSystem:'latn'});
+  if(diffDays===0) return t('today')+' — '+full;
+  if(diffDays===1) return t('yesterday')+' — '+full;
+  const weekday=d.toLocaleDateString(locale(), {weekday:'long', numberingSystem:'latn'});
   return weekday+'، '+full;
 }
 function renderLog(){
@@ -739,30 +1088,30 @@ function renderLog(){
   const q=document.getElementById('searchInput').value.trim().toLowerCase();
   const monthF=document.getElementById('filterMonth').value;
   const typeF=document.getElementById('filterType').value;
-  let list=[...transactions];
+  let list=txByWalletFilter(transactions);
   if(monthF!=='all') list=list.filter(t=>t.date.slice(0,7)===monthF);
   if(typeF!=='all') list=list.filter(t=>t.type===typeF);
   if(q) list=list.filter(t=>{
     const c=findCat(t.category);
-    return (t.note||'').toLowerCase().includes(q) || c.label.toLowerCase().includes(q);
+    return (t.note||'').toLowerCase().includes(q) || trLabel(c).toLowerCase().includes(q);
   });
   list.sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
   const el=document.getElementById('logList');
   if(list.length===0){
-    el.innerHTML=`<div class="empty"><div class="em">🔍</div><p>لا توجد عمليات مطابقة</p></div>`;
+    el.innerHTML=`<div class="empty"><div class="em">🔍</div><p>${escapeHtml(t('noMatch'))}</p></div>`;
     return;
   }
   const groups=[];
-  for(const t of list){
+  for(const tx of list){
     const last=groups[groups.length-1];
-    if(last && last.date===t.date){ last.items.push(t); }
-    else{ groups.push({date:t.date, items:[t]}); }
+    if(last && last.date===tx.date){ last.items.push(tx); }
+    else{ groups.push({date:tx.date, items:[tx]}); }
   }
   let html='';
   groups.forEach(g=>{
     const net=g.items.reduce((s,x)=>s+(x.type==='income'?x.amount:-x.amount),0);
     html+=`<div class="log-date-header"><span>${dateGroupLabel(g.date)}</span><span class="net ${net>=0?'in':'out'}">${net>=0?'+':'-'}${fmt(Math.abs(net))}</span></div>`;
-    html+=g.items.map(t=>txRowHtml(t)).join('');
+    html+=g.items.map(tx=>txRowHtml(tx)).join('');
   });
   el.innerHTML=html;
   bindTxActions(el);
@@ -792,51 +1141,52 @@ function simpleOpts(){
   return {responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#8991a1',font:{size:10}}, grid:{display:false}}, y:{ticks:{color:'#8991a1',font:{size:10}}, grid:{color:'rgba(137,145,161,0.15)'}}}};
 }
 function renderReports(){
+  const filtered=txByWalletFilter(transactions);
   const now=new Date(); const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  const monthExpenses=transactions.filter(t=>t.type==='expense'&&t.date.slice(0,7)===ym);
+  const monthExpenses=filtered.filter(t=>t.type==='expense'&&t.date.slice(0,7)===ym);
   const byCat={};
   monthExpenses.forEach(t=>{ byCat[t.category]=(byCat[t.category]||0)+t.amount; });
   renderBudgetProgress(byCat);
   const entries=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
   const bdRows=document.getElementById('breakdownRows');
   if(entries.length===0){
-    bdRows.innerHTML='<div class="empty" style="padding:20px;"><p>لا توجد مصروفات هذا الشهر</p></div>';
+    bdRows.innerHTML=`<div class="empty" style="padding:20px;"><p>${escapeHtml(t('noExpenseMonth'))}</p></div>`;
   }else{
     const max=entries[0][1];
     bdRows.innerHTML=entries.map(([id,amt])=>{
       const c=findCat(id); const pct=Math.max(6, Math.round((amt/max)*100));
-      return `<div class="bd-row"><span class="ic">${c.icon}</span><span class="name">${escapeHtml(c.label)}</span>
+      return `<div class="bd-row"><span class="ic">${c.icon}</span><span class="name">${escapeHtml(trLabel(c))}</span>
         <span class="bd-track"><span class="bd-fill" style="width:${pct}%"></span></span><span class="bd-amt">${fmt(amt)}</span></div>`;
     }).join('');
   }
   const palette=['#c9a24a','#6fa287','#c1594a','#7c8fc9','#c97cae','#8ac97c','#c9b47c','#7cc9c3','#c98a7c','#a0a0a0'];
   drawChart('chartCategory','doughnut',{
-    labels:entries.map(([id])=>findCat(id).label),
+    labels:entries.map(([id])=>trLabel(findCat(id))),
     datasets:[{data:entries.map(([,v])=>v), backgroundColor:palette}]
   },{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#8991a1', font:{size:10}, boxWidth:10}}}});
 
-  const totalIn=transactions.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
-  const totalOut=transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const totalIn=filtered.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const totalOut=filtered.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
   drawChart('chartIncomeExpense','bar',{
-    labels:['الدخل','المصروف'],
+    labels:[t('income'),t('expense')],
     datasets:[{data:[totalIn,totalOut], backgroundColor:['#6fa287','#c1594a'], borderRadius:8}]
   }, simpleOpts());
 
-  const months=lastNMonths(6);
+  const months6=lastNMonths(6);
   drawChart('chartMonthly','bar',{
-    labels:months.map(m=>m.label),
+    labels:months6.map(m=>m.label),
     datasets:[
-      {label:'دخل', data:months.map(m=>transactions.filter(t=>t.type==='income'&&t.date.slice(0,7)===m.key).reduce((s,t)=>s+t.amount,0)), backgroundColor:'#6fa287', borderRadius:5},
-      {label:'مصروف', data:months.map(m=>transactions.filter(t=>t.type==='expense'&&t.date.slice(0,7)===m.key).reduce((s,t)=>s+t.amount,0)), backgroundColor:'#c1594a', borderRadius:5}
+      {label:t('income'), data:months6.map(m=>filtered.filter(x=>x.type==='income'&&x.date.slice(0,7)===m.key).reduce((s,x)=>s+x.amount,0)), backgroundColor:'#6fa287', borderRadius:5},
+      {label:t('expense'), data:months6.map(m=>filtered.filter(x=>x.type==='expense'&&x.date.slice(0,7)===m.key).reduce((s,x)=>s+x.amount,0)), backgroundColor:'#c1594a', borderRadius:5}
     ]
   },{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#8991a1', font:{size:10}}}}, scales:{x:{ticks:{color:'#8991a1',font:{size:10}}, grid:{display:false}}, y:{ticks:{color:'#8991a1',font:{size:10}}, grid:{color:'rgba(137,145,161,0.15)'}}}});
 
-  const years=[...new Set(transactions.map(t=>t.date.slice(0,4)))].sort();
+  const years=[...new Set(filtered.map(t=>t.date.slice(0,4)))].sort();
   drawChart('chartYearly','bar',{
     labels:years,
     datasets:[
-      {label:'دخل', data:years.map(y=>transactions.filter(t=>t.type==='income'&&t.date.slice(0,4)===y).reduce((s,t)=>s+t.amount,0)), backgroundColor:'#6fa287', borderRadius:5},
-      {label:'مصروف', data:years.map(y=>transactions.filter(t=>t.type==='expense'&&t.date.slice(0,4)===y).reduce((s,t)=>s+t.amount,0)), backgroundColor:'#c1594a', borderRadius:5}
+      {label:t('income'), data:years.map(y=>filtered.filter(x=>x.type==='income'&&x.date.slice(0,4)===y).reduce((s,x)=>s+x.amount,0)), backgroundColor:'#6fa287', borderRadius:5},
+      {label:t('expense'), data:years.map(y=>filtered.filter(x=>x.type==='expense'&&x.date.slice(0,4)===y).reduce((s,x)=>s+x.amount,0)), backgroundColor:'#c1594a', borderRadius:5}
     ]
   },{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#8991a1', font:{size:10}}}}, scales:{x:{ticks:{color:'#8991a1',font:{size:10}}, grid:{display:false}}, y:{ticks:{color:'#8991a1',font:{size:10}}, grid:{color:'rgba(137,145,161,0.15)'}}}});
 }
@@ -848,28 +1198,40 @@ function renderSettings(){
   csel.value=settings.currency;
   document.getElementById('pinSwitch').classList.toggle('on', settings.pinEnabled);
   document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled);
+  applyLangDirection();
   renderCatManage();
   renderBudgetSettings();
   renderRecurringSettings();
+  renderWalletManage();
 }
 document.getElementById('currencySelect').addEventListener('change', (e)=>{
-  settings.currency=e.target.value; saveSettings(); showToast('تم تغيير العملة');
+  settings.currency=e.target.value; saveSettings(); showToast(t('toastCurrencyChanged'));
 });
 document.getElementById('darkSwitch').addEventListener('click', ()=>{
   settings.theme = settings.theme==='dark' ? 'light' : 'dark';
   saveSettings(); applyTheme();
 });
+document.querySelectorAll('#langPill button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    if(settings.lang===b.dataset.lang) return;
+    settings.lang=b.dataset.lang;
+    saveSettings();
+    applyLangDirection();
+    applyI18n();
+    switchTab(document.querySelector('main.active').id);
+  });
+});
 document.getElementById('notifSwitch').addEventListener('click', async ()=>{
   if(!settings.notifEnabled){
-    if(typeof Notification==='undefined'){ showToast('متصفحك لا يدعم الإشعارات'); return; }
+    if(typeof Notification==='undefined'){ showToast(t('toastNoNotifSupport')); return; }
     let perm=Notification.permission;
     if(perm==='default') perm=await Notification.requestPermission();
-    if(perm!=='granted'){ showToast('الإذن مرفوض من إعدادات المتصفح'); return; }
+    if(perm!=='granted'){ showToast(t('toastNotifDenied')); return; }
     settings.notifEnabled=true;
-    showToast('تم تفعيل الإشعارات ✓');
+    showToast(t('toastNotifOn'));
   }else{
     settings.notifEnabled=false;
-    showToast('تم إيقاف الإشعارات');
+    showToast(t('toastNotifOff'));
   }
   saveSettings();
   document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled);
@@ -888,7 +1250,7 @@ function maybeNotifyDueRecurring(){
     return diff>=0 && diff<=1;
   });
   if(dueSoon.length===0) return;
-  const body=dueSoon.map(x=>`${findCat(x.r.category).icon} ${findCat(x.r.category).label}: ${fmt(x.r.amount)}`).join(' · ');
+  const body=dueSoon.map(x=>`${findCat(x.r.category).icon} ${trLabel(findCat(x.r.category))}: ${fmt(x.r.amount)}`).join(' · ');
   const title='دفتري — معاملات مستحقة قريبًا';
   const opts={body, icon:'./icon-192.png', badge:'./icon-192.png', tag:'daftari-due'};
   const fire=()=>{
@@ -905,20 +1267,69 @@ function maybeNotifyDueRecurring(){
   try{ localStorage.setItem('daftari_last_notif_date', today); }catch(e){}
 }
 
+/* ---------- Wallets management ---------- */
+function walletBalance(id){
+  return transactions.filter(t=>t.wallet===id).reduce((s,t)=>s+(t.type==='income'?t.amount:-t.amount),0);
+}
+function renderWalletManage(){
+  const el=document.getElementById('walletManageList');
+  el.innerHTML = wallets.map(w=>`
+    <div class="wallet-manage-row">
+      <span class="ic">${w.icon||'👛'}</span>
+      <span class="lbl">${escapeHtml(trLabel(w))}</span>
+      <span class="bal">${fmt(walletBalance(w.id))}</span>
+      <button class="wm-edit" data-id="${w.id}">✏️</button>
+      <button class="wm-del" data-id="${w.id}">🗑️</button>
+    </div>`).join('');
+  el.querySelectorAll('.wm-edit').forEach(b=>b.addEventListener('click', ()=>{
+    const w=wallets.find(x=>x.id===b.dataset.id); if(!w) return;
+    const newLabel=prompt(t('walletLabel')+':', trLabel(w));
+    if(newLabel===null) return;
+    const newIcon=prompt(t('walletLabel')+' 👛:', w.icon||'👛');
+    if(newIcon===null) return;
+    if(settings.lang==='en') w.label_en=newLabel.trim()||w.label_en; else w.label=newLabel.trim()||w.label;
+    w.icon=newIcon.trim()||w.icon;
+    saveWallets(); renderWalletManage(); renderWalletChips(); populateWalletSelect(); showToast(t('toastWalletUpdated'));
+  }));
+  el.querySelectorAll('.wm-del').forEach(b=>b.addEventListener('click', ()=>{
+    if(wallets.length<=1){ showToast(t('toastCantDeleteLastWallet')); return; }
+    if(!confirm(t('confirmDeleteWallet'))) return;
+    const delId=b.dataset.id;
+    wallets=wallets.filter(w=>w.id!==delId);
+    const fallback=wallets[0].id;
+    transactions.forEach(tx=>{ if(tx.wallet===delId) tx.wallet=fallback; });
+    recurring.forEach(r=>{ if(r.wallet===delId) r.wallet=fallback; });
+    if(walletFilter===delId) walletFilter='all';
+    saveWallets(); saveTx(); saveRecurring();
+    renderWalletManage(); renderWalletChips(); populateWalletSelect();
+    showToast(t('toastWalletDeleted'));
+  }));
+}
+document.getElementById('addWalletBtn').addEventListener('click', ()=>{
+  const icon=document.getElementById('newWalletIcon').value.trim()||'👛';
+  const name=document.getElementById('newWalletName').value.trim();
+  if(!name){ showToast(t('toastEnterWalletName')); return; }
+  wallets.push({id:'w_'+Date.now(), label:name, label_en:name, icon});
+  saveWallets();
+  document.getElementById('newWalletName').value=''; document.getElementById('newWalletIcon').value='';
+  renderWalletManage(); renderWalletChips(); populateWalletSelect();
+  showToast(t('toastWalletAdded'));
+});
+
 /* ---------- Budgets ---------- */
 function renderBudgetSettings(){
   const el=document.getElementById('budgetSettingsList');
   const expCats=catsByType('expense');
   if(expCats.length===0){
-    el.innerHTML='<div class="empty" style="padding:12px;"><p>لا توجد فئات مصروف بعد</p></div>';
+    el.innerHTML=`<div class="empty" style="padding:12px;"><p>${escapeHtml(t('noBudgetCats'))}</p></div>`;
     return;
   }
   el.innerHTML=expCats.map(c=>`
     <div class="budget-row">
       <span class="ic">${c.icon}</span>
-      <span class="lbl">${escapeHtml(c.label)}</span>
+      <span class="lbl">${escapeHtml(trLabel(c))}</span>
       <input type="number" inputmode="decimal" min="0" step="1" class="budget-input" data-id="${c.id}"
-        placeholder="بدون حد" value="${settings.budgets && settings.budgets[c.id] ? settings.budgets[c.id] : ''}">
+        value="${settings.budgets && settings.budgets[c.id] ? settings.budgets[c.id] : ''}">
     </div>`).join('');
   el.querySelectorAll('.budget-input').forEach(inp=>{
     inp.addEventListener('change', ()=>{
@@ -927,7 +1338,7 @@ function renderBudgetSettings(){
       if(!v || v<=0){ delete settings.budgets[inp.dataset.id]; inp.value=''; }
       else{ settings.budgets[inp.dataset.id]=v; }
       saveSettings();
-      showToast('تم حفظ الميزانية');
+      showToast(t('toastBudgetSaved'));
     });
   });
 }
@@ -955,7 +1366,7 @@ function renderBudgetProgress(byCat){
     const cls=budgetStatusClass(Math.round((spent/budget)*100));
     return `<div class="bud-prog-row">
       <div class="bud-prog-top">
-        <span class="name">${c.icon} ${escapeHtml(c.label)}</span>
+        <span class="name">${c.icon} ${escapeHtml(trLabel(c))}</span>
         <span class="amt">${fmt(spent)} / ${fmt(budget)}</span>
       </div>
       <div class="bud-prog-track"><div class="bud-prog-fill ${cls}" style="width:${pct}%"></div></div>
@@ -968,7 +1379,7 @@ function renderBudgetAlerts(ym){
   const budgets=settings.budgets||{};
   const budgetedIds=Object.keys(budgets).filter(id=>budgets[id]>0);
   if(budgetedIds.length===0){ el.innerHTML=''; return; }
-  const monthExpenses=transactions.filter(t=>t.type==='expense'&&t.date.slice(0,7)===ym);
+  const monthExpenses=txByWalletFilter(transactions).filter(t=>t.type==='expense'&&t.date.slice(0,7)===ym);
   const byCat={};
   monthExpenses.forEach(t=>{ byCat[t.category]=(byCat[t.category]||0)+t.amount; });
   const alerts=budgetedIds.map(id=>{
@@ -978,12 +1389,12 @@ function renderBudgetAlerts(ym){
   }).filter(a=>a.pct>=80).sort((a,b)=>b.pct-a.pct);
   if(alerts.length===0){ el.innerHTML=''; return; }
   el.innerHTML=`<div class="budget-alert-card">
-    <div class="title">⚠️ تنبيه ميزانية</div>
+    <div class="title">⚠️</div>
     ${alerts.map(a=>{
       const c=findCat(a.id);
       const cls=a.pct>=100?'over':'warn';
-      const label=a.pct>=100?`تجاوزت بـ ${fmt(a.spent-a.budget)}`:`${a.pct}% من الحد`;
-      return `<div class="budget-alert-item"><span class="name">${c.icon} ${escapeHtml(c.label)}</span><span class="stat ${cls}">${label}</span></div>`;
+      const label=a.pct>=100?`+${fmt(a.spent-a.budget)}`:`${a.pct}%`;
+      return `<div class="budget-alert-item"><span class="name">${c.icon} ${escapeHtml(trLabel(c))}</span><span class="stat ${cls}">${label}</span></div>`;
     }).join('')}
   </div>`;
 }
@@ -996,14 +1407,14 @@ function nextDate(dateStr, freq){
   else d.setMonth(d.getMonth()+1);
   return d.toISOString().slice(0,10);
 }
-function freqLabel(f){ return f==='weekly'?'أسبوعيًا':(f==='yearly'?'سنويًا':'شهريًا'); }
+function freqLabel(f){ return f==='weekly'?t('freqWeekly'):(f==='yearly'?t('freqYearly'):t('freqMonthly')); }
 function processRecurring(){
   const today=new Date().toISOString().slice(0,10);
   let changedTx=false, changedRec=false;
   recurring.forEach(r=>{
     let guard=0, next=nextDate(r.lastDate, r.freq);
     while(next<=today && guard<36){
-      transactions.push({id:'rt_'+r.id+'_'+next, type:r.type, category:r.category, amount:r.amount, note:r.note, date:next});
+      transactions.push({id:'rt_'+r.id+'_'+next, type:r.type, category:r.category, amount:r.amount, note:r.note, date:next, wallet:r.wallet||wallets[0].id});
       r.lastDate=next; changedTx=true; changedRec=true;
       next=nextDate(r.lastDate, r.freq); guard++;
     }
@@ -1013,19 +1424,19 @@ function processRecurring(){
 }
 function renderRecurringSettings(){
   const el=document.getElementById('recurManageList');
-  if(recurring.length===0){ el.innerHTML='<div class="empty" style="padding:12px;"><p>لا توجد معاملات متكررة بعد. فعّلها من شاشة "إضافة".</p></div>'; return; }
+  if(recurring.length===0){ el.innerHTML=`<div class="empty" style="padding:12px;"><p>${escapeHtml(t('noRecurYet'))}</p></div>`; return; }
   el.innerHTML=recurring.map(r=>{
     const c=findCat(r.category);
     return `<div class="recur-manage-row">
       <span class="ic">${c.icon}</span>
-      <div class="info"><div>${escapeHtml(c.label)} — ${fmt(r.amount)}</div><div class="sub">${freqLabel(r.freq)} · القادمة: ${nextDate(r.lastDate,r.freq)}</div></div>
+      <div class="info"><div>${escapeHtml(trLabel(c))} — ${fmt(r.amount)}</div><div class="sub">${freqLabel(r.freq)} · ${nextDate(r.lastDate,r.freq)}</div></div>
       <button class="rec-del" data-id="${r.id}">🗑️</button>
     </div>`;
   }).join('');
   el.querySelectorAll('.rec-del').forEach(b=>b.addEventListener('click', ()=>{
-    if(!confirm('إيقاف هذه المعاملة المتكررة؟ الحركات السابقة التي أُنشئت منها ستبقى محفوظة.')) return;
+    if(!confirm(t('confirmStopRecur'))) return;
     recurring=recurring.filter(r=>r.id!==b.dataset.id);
-    saveRecurring(); renderRecurringSettings(); showToast('تم إيقاف التكرار');
+    saveRecurring(); renderRecurringSettings(); showToast(t('toastRecurStopped'));
   }));
 }
 function renderUpcomingRecurring(){
@@ -1033,7 +1444,7 @@ function renderUpcomingRecurring(){
   if(!el) return;
   if(recurring.length===0){ el.innerHTML=''; return; }
   const today=new Date(); today.setHours(0,0,0,0);
-  const soon=recurring.map(r=>({r, next:nextDate(r.lastDate,r.freq)})).filter(x=>{
+  const soon=recurring.filter(r=>walletFilter==='all'||r.wallet===walletFilter).map(r=>({r, next:nextDate(r.lastDate,r.freq)})).filter(x=>{
     const d=new Date(x.next+'T00:00:00');
     const diff=Math.round((d-today)/86400000);
     return diff>=0 && diff<=3;
@@ -1041,31 +1452,32 @@ function renderUpcomingRecurring(){
   if(soon.length===0){ el.innerHTML=''; return; }
   el.innerHTML=soon.map(x=>{
     const c=findCat(x.r.category);
-    return `<div class="upcoming-banner"><span class="ic">📅</span><span>${c.icon} ${escapeHtml(c.label)} — ${fmt(x.r.amount)} مستحقة بتاريخ ${x.next}</span></div>`;
+    return `<div class="upcoming-banner"><span class="ic">📅</span><span>${c.icon} ${escapeHtml(trLabel(c))} — ${fmt(x.r.amount)} — ${x.next}</span></div>`;
   }).join('');
 }
 
 /* ---------- PDF report export (uses the browser's built-in print-to-PDF — no library, fully offline) ---------- */
 function buildPrintReport(){
+  const filtered=txByWalletFilter(transactions);
   const now=new Date(); const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  const monthTx=transactions.filter(t=>t.date.slice(0,7)===ym);
+  const monthTx=filtered.filter(t=>t.date.slice(0,7)===ym);
   const totalIn=monthTx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
   const totalOut=monthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
   const byCat={};
   monthTx.filter(t=>t.type==='expense').forEach(t=>{ byCat[t.category]=(byCat[t.category]||0)+t.amount; });
   const rows=[...monthTx].sort((a,b)=>a.date.localeCompare(b.date));
-  const monthLabel=MONTHS[now.getMonth()]+' '+now.getFullYear();
-  let html=`<h2>دفتري — تقرير ${monthLabel}</h2><div class="pr-sub">تم إنشاؤه بتاريخ ${new Date().toLocaleDateString('ar',{numberingSystem:'latn'})}</div>`;
-  html+=`<div class="pr-totals"><div>إجمالي الدخل: ${fmt(totalIn)}</div><div>إجمالي المصروف: ${fmt(totalOut)}</div><div>الصافي: ${fmt(totalIn-totalOut)}</div></div>`;
-  html+=`<h3 style="font-size:14px;">الإنفاق حسب الفئة</h3><table><tr><th>الفئة</th><th>المبلغ</th></tr>`;
-  Object.entries(byCat).sort((a,b)=>b[1]-a[1]).forEach(([id,amt])=>{ html+=`<tr><td>${escapeHtml(findCat(id).label)}</td><td>${fmt(amt)}</td></tr>`; });
-  html+=`</table><h3 style="font-size:14px; margin-top:16px;">كل حركات الشهر</h3><table><tr><th>التاريخ</th><th>الفئة</th><th>ملاحظة</th><th>المبلغ</th></tr>`;
-  rows.forEach(t=>{ html+=`<tr><td>${t.date}</td><td>${escapeHtml(findCat(t.category).label)}</td><td>${escapeHtml(t.note||'')}</td><td>${t.type==='income'?'+':'-'}${fmt(t.amount)}</td></tr>`; });
+  const monthLabel=months()[now.getMonth()]+' '+now.getFullYear();
+  let html=`<h2>${t('printTitle')} ${monthLabel}</h2><div class="pr-sub">${t('printGenerated')} ${new Date().toLocaleDateString(locale(),{numberingSystem:'latn'})}</div>`;
+  html+=`<div class="pr-totals"><div>${t('printIncome')}: ${fmt(totalIn)}</div><div>${t('printExpense')}: ${fmt(totalOut)}</div><div>${t('printNet')}: ${fmt(totalIn-totalOut)}</div></div>`;
+  html+=`<h3 style="font-size:14px;">${t('printByCat')}</h3><table><tr><th>${t('printCat')}</th><th>${t('printAmount')}</th></tr>`;
+  Object.entries(byCat).sort((a,b)=>b[1]-a[1]).forEach(([id,amt])=>{ html+=`<tr><td>${escapeHtml(trLabel(findCat(id)))}</td><td>${fmt(amt)}</td></tr>`; });
+  html+=`</table><h3 style="font-size:14px; margin-top:16px;">${t('printAllTx')}</h3><table><tr><th>${t('printDate')}</th><th>${t('printCat')}</th><th>${t('printNote')}</th><th>${t('printAmount')}</th></tr>`;
+  rows.forEach(t2=>{ html+=`<tr><td>${t2.date}</td><td>${escapeHtml(trLabel(findCat(t2.category)))}</td><td>${escapeHtml(t2.note||'')}</td><td>${t2.type==='income'?'+':'-'}${fmt(t2.amount)}</td></tr>`; });
   html+=`</table>`;
   document.getElementById('printReport').innerHTML=html;
 }
 document.getElementById('exportPDFBtn').addEventListener('click', ()=>{
-  if(transactions.length===0){ showToast('لا توجد بيانات لتصديرها'); return; }
+  if(transactions.length===0){ showToast(t('toastNoDataExport')); return; }
   buildPrintReport();
   setTimeout(()=>window.print(), 50);
 });
@@ -1075,48 +1487,49 @@ function renderCatManage(){
   el.innerHTML = categories.map(c=>`
     <div class="cat-manage-row">
       <span class="ic">${c.icon}</span>
-      <span class="lbl">${escapeHtml(c.label)} <span style="color:var(--muted); font-size:10.5px;">(${c.type==='income'?'دخل':'مصروف'})</span></span>
+      <span class="lbl">${escapeHtml(trLabel(c))} <span style="color:var(--muted); font-size:10.5px;">(${c.type==='income'?t('income'):t('expense')})</span></span>
       <button class="cm-edit" data-id="${c.id}">✏️</button>
       <button class="cm-del" data-id="${c.id}">🗑️</button>
     </div>`).join('');
   el.querySelectorAll('.cm-edit').forEach(b=>b.addEventListener('click', ()=>{
     const c=categories.find(x=>x.id===b.dataset.id); if(!c) return;
-    const newLabel=prompt('اسم الفئة:', c.label);
+    const newLabel=prompt(t('categoryLabel')+':', trLabel(c));
     if(newLabel===null) return;
-    const newIcon=prompt('الرمز التعبيري للفئة:', c.icon);
+    const newIcon=prompt(t('categoryLabel')+' 🏷️:', c.icon);
     if(newIcon===null) return;
-    c.label=newLabel.trim()||c.label; c.icon=newIcon.trim()||c.icon;
-    saveCats(); renderCatManage(); showToast('تم تحديث الفئة');
+    if(settings.lang==='en') c.label_en=newLabel.trim()||c.label_en; else c.label=newLabel.trim()||c.label;
+    c.icon=newIcon.trim()||c.icon;
+    saveCats(); renderCatManage(); showToast(t('toastCatUpdated'));
   }));
   el.querySelectorAll('.cm-del').forEach(b=>b.addEventListener('click', ()=>{
-    if(!confirm('حذف هذه الفئة؟ العمليات المسجّلة بها ستبقى لكن ستظهر كـ"أخرى".')) return;
+    if(!confirm(t('confirmDeleteCat'))) return;
     categories=categories.filter(c=>c.id!==b.dataset.id);
     if(settings.budgets && settings.budgets[b.dataset.id]) delete settings.budgets[b.dataset.id];
-    saveCats(); saveSettings(); renderCatManage(); renderBudgetSettings(); showToast('تم حذف الفئة');
+    saveCats(); saveSettings(); renderCatManage(); renderBudgetSettings(); showToast(t('toastCatDeleted'));
   }));
 }
 document.getElementById('addCatBtn').addEventListener('click', ()=>{
   const icon=document.getElementById('newCatIcon').value.trim()||'🏷️';
   const label=document.getElementById('newCatLabel').value.trim();
   const type=document.getElementById('newCatType').value;
-  if(!label){ showToast('أدخل اسم الفئة'); return; }
-  categories.push({id:'c_'+Date.now(), label, icon, type});
+  if(!label){ showToast(t('toastEnterCatName')); return; }
+  categories.push({id:'c_'+Date.now(), label, label_en:label, icon, type});
   saveCats();
   document.getElementById('newCatLabel').value=''; document.getElementById('newCatIcon').value='';
   renderCatManage();
   renderBudgetSettings();
-  showToast('تمت إضافة الفئة ✓');
+  showToast(t('toastCatAdded'));
 });
 
 /* ---------- backup ---------- */
 document.getElementById('exportBtn').addEventListener('click', ()=>{
-  if(transactions.length===0){ showToast('لا توجد بيانات لتصديرها'); return; }
-  const payload={app:'daftari', version:3, exportedAt:new Date().toISOString(), transactions, categories, settings, recurring};
+  if(transactions.length===0){ showToast(t('toastNoDataExport')); return; }
+  const payload={app:'daftari', version:4, exportedAt:new Date().toISOString(), transactions, categories, settings, recurring, wallets};
   const blob=new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='daftari-backup-'+new Date().toISOString().slice(0,10)+'.json';
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  showToast('تم إنشاء النسخة الاحتياطية');
+  showToast(t('toastBackupCreated'));
 });
 document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click());
 document.getElementById('importFile').addEventListener('change', (e)=>{
@@ -1127,11 +1540,12 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
       const parsed=JSON.parse(ev.target.result);
       const incoming=Array.isArray(parsed)?parsed:parsed.transactions;
       if(!Array.isArray(incoming)) throw new Error('bad');
-      const replace=confirm('اضغط "موافق" لاستبدال بياناتك الحالية بالكامل، أو "إلغاء" لدمجها مع بياناتك الحالية.');
+      const replace=confirm(t('confirmReplaceOrMerge'));
       if(replace){
         transactions=incoming;
         if(parsed.categories) categories=parsed.categories;
         if(Array.isArray(parsed.recurring)) recurring=parsed.recurring;
+        if(Array.isArray(parsed.wallets) && parsed.wallets.length) wallets=parsed.wallets;
       }else{
         const ids=new Set(transactions.map(t=>t.id));
         incoming.forEach(t=>{ if(!ids.has(t.id)) transactions.push(t); });
@@ -1139,18 +1553,25 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
           const rids=new Set(recurring.map(r=>r.id));
           parsed.recurring.forEach(r=>{ if(!rids.has(r.id)) recurring.push(r); });
         }
+        if(Array.isArray(parsed.wallets)){
+          const wids=new Set(wallets.map(w=>w.id));
+          parsed.wallets.forEach(w=>{ if(!wids.has(w.id)) wallets.push(w); });
+        }
       }
-      saveTx(); saveCats(); saveRecurring();
-      showToast('تم استيراد النسخة الاحتياطية ✓');
+      const defId=wallets[0].id;
+      transactions.forEach(tx=>{ if(!tx.wallet) tx.wallet=defId; });
+      recurring.forEach(r=>{ if(!r.wallet) r.wallet=defId; });
+      saveTx(); saveCats(); saveRecurring(); saveWallets();
+      showToast(t('toastBackupImported'));
       switchTab('tabHome');
-    }catch(err){ showToast('ملف النسخة الاحتياطية غير صالح'); }
+    }catch(err){ showToast(t('toastBackupInvalid')); }
   };
   reader.readAsText(file);
   e.target.value='';
 });
 document.getElementById('clearAllBtn').addEventListener('click', ()=>{
   if(transactions.length===0) return;
-  if(confirm('سيتم حذف كل الحركات والمعاملات المتكررة نهائيًا من هذا الجهاز. ننصح بأخذ نسخة احتياطية أولاً. متابعة؟')){
+  if(confirm(t('confirmClearAll'))){
     transactions=[]; recurring=[]; saveTx(); saveRecurring(); switchTab('tabHome');
   }
 });
@@ -1169,16 +1590,29 @@ function shortcutURL(){
   return url.toString();
 }
 function shortcutHowToHtml(){
+  const url=escapeHtml(shortcutURL());
+  if(settings.lang==='en'){
+    if(isIOS()){
+      return `To get a standalone icon that opens directly to "Add Payment":<br>
+      1) Open this link in Safari: <span style="direction:ltr; display:inline-block; word-break:break-all;">${url}</span><br>
+      2) Tap the Share button.<br>
+      3) Choose "Add to Home Screen".<br>
+      4) Name it e.g. "Quick Payment" and tap "Add".<br>
+      You'll get a second icon next to Daftari that opens straight to the add screen.`;
+    }
+    return `Long-press (or right-click) the Daftari icon on your home screen or taskbar, and a "Log Payment" shortcut option will appear directly in the menu.<br><br>
+    If it doesn't appear, you can also add this link as a standalone shortcut: <span style="direction:ltr; display:inline-block; word-break:break-all;">${url}</span>`;
+  }
   if(isIOS()){
     return `للحصول على أيقونة مستقلة تفتح مباشرة على "إضافة عملية دفع":<br>
-    1) افتح هذا الرابط في Safari: <span style="direction:ltr; display:inline-block; word-break:break-all;">${escapeHtml(shortcutURL())}</span><br>
+    1) افتح هذا الرابط في Safari: <span style="direction:ltr; display:inline-block; word-break:break-all;">${url}</span><br>
     2) اضغط زر المشاركة (المربع بالسهم) بالأسفل.<br>
     3) اختر "إضافة إلى الشاشة الرئيسية".<br>
     4) سمِّها مثلاً "دفعة سريعة" واضغط "إضافة".<br>
     ستحصل على أيقونة ثانية بجانب أيقونة دفتري تفتح مباشرة صفحة الإضافة. (iOS لا يدعم اختصارات الضغط المطوّل على أيقونة واحدة، لذلك هذه أيقونة مستقلة).`;
   }
   return `اضغط مطولًا (أو انقر بزر الفأرة الأيمن) على أيقونة دفتري على الشاشة الرئيسية أو شريط المهام، وسيظهر خيار "تسجيل دفعة" مباشرة ضمن قائمة الاختصارات — بفضل تسجيله في ملف التطبيق (manifest).<br><br>
-  إن لم تظهر القائمة، يمكنك أيضًا إضافة هذا الرابط كاختصار مستقل: <span style="direction:ltr; display:inline-block; word-break:break-all;">${escapeHtml(shortcutURL())}</span>`;
+  إن لم تظهر القائمة، يمكنك أيضًا إضافة هذا الرابط كاختصار مستقل: <span style="direction:ltr; display:inline-block; word-break:break-all;">${url}</span>`;
 }
 document.getElementById('howToShortcutBtn').addEventListener('click', ()=>{
   const box=document.getElementById('shortcutHowTo');
@@ -1238,7 +1672,7 @@ async function onPinKey(k){
         document.getElementById('lockScreen').classList.remove('open');
         pinBuffer='';
       }else{
-        document.getElementById('pinErr').textContent='رمز غير صحيح';
+        document.getElementById('pinErr').textContent=t('pinErrWrong');
         pinBuffer=''; renderPinDots();
       }
     }else if(pinMode==='verify-disable'){
@@ -1246,24 +1680,24 @@ async function onPinKey(k){
       if(h===settings.pinHash){
         settings.pinEnabled=false; settings.pinHash=''; saveSettings();
         document.getElementById('lockScreen').classList.remove('open');
-        pinBuffer=''; renderSettings(); showToast('تم إيقاف القفل');
+        pinBuffer=''; renderSettings(); showToast(t('toastPinOff'));
       }else{
-        document.getElementById('pinErr').textContent='رمز غير صحيح'; pinBuffer=''; renderPinDots();
+        document.getElementById('pinErr').textContent=t('pinErrWrong'); pinBuffer=''; renderPinDots();
       }
     }else if(pinMode==='set-first'){
       pinFirstEntry=pinBuffer; pinBuffer='';
       pinMode='set-confirm';
-      document.getElementById('lockTitle').textContent='🔒 أعد إدخال الرمز للتأكيد';
+      document.getElementById('lockTitle').textContent=t('lockSetConfirm');
       renderPinDots();
     }else if(pinMode==='set-confirm'){
       if(pinBuffer===pinFirstEntry){
         settings.pinHash=await sha256(pinBuffer); settings.pinEnabled=true; saveSettings();
         document.getElementById('lockScreen').classList.remove('open');
-        pinBuffer=''; renderSettings(); showToast('تم تفعيل قفل الرمز');
+        pinBuffer=''; renderSettings(); showToast(t('toastPinOn'));
       }else{
-        document.getElementById('pinErr').textContent='الرمزان غير متطابقين، ابدأ من جديد';
+        document.getElementById('pinErr').textContent=t('pinErrMismatch');
         pinBuffer=''; pinFirstEntry=''; pinMode='set-first';
-        document.getElementById('lockTitle').textContent='🔒 أدخل رمزًا جديدًا (4 أرقام)';
+        document.getElementById('lockTitle').textContent=t('lockSetFirst');
         renderPinDots();
       }
     }
@@ -1272,7 +1706,7 @@ async function onPinKey(k){
 function openLock(mode){
   pinMode=mode; pinBuffer=''; pinFirstEntry='';
   document.getElementById('pinErr').textContent='';
-  document.getElementById('lockTitle').textContent = mode==='set-first' ? '🔒 أدخل رمزًا جديدًا (4 أرقام)' : (mode==='verify-disable' ? '🔒 أدخل الرمز الحالي لإيقاف القفل' : '🔒 أدخل رمز القفل');
+  document.getElementById('lockTitle').textContent = mode==='set-first' ? t('lockSetFirst') : (mode==='verify-disable' ? t('lockVerifyDisable') : t('lockUnlock'));
   document.getElementById('forgotBtn').style.display = mode==='unlock' ? 'block' : 'none';
   renderPinDots(); renderPinPad();
   document.getElementById('lockScreen').classList.add('open');
@@ -1282,12 +1716,12 @@ document.getElementById('pinSwitch').addEventListener('click', ()=>{
   else{ openLock('set-first'); }
 });
 document.getElementById('forgotBtn').addEventListener('click', async ()=>{
-  if(confirm('لا توجد وسيلة لاستعادة الرمز المنسي. المتابعة ستوقف قفل الرمز فقط (بياناتك المالية تبقى محفوظة كما هي). هل تريد المتابعة؟')){
+  if(confirm(t('confirmForgotPin'))){
     settings.pinEnabled=false; settings.pinHash='';
     await saveSettings();
     document.getElementById('lockScreen').classList.remove('open');
     unlockedThisSession=true;
-    showToast('تم إيقاف قفل الرمز');
+    showToast(t('toastPinDisabled'));
   }
 });
 
@@ -1298,8 +1732,12 @@ async function init(){
     processRecurring();
     maybeNotifyDueRecurring();
     applyTheme();
+    applyLangDirection();
+    applyI18n();
     document.getElementById('dateInput').value=new Date().toISOString().slice(0,10);
     renderCatGrid();
+    populateWalletSelect();
+    bindReceiptInputs();
     const params=new URLSearchParams(window.location.search);
     const startTab = params.get('action')==='add' ? 'tabAdd' : 'tabHome';
     switchTab(startTab);
