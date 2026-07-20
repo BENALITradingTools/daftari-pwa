@@ -329,7 +329,7 @@
 <div class="wrap" id="appRoot">
   <header>
     <div>
-      <h1>دفت<span>ري</span></h1>
+      <h1 id="appBrandTitle">دفت<span>ري</span></h1>
       <p data-i18n="tagline">دفتر مصاريفك الشخصي</p>
     </div>
   </header>
@@ -427,11 +427,31 @@
   </main>
 
   <main id="tabReports">
+    <div class="section-title" data-i18n="reportPeriodSection">🗂️ فترة التقرير</div>
+    <div class="card-box">
+      <div class="set-row">
+        <div class="lab" data-i18n="reportPeriodLabel">المدة</div>
+        <select id="reportPeriodSelect" style="width:auto;">
+          <option value="thisMonth" data-i18n="periodThisMonth">هذا الشهر</option>
+          <option value="lastMonth" data-i18n="periodLastMonth">الشهر الماضي</option>
+          <option value="last3" data-i18n="periodLast3">آخر 3 أشهر</option>
+          <option value="last6" data-i18n="periodLast6">آخر 6 أشهر</option>
+          <option value="thisYear" data-i18n="periodThisYear">هذه السنة</option>
+          <option value="lastYear" data-i18n="periodLastYear">السنة الماضية</option>
+          <option value="all" data-i18n="periodAll">كل الفترات</option>
+          <option value="custom" data-i18n="periodCustom">مدة مخصصة</option>
+        </select>
+      </div>
+      <div class="set-row" id="reportCustomRangeRow" style="display:none; flex-wrap:wrap; gap:8px;">
+        <input type="date" id="reportRangeStart" style="flex:1; min-width:130px;">
+        <input type="date" id="reportRangeEnd" style="flex:1; min-width:130px;">
+      </div>
+    </div>
     <div class="section-title" id="budgetSectionTitle" style="display:none;" data-i18n="budgetSection">🎯 الميزانية الشهرية</div>
     <div class="card-box" id="budgetProgressBox" style="display:none;">
       <div id="budgetProgressRows"></div>
     </div>
-    <div class="section-title" data-i18n="catByMonth">الإنفاق حسب الفئة (هذا الشهر)</div>
+    <div class="section-title" id="catByMonthTitle">الإنفاق حسب الفئة (هذا الشهر)</div>
     <div class="card-box">
       <div class="chart-box"><canvas id="chartCategory"></canvas></div>
       <div id="breakdownRows" style="margin-top:12px;"></div>
@@ -442,7 +462,7 @@
     <div class="card-box"><div class="chart-box"><canvas id="chartMonthly"></canvas></div></div>
     <div class="section-title" data-i18n="yearlyCompare">مقارنة سنوية</div>
     <div class="card-box"><div class="chart-box"><canvas id="chartYearly"></canvas></div></div>
-    <button class="save-btn" id="exportPDFBtn" style="margin-top:16px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="exportPDF">🖨️ تصدير تقرير الشهر الحالي PDF</button>
+    <button class="save-btn" id="exportPDFBtn" style="margin-top:16px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="exportPDF">🖨️ تصدير التقرير كملف PDF</button>
   </main>
 
   <main id="tabSettings">
@@ -594,6 +614,7 @@ let unlockedThisSession=false;
 let lastDeleted=null, lastDeletedIndex=-1, undoTimer=null;
 let walletFilter='all';
 let pendingReceipt=null;
+let reportPeriod='thisMonth';
 
 const DEFAULT_CATS=[
   {id:'food', label:'طعام', label_en:'Food', icon:'🍔', type:'expense'},
@@ -621,6 +642,31 @@ const BILL_TYPES=[
 ];
 function findBillType(id){ return BILL_TYPES.find(b=>b.id===id) || null; }
 const CURRENCIES={DZD:'د.ج',SAR:'ر.س',USD:'$',EUR:'€',AED:'د.إ',EGP:'ج.م',KWD:'د.ك',QAR:'ر.ق',OMR:'ر.ع',BHD:'د.ب',MAD:'د.م',JOD:'د.أ',GBP:'£'};
+const CURRENCIES_EN={DZD:'DA',SAR:'SR',USD:'$',EUR:'€',AED:'AED',EGP:'EGP',KWD:'KD',QAR:'QR',OMR:'OMR',BHD:'BD',MAD:'DH',JOD:'JD',GBP:'£'};
+function currencySymbol(code){
+  const map = settings.lang==='en' ? CURRENCIES_EN : CURRENCIES;
+  return map[code] || CURRENCIES[code] || code;
+}
+const CURRENCY_NAMES={
+  DZD:{ar:'دينار جزائري', en:'Algerian Dinar'},
+  SAR:{ar:'ريال سعودي', en:'Saudi Riyal'},
+  USD:{ar:'دولار أمريكي', en:'US Dollar'},
+  EUR:{ar:'يورو', en:'Euro'},
+  AED:{ar:'درهم إماراتي', en:'UAE Dirham'},
+  EGP:{ar:'جنيه مصري', en:'Egyptian Pound'},
+  KWD:{ar:'دينار كويتي', en:'Kuwaiti Dinar'},
+  QAR:{ar:'ريال قطري', en:'Qatari Riyal'},
+  OMR:{ar:'ريال عماني', en:'Omani Rial'},
+  BHD:{ar:'دينار بحريني', en:'Bahraini Dinar'},
+  MAD:{ar:'درهم مغربي', en:'Moroccan Dirham'},
+  JOD:{ar:'دينار أردني', en:'Jordanian Dinar'},
+  GBP:{ar:'جنيه إسترليني', en:'British Pound'}
+};
+function currencyName(code){
+  const n=CURRENCY_NAMES[code];
+  if(!n) return code;
+  return settings.lang==='en' ? n.en : n.ar;
+}
 const MONTHS_AR=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 const MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -642,8 +688,10 @@ const I18N={
     freqMonthly:'شهريًا', freqWeekly:'أسبوعيًا', freqYearly:'سنويًا',
     saveBtn:'حفظ الحركة', updateBtn:'تحديث الحركة', cancelEdit:'إلغاء التعديل',
     searchPh:'🔍 ابحث في الملاحظات أو الفئات', allMonths:'كل الشهور والسنوات', allTypes:'الكل', incomeOnly:'دخل فقط', expenseOnly:'مصروف فقط',
-    catByMonth:'الإنفاق حسب الفئة (هذا الشهر)', incomeVsExpense:'الدخل مقابل المصروف (الإجمالي)', monthlyCompare:'مقارنة شهرية (آخر 6 أشهر)', yearlyCompare:'مقارنة سنوية',
-    exportPDF:'🖨️ تصدير تقرير الشهر الحالي PDF',
+    reportPeriodSection:'🗂️ فترة التقرير', reportPeriodLabel:'المدة',
+    periodThisMonth:'هذا الشهر', periodLastMonth:'الشهر الماضي', periodLast3:'آخر 3 أشهر', periodLast6:'آخر 6 أشهر', periodThisYear:'هذه السنة', periodLastYear:'السنة الماضية', periodAll:'كل الفترات', periodCustom:'مدة مخصصة',
+    catByMonth:'الإنفاق حسب الفئة ({period})', incomeVsExpense:'الدخل مقابل المصروف (الإجمالي)', monthlyCompare:'مقارنة شهرية (آخر 6 أشهر)', yearlyCompare:'مقارنة سنوية',
+    exportPDF:'🖨️ تصدير التقرير كملف PDF',
     general:'عام', currency:'العملة', darkMode:'الوضع الداكن', language:'اللغة',
     walletsSection:'👛 المحافظ / الحسابات', walletsHint:'أضف محافظ أو حسابات متعددة (نقدي، بنك، توفير...) وتتبع رصيد كل واحدة على حدة.', newWalletName:'اسم المحفظة الجديدة',
     budgetSection:'🎯 الميزانية الشهرية', budgetHint:'حدّد سقفًا شهريًا لأي فئة مصروف تريد مراقبتها. اترك الحقل فارغًا أو صفرًا لإلغاء الميزانية عن تلك الفئة.',
@@ -664,7 +712,7 @@ const I18N={
     widgetInfo:'ℹ️ عن الـ Widget: تعذّر إضافة ودجت حقيقي على الشاشة الرئيسية لأن ذلك يتطلب تطبيق iOS أصلي (Swift/WidgetKit عبر Xcode) — تطبيقات الويب لا تدعم هذه الميزة على iOS إطلاقًا. لكن يمكنك إضافة اختصار أيقونة يفتح مباشرة على صفحة "تسجيل دفعة" (انظر أعلاه).',
     forgotPin:'نسيت الرمز؟', undoBtn:'تراجع', undoDeleteMsg:'تم حذف الحركة',
     lockUnlock:'🔒 أدخل رمز القفل', lockSetFirst:'🔒 أدخل رمزًا جديدًا (4 أرقام)', lockSetConfirm:'🔒 أعد إدخال الرمز للتأكيد', lockVerifyDisable:'🔒 أدخل الرمز الحالي لإيقاف القفل', pinErrWrong:'رمز غير صحيح', pinErrMismatch:'الرمزان غير متطابقين، ابدأ من جديد',
-    noMatch:'لا توجد عمليات مطابقة', noExpenseMonth:'لا توجد مصروفات هذا الشهر', noBudgetCats:'لا توجد فئات مصروف بعد', noRecurYet:'لا توجد معاملات متكررة بعد. فعّلها من شاشة "إضافة".',
+    noMatch:'لا توجد عمليات مطابقة', noExpenseMonth:'لا توجد مصروفات في هذه الفترة', noBudgetCats:'لا توجد فئات مصروف بعد', noRecurYet:'لا توجد معاملات متكررة بعد. فعّلها من شاشة "إضافة".',
     today:'اليوم', yesterday:'أمس',
     toastInvalidAmount:'أدخل مبلغًا صحيحًا', toastChooseCat:'اختر فئة', toastUpdated:'تم تحديث الحركة ✓', toastSavedRecur:'تم الحفظ، وسيتكرر تلقائيًا ✓', toastSaved:'تم الحفظ ✓',
     toastCurrencyChanged:'تم تغيير العملة', toastNotifOn:'تم تفعيل الإشعارات ✓', toastNotifOff:'تم إيقاف الإشعارات', toastNotifDenied:'الإذن مرفوض من إعدادات المتصفح', toastNoNotifSupport:'متصفحك لا يدعم الإشعارات',
@@ -681,7 +729,7 @@ const I18N={
     confirmClearAll:'سيتم حذف كل الحركات والمعاملات المتكررة نهائيًا من هذا الجهاز. ننصح بأخذ نسخة احتياطية أولاً. متابعة؟',
     confirmDeleteWallet:'حذف هذه المحفظة؟ ستُنقل عملياتها إلى المحفظة الرئيسية المتبقية.', confirmForgotPin:'لا توجد وسيلة لاستعادة الرمز المنسي. المتابعة ستوقف قفل الرمز فقط (بياناتك المالية تبقى محفوظة كما هي). هل تريد المتابعة؟',
     printTitle:'دفتري — تقرير', printGenerated:'تم إنشاؤه بتاريخ', printIncome:'إجمالي الدخل', printExpense:'إجمالي المصروف', printNet:'الصافي',
-    printByCat:'الإنفاق حسب الفئة', printAllTx:'كل حركات الشهر', printDate:'التاريخ', printCat:'الفئة', printNote:'ملاحظة', printAmount:'المبلغ', printWalletCol:'المحفظة', printReceiptCol:'🧾',
+    printByCat:'الإنفاق حسب الفئة', printAllTx:'كل الحركات', printDate:'التاريخ', printCat:'الفئة', printNote:'ملاحظة', printAmount:'المبلغ', printWalletCol:'المحفظة', printReceiptCol:'🧾',
     otherCat:'أخرى'
   },
   en:{
@@ -700,8 +748,10 @@ const I18N={
     freqMonthly:'Monthly', freqWeekly:'Weekly', freqYearly:'Yearly',
     saveBtn:'Save Transaction', updateBtn:'Update Transaction', cancelEdit:'Cancel Edit',
     searchPh:'🔍 Search notes or categories', allMonths:'All months & years', allTypes:'All', incomeOnly:'Income only', expenseOnly:'Expense only',
-    catByMonth:'Spending by Category (this month)', incomeVsExpense:'Income vs Expense (total)', monthlyCompare:'Monthly Comparison (last 6 months)', yearlyCompare:'Yearly Comparison',
-    exportPDF:'🖨️ Export current month report as PDF',
+    reportPeriodSection:'🗂️ Report Period', reportPeriodLabel:'Duration',
+    periodThisMonth:'This month', periodLastMonth:'Last month', periodLast3:'Last 3 months', periodLast6:'Last 6 months', periodThisYear:'This year', periodLastYear:'Last year', periodAll:'All time', periodCustom:'Custom range',
+    catByMonth:'Spending by Category ({period})', incomeVsExpense:'Income vs Expense (total)', monthlyCompare:'Monthly Comparison (last 6 months)', yearlyCompare:'Yearly Comparison',
+    exportPDF:'🖨️ Export report as PDF',
     general:'General', currency:'Currency', darkMode:'Dark Mode', language:'Language',
     walletsSection:'👛 Wallets / Accounts', walletsHint:'Add multiple wallets or accounts (cash, bank, savings...) and track each balance separately.', newWalletName:'New wallet name',
     budgetSection:'🎯 Monthly Budget', budgetHint:'Set a monthly cap for any expense category you want to track. Leave empty or 0 to remove the budget for that category.',
@@ -722,7 +772,7 @@ const I18N={
     widgetInfo:'ℹ️ About the Widget: a real home screen widget isn\'t possible because that requires a native iOS app (Swift/WidgetKit via Xcode) — web apps don\'t support this on iOS at all. But you can add a shortcut icon that opens straight to the "Log Payment" page (see above).',
     forgotPin:'Forgot code?', undoBtn:'Undo', undoDeleteMsg:'Transaction deleted',
     lockUnlock:'🔒 Enter your PIN', lockSetFirst:'🔒 Enter a new 4-digit code', lockSetConfirm:'🔒 Re-enter the code to confirm', lockVerifyDisable:'🔒 Enter current code to disable lock', pinErrWrong:'Incorrect code', pinErrMismatch:'Codes don\'t match, start again',
-    noMatch:'No matching transactions', noExpenseMonth:'No expenses this month', noBudgetCats:'No expense categories yet', noRecurYet:'No recurring transactions yet. Enable one from the "Add" screen.',
+    noMatch:'No matching transactions', noExpenseMonth:'No expenses in this period', noBudgetCats:'No expense categories yet', noRecurYet:'No recurring transactions yet. Enable one from the "Add" screen.',
     today:'Today', yesterday:'Yesterday',
     toastInvalidAmount:'Enter a valid amount', toastChooseCat:'Choose a category', toastUpdated:'Transaction updated ✓', toastSavedRecur:'Saved, will repeat automatically ✓', toastSaved:'Saved ✓',
     toastCurrencyChanged:'Currency changed', toastNotifOn:'Notifications enabled ✓', toastNotifOff:'Notifications disabled', toastNotifDenied:'Permission denied in browser settings', toastNoNotifSupport:'Your browser doesn\'t support notifications',
@@ -739,7 +789,7 @@ const I18N={
     confirmClearAll:'All transactions and recurring transactions on this device will be permanently deleted. We recommend taking a backup first. Continue?',
     confirmDeleteWallet:'Delete this wallet? Its transactions will move to the remaining main wallet.', confirmForgotPin:'There\'s no way to recover a forgotten code. Continuing will only disable the PIN lock (your financial data stays intact). Continue?',
     printTitle:'Daftari — Report', printGenerated:'Generated on', printIncome:'Total Income', printExpense:'Total Expense', printNet:'Net',
-    printByCat:'Spending by Category', printAllTx:'All transactions this month', printDate:'Date', printCat:'Category', printNote:'Note', printAmount:'Amount', printWalletCol:'Wallet', printReceiptCol:'🧾',
+    printByCat:'Spending by Category', printAllTx:'All transactions', printDate:'Date', printCat:'Category', printNote:'Note', printAmount:'Amount', printWalletCol:'Wallet', printReceiptCol:'🧾',
     otherCat:'Other'
   }
 };
@@ -755,6 +805,8 @@ function applyLangDirection(){
   document.documentElement.setAttribute('lang', settings.lang);
   document.body.classList.toggle('lang-en', settings.lang==='en');
   document.querySelectorAll('#langPill button').forEach(b=>b.classList.toggle('active', b.dataset.lang===settings.lang));
+  const brandEl=document.getElementById('appBrandTitle');
+  if(brandEl) brandEl.innerHTML = settings.lang==='en' ? 'Daf<span>tari</span>' : 'دفت<span>ري</span>';
 }
 function trLabel(o){ return (settings.lang==='en' && o && o.label_en) ? o.label_en : (o ? o.label : ''); }
 function months(){ return settings.lang==='en' ? MONTHS_EN : MONTHS_AR; }
@@ -765,7 +817,7 @@ function catsByType(t){ return categories.filter(c=>c.type===t); }
 function findWallet(id){ return wallets.find(w=>w.id===id) || wallets[0] || {id:'default', label:'المحفظة الرئيسية', label_en:'Main Wallet', icon:'👛'}; }
 function fmt(n){
   const v=Math.round((n||0)*100)/100;
-  return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ' + (CURRENCIES[settings.currency]||settings.currency);
+  return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ' + currencySymbol(settings.currency);
 }
 function showToast(msg){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
@@ -1148,6 +1200,68 @@ function lastNMonths(n){
   return arr;
 }
 
+/* ---------- Report period control (duration for report charts + PDF export) ---------- */
+function toLocalISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function getReportRange(){
+  const now=new Date();
+  const startOfMonth=(y,m)=>new Date(y,m,1);
+  const endOfMonth=(y,m)=>new Date(y,m+1,0);
+  let start=null, end=null;
+  switch(reportPeriod){
+    case 'lastMonth':
+      start=startOfMonth(now.getFullYear(), now.getMonth()-1); end=endOfMonth(now.getFullYear(), now.getMonth()-1); break;
+    case 'last3':
+      start=startOfMonth(now.getFullYear(), now.getMonth()-2); end=endOfMonth(now.getFullYear(), now.getMonth()); break;
+    case 'last6':
+      start=startOfMonth(now.getFullYear(), now.getMonth()-5); end=endOfMonth(now.getFullYear(), now.getMonth()); break;
+    case 'thisYear':
+      start=new Date(now.getFullYear(),0,1); end=new Date(now.getFullYear(),11,31); break;
+    case 'lastYear':
+      start=new Date(now.getFullYear()-1,0,1); end=new Date(now.getFullYear()-1,11,31); break;
+    case 'all':
+      start=null; end=null; break;
+    case 'custom': {
+      const s=document.getElementById('reportRangeStart').value;
+      const e=document.getElementById('reportRangeEnd').value;
+      start=s?new Date(s+'T00:00:00'):null;
+      end=e?new Date(e+'T00:00:00'):null;
+      break;
+    }
+    default: // thisMonth
+      start=startOfMonth(now.getFullYear(), now.getMonth()); end=endOfMonth(now.getFullYear(), now.getMonth());
+  }
+  return { startStr: start?toLocalISO(start):null, endStr: end?toLocalISO(end):null };
+}
+function txInReportRange(list){
+  const {startStr,endStr}=getReportRange();
+  return list.filter(t=>(!startStr || t.date>=startStr) && (!endStr || t.date<=endStr));
+}
+function reportPeriodDisplayLabel(){
+  if(reportPeriod==='custom'){
+    const {startStr,endStr}=getReportRange();
+    if(startStr && endStr) return startStr+' → '+endStr;
+  }
+  const map={thisMonth:'periodThisMonth', lastMonth:'periodLastMonth', last3:'periodLast3', last6:'periodLast6', thisYear:'periodThisYear', lastYear:'periodLastYear', all:'periodAll', custom:'periodCustom'};
+  return t(map[reportPeriod]||'periodThisMonth');
+}
+document.getElementById('reportPeriodSelect').addEventListener('change', (e)=>{
+  reportPeriod=e.target.value;
+  const customRow=document.getElementById('reportCustomRangeRow');
+  if(reportPeriod==='custom'){
+    customRow.style.display='flex';
+    if(!document.getElementById('reportRangeStart').value || !document.getElementById('reportRangeEnd').value){
+      const now=new Date();
+      document.getElementById('reportRangeStart').value=toLocalISO(new Date(now.getFullYear(), now.getMonth(), 1));
+      document.getElementById('reportRangeEnd').value=toLocalISO(now);
+    }
+  }else{
+    customRow.style.display='none';
+  }
+  renderReports();
+});
+document.getElementById('reportRangeStart').addEventListener('change', renderReports);
+document.getElementById('reportRangeEnd').addEventListener('change', renderReports);
+
 /* ---------- Log ---------- */
 function populateMonthFilter(){
   const sel=document.getElementById('filterMonth');
@@ -1228,10 +1342,16 @@ function simpleOpts(){
 function renderReports(){
   const filtered=txByWalletFilter(transactions);
   const now=new Date(); const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  const monthExpenses=filtered.filter(t=>t.type==='expense'&&t.date.slice(0,7)===ym);
+  const monthExpensesForBudget=filtered.filter(t=>t.type==='expense'&&t.date.slice(0,7)===ym);
+  const budgetByCat={};
+  monthExpensesForBudget.forEach(t=>{ budgetByCat[t.category]=(budgetByCat[t.category]||0)+t.amount; });
+  renderBudgetProgress(budgetByCat);
+
+  const periodExpenses=txInReportRange(filtered).filter(t=>t.type==='expense');
   const byCat={};
-  monthExpenses.forEach(t=>{ byCat[t.category]=(byCat[t.category]||0)+t.amount; });
-  renderBudgetProgress(byCat);
+  periodExpenses.forEach(t=>{ byCat[t.category]=(byCat[t.category]||0)+t.amount; });
+  const catTitleEl=document.getElementById('catByMonthTitle');
+  if(catTitleEl) catTitleEl.textContent = t('catByMonth').replace('{period}', reportPeriodDisplayLabel());
   const entries=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
   const bdRows=document.getElementById('breakdownRows');
   if(entries.length===0){
@@ -1279,7 +1399,7 @@ function renderReports(){
 /* ---------- Settings ---------- */
 function renderSettings(){
   const csel=document.getElementById('currencySelect');
-  csel.innerHTML=Object.keys(CURRENCIES).map(k=>`<option value="${k}">${k} (${CURRENCIES[k]})</option>`).join('');
+  csel.innerHTML=Object.keys(CURRENCIES).map(k=>`<option value="${k}">${k} — ${currencyName(k)} (${currencySymbol(k)})</option>`).join('');
   csel.value=settings.currency;
   document.getElementById('pinSwitch').classList.toggle('on', settings.pinEnabled);
   document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled);
@@ -1565,8 +1685,7 @@ function renderUpcomingRecurring(){
 /* ---------- PDF report export (uses the browser's built-in print-to-PDF — no library, fully offline) ---------- */
 function buildPrintReport(){
   const filtered=txByWalletFilter(transactions);
-  const now=new Date(); const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  const monthTx=filtered.filter(t=>t.date.slice(0,7)===ym);
+  const monthTx=txInReportRange(filtered);
   const totalIn=monthTx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
   const totalOut=monthTx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
   const byCat={};
@@ -1574,7 +1693,7 @@ function buildPrintReport(){
   const catEntries=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
   const maxCat=catEntries.length? catEntries[0][1] : 0;
   const rows=[...monthTx].sort((a,b)=>a.date.localeCompare(b.date));
-  const monthLabel=months()[now.getMonth()]+' '+now.getFullYear();
+  const monthLabel=reportPeriodDisplayLabel();
   const walLabel = walletFilter==='all' ? t('allWallets') : trLabel(findWallet(walletFilter));
   const showWalCol = walletFilter==='all' && wallets.length>1;
 
