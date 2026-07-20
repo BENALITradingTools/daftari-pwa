@@ -499,6 +499,22 @@
 
     <div class="section-title" data-i18n="backupSection">النسخ الاحتياطي</div>
     <div class="card-box">
+      <div class="set-row">
+        <div><div class="lab" data-i18n="autoBackupRow">💾 نسخة احتياطية تلقائية</div><div class="sub" data-i18n="autoBackupSub">ينزّل التطبيق نسخة احتياطية تلقائيًا عند فتحه بعد مرور المدة المحددة أدناه — لا حاجة لأي ضغطة زر</div></div>
+        <div class="switch" id="autoBackupSwitch"><div class="knob"></div></div>
+      </div>
+      <div class="set-row" id="autoBackupIntervalRow">
+        <div class="lab" data-i18n="autoBackupIntervalLabel">التكرار</div>
+        <select id="autoBackupInterval" style="width:auto;">
+          <option value="1" data-i18n="everyDay">كل يوم</option>
+          <option value="3" data-i18n="every3Days">كل 3 أيام</option>
+          <option value="7" data-i18n="every7Days">كل أسبوع</option>
+          <option value="14" data-i18n="every14Days">كل أسبوعين</option>
+          <option value="30" data-i18n="every30Days">كل شهر</option>
+        </select>
+      </div>
+      <div class="info-note" id="lastBackupInfo" style="margin-top:0;"></div>
+      <div style="height:14px;"></div>
       <div class="set-row"><div class="lab" data-i18n="exportBackup">⬇️ تصدير نسخة احتياطية</div></div>
       <div style="height:8px;"></div>
       <button class="save-btn" id="exportBtn" style="margin-top:0;" data-i18n="downloadBackup">تنزيل نسخة احتياطية</button>
@@ -568,7 +584,7 @@
 
 <script>
 const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1', REC_KEY='daftari_recurring_v1', WAL_KEY='daftari_wallets_v1';
-let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', lang:'ar', pinEnabled:false, pinHash:'', budgets:{}, notifEnabled:false};
+let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', lang:'ar', pinEnabled:false, pinHash:'', budgets:{}, notifEnabled:false, autoBackupEnabled:true, autoBackupDays:7, lastAutoBackup:null};
 let recurring=[];
 let wallets=[];
 let editingId=null, currentType='expense', selectedCategory=null;
@@ -636,6 +652,9 @@ const I18N={
     shortcutBannerText:'أضف اختصارًا على الشاشة الرئيسية يفتح هذه الصفحة مباشرة لتسجيل عملية دفع بضغطة واحدة. اضغط على ⋯ بالأسفل لمعرفة الطريقة.',
     howToShortcut:'كيف أضيف الاختصار؟',
     backupSection:'النسخ الاحتياطي', exportBackup:'⬇️ تصدير نسخة احتياطية', downloadBackup:'تنزيل نسخة احتياطية', restoreBackup:'استعادة من نسخة احتياطية',
+    autoBackupRow:'💾 نسخة احتياطية تلقائية', autoBackupSub:'ينزّل التطبيق نسخة احتياطية تلقائيًا عند فتحه بعد مرور المدة المحددة أدناه — لا حاجة لأي ضغطة زر',
+    autoBackupIntervalLabel:'التكرار', everyDay:'كل يوم', every3Days:'كل 3 أيام', every7Days:'كل أسبوع', every14Days:'كل أسبوعين', every30Days:'كل شهر',
+    lastBackupNever:'لم يتم إنشاء أي نسخة احتياطية بعد', lastBackupLabel:'آخر نسخة احتياطية:',
     notifSection:'🔔 الإشعارات', notifRow:'تنبيه المعاملات المستحقة', notifSub:'إشعار من نظام التشغيل عند فتح التطبيق إن وُجدت معاملة متكررة مستحقة خلال يوم أو يومين',
     notifInfo:'ℹ️ إشعار محلي بالكامل ومجاني — لا خادم ولا حساب مطلوب. يعمل فقط عند فتح التطبيق (وليس وأنت خارجه تمامًا)، وهذا قيد تقني في كل تطبيقات الويب بدون خادم دفع (push server).',
     securitySection:'الأمان', pinRow:'قفل بالرمز (PIN)', pinSub:'يحمي فتح التطبيق برمز من 4 أرقام',
@@ -651,6 +670,7 @@ const I18N={
     toastCurrencyChanged:'تم تغيير العملة', toastNotifOn:'تم تفعيل الإشعارات ✓', toastNotifOff:'تم إيقاف الإشعارات', toastNotifDenied:'الإذن مرفوض من إعدادات المتصفح', toastNoNotifSupport:'متصفحك لا يدعم الإشعارات',
     toastBudgetSaved:'تم حفظ الميزانية',
     toastNoDataExport:'لا توجد بيانات لتصديرها', toastBackupCreated:'تم إنشاء النسخة الاحتياطية', toastBackupImported:'تم استيراد النسخة الاحتياطية ✓', toastBackupInvalid:'ملف النسخة الاحتياطية غير صالح',
+    toastAutoBackupCreated:'💾 تم إنشاء نسخة احتياطية تلقائية وتنزيلها', toastAutoBackupOn:'تم تفعيل النسخ الاحتياطي التلقائي', toastAutoBackupOff:'تم إيقاف النسخ الاحتياطي التلقائي',
     toastCatUpdated:'تم تحديث الفئة', toastCatDeleted:'تم حذف الفئة', toastCatAdded:'تمت إضافة الفئة ✓', toastEnterCatName:'أدخل اسم الفئة',
     toastWalletAdded:'تمت إضافة المحفظة ✓', toastEnterWalletName:'أدخل اسم المحفظة', toastWalletDeleted:'تم حذف المحفظة', toastWalletUpdated:'تم تحديث المحفظة', toastCantDeleteLastWallet:'يجب أن تبقى محفظة واحدة على الأقل',
     toastPinOff:'تم إيقاف القفل', toastPinOn:'تم تفعيل قفل الرمز', toastPinDisabled:'تم إيقاف قفل الرمز',
@@ -690,6 +710,9 @@ const I18N={
     shortcutBannerText:'Add a home screen shortcut that opens this page directly to log a payment in one tap. Tap ⋯ below to learn how.',
     howToShortcut:'How do I add the shortcut?',
     backupSection:'Backup', exportBackup:'⬇️ Export Backup', downloadBackup:'Download Backup', restoreBackup:'Restore from Backup',
+    autoBackupRow:'💾 Automatic backup', autoBackupSub:'The app automatically downloads a backup file when opened after the interval below has passed — no button tap needed',
+    autoBackupIntervalLabel:'Frequency', everyDay:'Every day', every3Days:'Every 3 days', every7Days:'Every week', every14Days:'Every 2 weeks', every30Days:'Every month',
+    lastBackupNever:'No automatic backup created yet', lastBackupLabel:'Last automatic backup:',
     notifSection:'🔔 Notifications', notifRow:'Due Transaction Alerts', notifSub:'OS notification when opening the app if a recurring transaction is due within a day or two',
     notifInfo:'ℹ️ Fully local and free notification — no server or account required. Only works while opening the app (not while fully closed), a technical limit of all server-less web apps.',
     securitySection:'Security', pinRow:'PIN Lock', pinSub:'Protects app opening with a 4-digit code',
@@ -705,6 +728,7 @@ const I18N={
     toastCurrencyChanged:'Currency changed', toastNotifOn:'Notifications enabled ✓', toastNotifOff:'Notifications disabled', toastNotifDenied:'Permission denied in browser settings', toastNoNotifSupport:'Your browser doesn\'t support notifications',
     toastBudgetSaved:'Budget saved',
     toastNoDataExport:'No data to export', toastBackupCreated:'Backup created', toastBackupImported:'Backup imported ✓', toastBackupInvalid:'Invalid backup file',
+    toastAutoBackupCreated:'💾 Automatic backup created and downloaded', toastAutoBackupOn:'Automatic backup enabled', toastAutoBackupOff:'Automatic backup disabled',
     toastCatUpdated:'Category updated', toastCatDeleted:'Category deleted', toastCatAdded:'Category added ✓', toastEnterCatName:'Enter a category name',
     toastWalletAdded:'Wallet added ✓', toastEnterWalletName:'Enter a wallet name', toastWalletDeleted:'Wallet deleted', toastWalletUpdated:'Wallet updated', toastCantDeleteLastWallet:'At least one wallet must remain',
     toastPinOff:'Lock disabled', toastPinOn:'PIN lock enabled', toastPinDisabled:'PIN lock disabled',
@@ -1259,6 +1283,10 @@ function renderSettings(){
   csel.value=settings.currency;
   document.getElementById('pinSwitch').classList.toggle('on', settings.pinEnabled);
   document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled);
+  document.getElementById('autoBackupSwitch').classList.toggle('on', settings.autoBackupEnabled);
+  document.getElementById('autoBackupInterval').value=String(settings.autoBackupDays||7);
+  document.getElementById('autoBackupIntervalRow').style.display=settings.autoBackupEnabled?'':'none';
+  renderLastBackupInfo();
   applyLangDirection();
   renderCatManage();
   renderBudgetSettings();
@@ -1297,6 +1325,23 @@ document.getElementById('notifSwitch').addEventListener('click', async ()=>{
   saveSettings();
   document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled);
 });
+document.getElementById('autoBackupSwitch').addEventListener('click', ()=>{
+  settings.autoBackupEnabled=!settings.autoBackupEnabled;
+  saveSettings();
+  showToast(t(settings.autoBackupEnabled?'toastAutoBackupOn':'toastAutoBackupOff'));
+  document.getElementById('autoBackupSwitch').classList.toggle('on', settings.autoBackupEnabled);
+  document.getElementById('autoBackupIntervalRow').style.display=settings.autoBackupEnabled?'':'none';
+});
+document.getElementById('autoBackupInterval').addEventListener('change', (e)=>{
+  settings.autoBackupDays=parseInt(e.target.value,10)||7;
+  saveSettings();
+});
+function renderLastBackupInfo(){
+  const el=document.getElementById('lastBackupInfo');
+  if(!settings.lastAutoBackup){ el.textContent=t('lastBackupNever'); return; }
+  const d=new Date(settings.lastAutoBackup);
+  el.textContent=t('lastBackupLabel')+' '+d.toLocaleDateString(settings.lang==='ar'?'ar':'en', {year:'numeric', month:'2-digit', day:'2-digit'})+' '+d.toLocaleTimeString(settings.lang==='ar'?'ar':'en', {hour:'2-digit', minute:'2-digit'});
+}
 function maybeNotifyDueRecurring(){
   if(!settings.notifEnabled) return;
   if(typeof Notification==='undefined' || Notification.permission!=='granted') return;
@@ -1617,15 +1662,35 @@ document.getElementById('addCatBtn').addEventListener('click', ()=>{
 });
 
 /* ---------- backup ---------- */
-document.getElementById('exportBtn').addEventListener('click', ()=>{
-  if(transactions.length===0){ showToast(t('toastNoDataExport')); return; }
-  const payload={app:'daftari', version:4, exportedAt:new Date().toISOString(), transactions, categories, settings, recurring, wallets};
+function buildBackupPayload(){
+  return {app:'daftari', version:4, exportedAt:new Date().toISOString(), transactions, categories, settings, recurring, wallets};
+}
+function downloadBackupFile(){
+  const payload=buildBackupPayload();
   const blob=new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download='daftari-backup-'+new Date().toISOString().slice(0,10)+'.json';
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  if(transactions.length===0){ showToast(t('toastNoDataExport')); return; }
+  downloadBackupFile();
   showToast(t('toastBackupCreated'));
 });
+function maybeAutoBackup(){
+  if(!settings.autoBackupEnabled) return;
+  if(transactions.length===0) return;
+  const days=settings.autoBackupDays||7;
+  const last=settings.lastAutoBackup ? new Date(settings.lastAutoBackup) : null;
+  const dueMs=days*24*60*60*1000;
+  if(last && (Date.now()-last.getTime())<dueMs) return;
+  try{
+    downloadBackupFile();
+    settings.lastAutoBackup=new Date().toISOString();
+    saveSettings();
+    showToast(t('toastAutoBackupCreated'));
+  }catch(e){ /* silent — user can still export manually from Settings */ }
+}
 document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click());
 document.getElementById('importFile').addEventListener('change', (e)=>{
   const file=e.target.files[0]; if(!file) return;
@@ -1826,6 +1891,7 @@ async function init(){
     await load();
     processRecurring();
     maybeNotifyDueRecurring();
+    maybeAutoBackup();
     applyTheme();
     applyLangDirection();
     applyI18n();
