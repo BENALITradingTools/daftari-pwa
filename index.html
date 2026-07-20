@@ -251,9 +251,9 @@
   #printReport td.rc-col img{width:26px; height:26px; object-fit:cover; border-radius:5px; border:1px solid #ddd;}
   #printReport .pr-foot{margin-top:18px; font-size:9.5px; color:#999; text-align:center;}
   @media print{
-    body *{visibility:hidden;}
-    #printReport, #printReport *{visibility:visible;}
-    #printReport{display:block; position:absolute; top:0; left:0; width:100%; padding:20px; color:#000; background:#fff;}
+    html, body{height:auto !important; overflow:visible !important;}
+    body > *{display:none !important;}
+    #printReport{display:block !important; position:static !important; top:auto; left:auto; width:100%; padding:20px; margin:0; color:#000; background:#fff;}
   }
   .budget-alert-item .name{display:flex; align-items:center; gap:6px; color:var(--ink);}
   .budget-alert-item .stat{direction:ltr; font-size:11px; font-weight:700;}
@@ -427,6 +427,8 @@
   </main>
 
   <main id="tabReports">
+    <div class="section-title" id="reportWalletSectionTitle" data-i18n="reportWalletSection">👛 المحفظة</div>
+    <div class="wallet-chips" id="reportWalletChips"></div>
     <div class="section-title" data-i18n="reportPeriodSection">🗂️ فترة التقرير</div>
     <div class="card-box">
       <div class="set-row">
@@ -451,6 +453,8 @@
     <div class="card-box" id="budgetProgressBox" style="display:none;">
       <div id="budgetProgressRows"></div>
     </div>
+    <div class="section-title" id="chartTrendTitle">📈 الاتجاه خلال الفترة</div>
+    <div class="card-box"><div class="chart-box"><canvas id="chartTrend"></canvas></div></div>
     <div class="section-title" id="catByMonthTitle">الإنفاق حسب الفئة (هذا الشهر)</div>
     <div class="card-box">
       <div class="chart-box"><canvas id="chartCategory"></canvas></div>
@@ -688,8 +692,10 @@ const I18N={
     freqMonthly:'شهريًا', freqWeekly:'أسبوعيًا', freqYearly:'سنويًا',
     saveBtn:'حفظ الحركة', updateBtn:'تحديث الحركة', cancelEdit:'إلغاء التعديل',
     searchPh:'🔍 ابحث في الملاحظات أو الفئات', allMonths:'كل الشهور والسنوات', allTypes:'الكل', incomeOnly:'دخل فقط', expenseOnly:'مصروف فقط',
+    reportWalletSection:'👛 المحفظة',
     reportPeriodSection:'🗂️ فترة التقرير', reportPeriodLabel:'المدة',
     periodThisMonth:'هذا الشهر', periodLastMonth:'الشهر الماضي', periodLast3:'آخر 3 أشهر', periodLast6:'آخر 6 أشهر', periodThisYear:'هذه السنة', periodLastYear:'السنة الماضية', periodAll:'كل الفترات', periodCustom:'مدة مخصصة',
+    trendChart:'📈 الاتجاه خلال الفترة ({period})',
     catByMonth:'الإنفاق حسب الفئة ({period})', incomeVsExpense:'الدخل مقابل المصروف (الإجمالي)', monthlyCompare:'مقارنة شهرية (آخر 6 أشهر)', yearlyCompare:'مقارنة سنوية',
     exportPDF:'🖨️ تصدير التقرير كملف PDF',
     general:'عام', currency:'العملة', darkMode:'الوضع الداكن', language:'اللغة',
@@ -748,8 +754,10 @@ const I18N={
     freqMonthly:'Monthly', freqWeekly:'Weekly', freqYearly:'Yearly',
     saveBtn:'Save Transaction', updateBtn:'Update Transaction', cancelEdit:'Cancel Edit',
     searchPh:'🔍 Search notes or categories', allMonths:'All months & years', allTypes:'All', incomeOnly:'Income only', expenseOnly:'Expense only',
+    reportWalletSection:'👛 Wallet',
     reportPeriodSection:'🗂️ Report Period', reportPeriodLabel:'Duration',
     periodThisMonth:'This month', periodLastMonth:'Last month', periodLast3:'Last 3 months', periodLast6:'Last 6 months', periodThisYear:'This year', periodLastYear:'Last year', periodAll:'All time', periodCustom:'Custom range',
+    trendChart:'📈 Trend Over the Period ({period})',
     catByMonth:'Spending by Category ({period})', incomeVsExpense:'Income vs Expense (total)', monthlyCompare:'Monthly Comparison (last 6 months)', yearlyCompare:'Yearly Comparison',
     exportPDF:'🖨️ Export report as PDF',
     general:'General', currency:'Currency', darkMode:'Dark Mode', language:'Language',
@@ -863,14 +871,26 @@ function applyTheme(){
 
 /* ---------- wallets (chips + selects) ---------- */
 function renderWalletChips(){
-  const el=document.getElementById('walletChips');
-  if(!el) return;
-  if(wallets.length<=1){ el.innerHTML=''; return; }
-  let html=`<div class="wallet-chip ${walletFilter==='all'?'sel':''}" data-id="all">🗂️ ${escapeHtml(t('allWallets'))}</div>`;
-  html+=wallets.map(w=>`<div class="wallet-chip ${walletFilter===w.id?'sel':''}" data-id="${w.id}">${w.icon||'👛'} ${escapeHtml(trLabel(w))}</div>`).join('');
-  el.innerHTML=html;
-  el.querySelectorAll('.wallet-chip').forEach(c=>{
-    c.addEventListener('click', ()=>{ walletFilter=c.dataset.id; renderWalletChips(); switchTab('tabHome'); });
+  const targets=[
+    {elId:'walletChips', onSelect:()=>switchTab('tabHome')},
+    {elId:'reportWalletChips', onSelect:()=>renderReports()}
+  ];
+  targets.forEach(target=>{
+    const el=document.getElementById(target.elId);
+    if(!el) return;
+    const titleEl=document.getElementById('reportWalletSectionTitle');
+    if(wallets.length<=1){
+      el.innerHTML='';
+      if(target.elId==='reportWalletChips' && titleEl) titleEl.style.display='none';
+      return;
+    }
+    if(target.elId==='reportWalletChips' && titleEl) titleEl.style.display='';
+    let html=`<div class="wallet-chip ${walletFilter==='all'?'sel':''}" data-id="all">🗂️ ${escapeHtml(t('allWallets'))}</div>`;
+    html+=wallets.map(w=>`<div class="wallet-chip ${walletFilter===w.id?'sel':''}" data-id="${w.id}">${w.icon||'👛'} ${escapeHtml(trLabel(w))}</div>`).join('');
+    el.innerHTML=html;
+    el.querySelectorAll('.wallet-chip').forEach(c=>{
+      c.addEventListener('click', ()=>{ walletFilter=c.dataset.id; renderWalletChips(); target.onSelect(); });
+    });
   });
 }
 function populateWalletSelect(){
@@ -1339,7 +1359,52 @@ function drawChart(canvasId, type, data, options){
 function simpleOpts(){
   return {responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#8991a1',font:{size:10}}, grid:{display:false}}, y:{ticks:{color:'#8991a1',font:{size:10}}, grid:{color:'rgba(137,145,161,0.15)'}}}};
 }
+/* Buckets the selected report range into day/month/year groups so the trend chart granularity adapts to the chosen duration */
+function buildTrendData(periodTx){
+  const {startStr,endStr}=getReportRange();
+  let start=startStr?new Date(startStr+'T00:00:00'):null;
+  let end=endStr?new Date(endStr+'T00:00:00'):null;
+  if(!start || !end){
+    if(!periodTx.length) return {labels:[], income:[], expense:[]};
+    const sortedDates=periodTx.map(x=>x.date).sort();
+    start=new Date(sortedDates[0]+'T00:00:00');
+    end=new Date(sortedDates[sortedDates.length-1]+'T00:00:00');
+  }
+  if(end<start) return {labels:[], income:[], expense:[]};
+  const diffDays=Math.round((end-start)/86400000)+1;
+  const keys=[], labels=[];
+  let unit;
+  if(diffDays<=45){
+    unit='day';
+    const d=new Date(start);
+    while(d<=end){
+      keys.push(toLocalISO(d));
+      labels.push(d.toLocaleDateString(locale(), {day:'numeric', month:'short', numberingSystem:'latn'}));
+      d.setDate(d.getDate()+1);
+    }
+  }else if(diffDays<=731){
+    unit='month';
+    let y=start.getFullYear(), m=start.getMonth();
+    const endY=end.getFullYear(), endM=end.getMonth();
+    while(y<endY || (y===endY && m<=endM)){
+      keys.push(y+'-'+String(m+1).padStart(2,'0'));
+      labels.push(months()[m]+' '+y);
+      m++; if(m>11){ m=0; y++; }
+    }
+  }else{
+    unit='year';
+    for(let y=start.getFullYear(); y<=end.getFullYear(); y++){
+      keys.push(String(y));
+      labels.push(String(y));
+    }
+  }
+  const sliceLen = unit==='day' ? 10 : unit==='month' ? 7 : 4;
+  const income=keys.map(k=>periodTx.filter(x=>x.type==='income' && x.date.slice(0,sliceLen)===k).reduce((s,x)=>s+x.amount,0));
+  const expense=keys.map(k=>periodTx.filter(x=>x.type==='expense' && x.date.slice(0,sliceLen)===k).reduce((s,x)=>s+x.amount,0));
+  return {labels, income, expense};
+}
 function renderReports(){
+  renderWalletChips();
   const filtered=txByWalletFilter(transactions);
   const now=new Date(); const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   const monthExpensesForBudget=filtered.filter(t=>t.type==='expense'&&t.date.slice(0,7)===ym);
@@ -1347,7 +1412,19 @@ function renderReports(){
   monthExpensesForBudget.forEach(t=>{ budgetByCat[t.category]=(budgetByCat[t.category]||0)+t.amount; });
   renderBudgetProgress(budgetByCat);
 
-  const periodExpenses=txInReportRange(filtered).filter(t=>t.type==='expense');
+  const periodTx=txInReportRange(filtered);
+  const trendTitleEl=document.getElementById('chartTrendTitle');
+  if(trendTitleEl) trendTitleEl.textContent = t('trendChart').replace('{period}', reportPeriodDisplayLabel());
+  const trend=buildTrendData(periodTx);
+  drawChart('chartTrend','bar',{
+    labels:trend.labels,
+    datasets:[
+      {label:t('income'), data:trend.income, backgroundColor:'#6fa287', borderRadius:4},
+      {label:t('expense'), data:trend.expense, backgroundColor:'#c1594a', borderRadius:4}
+    ]
+  },{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:'#8991a1', font:{size:10}}}}, scales:{x:{ticks:{color:'#8991a1',font:{size:10}}, grid:{display:false}}, y:{ticks:{color:'#8991a1',font:{size:10}}, grid:{color:'rgba(137,145,161,0.15)'}}}});
+
+  const periodExpenses=periodTx.filter(t=>t.type==='expense');
   const byCat={};
   periodExpenses.forEach(t=>{ byCat[t.category]=(byCat[t.category]||0)+t.amount; });
   const catTitleEl=document.getElementById('catByMonthTitle');
