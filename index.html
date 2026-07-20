@@ -1913,13 +1913,48 @@ window.addEventListener('error', function(e){
   console.error('uncaught error:', e.message, e.filename, e.lineno, e.error);
 });
 if('serviceWorker' in navigator){
+  let swUpdateApplied = false;
+
+  function applyUpdate(reg){
+    // Ask the waiting worker to take over immediately instead of waiting
+    // for every tab to close.
+    if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+  }
+
   window.addEventListener('load', ()=>{
     fetch('./sw.js', {method:'HEAD'}).then(res=>{
-      if(res.ok){
-        navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('sw register failed:', e));
-      }
-      // else: no sw.js on this host (e.g. a preview) — skip silently, app works fine without it.
+      if(!res.ok) return; // no sw.js on this host (e.g. a preview) — skip silently
+      navigator.serviceWorker.register('./sw.js').then(reg=>{
+        // Check for a newer sw.js right away...
+        reg.update().catch(()=>{});
+        // ...and again periodically while the app stays open (useful since
+        // an installed PWA may never "navigate" and re-check on its own).
+        setInterval(()=>reg.update().catch(()=>{}), 60*60*1000); // every hour
+        document.addEventListener('visibilitychange', ()=>{
+          if(document.visibilityState==='visible') reg.update().catch(()=>{});
+        });
+
+        // A new version was found and finished installing: activate it.
+        if(reg.waiting) applyUpdate(reg);
+        reg.addEventListener('updatefound', ()=>{
+          const newWorker = reg.installing;
+          if(!newWorker) return;
+          newWorker.addEventListener('statechange', ()=>{
+            if(newWorker.state==='installed' && navigator.serviceWorker.controller){
+              applyUpdate(reg);
+            }
+          });
+        });
+      }).catch(e=>console.warn('sw register failed:', e));
     }).catch(()=>{ /* no network / sw.js not reachable — skip silently */ });
+  });
+
+  // Once the new worker takes control, reload once so the page actually
+  // uses the new HTML/JS (guarded so it only ever happens one time).
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(swUpdateApplied) return;
+    swUpdateApplied = true;
+    window.location.reload();
   });
 }
 init();
