@@ -59,8 +59,22 @@
   .ledger-cover::before{ top:9px; right:9px; border-left:none; border-bottom:none;}
   .ledger-cover::after{ bottom:9px; left:9px; border-right:none; border-top:none;}
   .balance-label{font-size:12px; color:var(--muted); margin:0;}
-  .balance-value{font-size:32px; font-weight:900; margin:4px 0 14px; direction:ltr; text-align:right;}
+  .balance-row{display:flex; align-items:center; gap:8px; margin:4px 0 14px;}
+  .balance-value{font-size:32px; font-weight:900; margin:0; direction:ltr; text-align:right; flex:1;}
   .balance-value.neg{color:var(--rust);}
+  .balance-eye{
+    display:flex; align-items:center; justify-content:center;
+    width:30px; height:30px; flex-shrink:0;
+    background:rgba(0,0,0,0.15); border:1px solid var(--line); border-radius:9px;
+    color:var(--muted); cursor:pointer; padding:0; transition:color .15s, border-color .15s, background .15s;
+  }
+  body.light .balance-eye{background:rgba(0,0,0,0.05);}
+  .balance-eye:hover{color:var(--ink); border-color:var(--gold-dim);}
+  .balance-eye.on{color:var(--gold); border-color:var(--gold-dim);}
+  .balance-eye svg{width:16px; height:16px; display:block;}
+  .balance-eye .eye-closed{display:none;}
+  .balance-eye.on .eye-open{display:none;}
+  .balance-eye.on .eye-closed{display:block;}
   .mini-stats{display:flex; gap:9px; flex-wrap:wrap;}
   .mini-stat{flex:1; min-width:100px; background:rgba(0,0,0,0.15); border-radius:12px; padding:9px 11px;}
   body.light .mini-stat{background:rgba(0,0,0,0.05);}
@@ -338,7 +352,13 @@
     <div class="wallet-chips" id="walletChips"></div>
     <div class="ledger-cover">
       <p class="balance-label" data-i18n="balanceLabel">الرصيد الحالي</p>
-      <div class="balance-value" id="homeBalance">0.00</div>
+      <div class="balance-row">
+        <div class="balance-value" id="homeBalance">0.00</div>
+        <button type="button" class="balance-eye" id="balanceEyeBtn" aria-label="toggle balance visibility" data-i18n-title="toggleBalanceLabel" title="إخفاء/إظهار الرصيد">
+          <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.94 10.94 0 0 1 12 5c7 0 11 7 11 7a21.6 21.6 0 0 1-3.22 4.39M6.61 6.61C3.35 8.6 1 12 1 12s4 7 11 7a10.9 10.9 0 0 0 5.39-1.61"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+      </div>
       <div class="mini-stats">
         <div class="mini-stat"><div class="lbl"><span class="dot in"></span> <span data-i18n="totalIncome">إجمالي الدخل</span></div><div class="val" id="homeIncome">0.00</div></div>
         <div class="mini-stat"><div class="lbl"><span class="dot out"></span> <span data-i18n="totalExpense">إجمالي المصروفات</span></div><div class="val" id="homeExpense">0.00</div></div>
@@ -347,6 +367,10 @@
     </div>
     <div id="budgetAlerts"></div>
     <div id="upcomingRecurring"></div>
+    <div class="section-title" id="savingsSectionTitle" style="display:none;" data-i18n="savingsSection">💰 المدخرات</div>
+    <div class="card-box" id="savingsProgressBox" style="display:none;">
+      <div id="savingsProgressRows"></div>
+    </div>
     <div class="section-title" data-i18n="last6months">آخر 6 أشهر</div>
     <div class="card-box"><div class="chart-box"><canvas id="homeChart"></canvas></div></div>
     <div class="section-title" data-i18n="last5tx">آخر 5 عمليات</div>
@@ -506,6 +530,18 @@
       <div id="budgetSettingsList"></div>
     </div>
 
+    <div class="section-title" data-i18n="savingsSection">💰 المدخرات</div>
+    <div class="card-box">
+      <div class="info-note" style="margin-top:0; margin-bottom:10px;" data-i18n="savingsHint">أنشئ أهدافًا للادخار (سيارة، منزل...) بمبلغ مستهدف. الأموال المضافة هنا منفصلة تمامًا عن رصيدك الحالي ولا تُحتسب ضمنه.</div>
+      <div id="savingsManageList"></div>
+      <div class="add-wallet-form">
+        <input type="text" id="newSavIcon" class="icon-in" placeholder="🎯" maxlength="2">
+        <input type="text" id="newSavName" placeholder="اسم الهدف" data-i18n-ph="newSavingsName">
+        <input type="number" id="newSavTarget" placeholder="المبلغ المستهدف" inputmode="decimal" min="0" step="1" style="max-width:110px;" data-i18n-ph="newSavingsTarget">
+        <button id="addSavBtn">+</button>
+      </div>
+    </div>
+
     <div class="section-title" data-i18n="recurringSection">🔁 المعاملات المتكررة</div>
     <div class="card-box">
       <div class="info-note" style="margin-top:0; margin-bottom:10px;" data-i18n="recurringHint">الحركات التي فعّلت لها التكرار من شاشة "إضافة" تظهر هنا. يتم إنشاء الحركة الجديدة تلقائيًا في كل مرة تفتح فيها التطبيق بعد حلول موعدها — لا حاجة لإنترنت أو خادم.</div>
@@ -607,10 +643,12 @@
 <div id="printReport"></div>
 
 <script>
-const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1', REC_KEY='daftari_recurring_v1', WAL_KEY='daftari_wallets_v1';
-let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', lang:'ar', pinEnabled:false, pinHash:'', budgets:{}, notifEnabled:false, autoBackupEnabled:true, autoBackupDays:7, lastAutoBackup:null};
+const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1', REC_KEY='daftari_recurring_v1', WAL_KEY='daftari_wallets_v1', SAV_KEY='daftari_savings_v1';
+let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', lang:'ar', pinEnabled:false, pinHash:'', budgets:{}, notifEnabled:false, autoBackupEnabled:true, autoBackupDays:7, lastAutoBackup:null, balanceHidden:false};
 let recurring=[];
 let wallets=[];
+let savingsGoals=[];
+let lastHomeStats={balance:0, income:0, expense:0, monthExpense:0};
 let editingId=null, currentType='expense', selectedCategory=null;
 let charts={};
 let pinMode='unlock', pinBuffer='', pinFirstEntry='';
@@ -680,6 +718,7 @@ const I18N={
     tagline:'دفتر مصاريفك الشخصي',
     navHome:'الرئيسية', navAdd:'إضافة', navLog:'السجل', navReports:'التقارير', navSettings:'الإعدادات',
     balanceLabel:'الرصيد الحالي', totalIncome:'إجمالي الدخل', totalExpense:'إجمالي المصروفات', monthExpense:'📅 مصروف هذا الشهر',
+    toggleBalanceLabel:'إخفاء/إظهار الرصيد',
     last6months:'آخر 6 أشهر', last5tx:'آخر 5 عمليات',
     emptyHomeTitle:'دفترك فارغ الآن', emptyHomeSub:'اضغط "إضافة" لتسجّل أول حركة',
     allWallets:'كل المحافظ',
@@ -701,6 +740,10 @@ const I18N={
     general:'عام', currency:'العملة', darkMode:'الوضع الداكن', language:'اللغة',
     walletsSection:'👛 المحافظ / الحسابات', walletsHint:'أضف محافظ أو حسابات متعددة (نقدي، بنك، توفير...) وتتبع رصيد كل واحدة على حدة.', newWalletName:'اسم المحفظة الجديدة',
     budgetSection:'🎯 الميزانية الشهرية', budgetHint:'حدّد سقفًا شهريًا لأي فئة مصروف تريد مراقبتها. اترك الحقل فارغًا أو صفرًا لإلغاء الميزانية عن تلك الفئة.',
+    savingsSection:'💰 المدخرات', savingsHint:'أنشئ أهدافًا للادخار (سيارة، منزل...) بمبلغ مستهدف. الأموال المضافة هنا منفصلة تمامًا عن رصيدك الحالي ولا تُحتسب ضمنه.',
+    newSavingsName:'اسم الهدف (مثال: سيارة)', newSavingsTarget:'المبلغ المستهدف',
+    savingsNameLabel:'اسم الهدف', savingsIconLabel:'أيقونة الهدف', savingsTargetLabel:'المبلغ المستهدف', savingsFundsPrompt:'أدخل المبلغ (استخدم رقمًا سالبًا للسحب)',
+    noSavingsGoals:'لا توجد أهداف ادخار بعد',
     recurringSection:'🔁 المعاملات المتكررة', recurringHint:'الحركات التي فعّلت لها التكرار من شاشة "إضافة" تظهر هنا. يتم إنشاء الحركة الجديدة تلقائيًا في كل مرة تفتح فيها التطبيق بعد حلول موعدها — لا حاجة لإنترنت أو خادم.',
     shortcutSection:'اختصار الشاشة الرئيسية', shortcutRow:'📲 اختصار "تسجيل دفعة"', shortcutSub:'أضف أيقونة ثانية على شاشتك الرئيسية تفتح التطبيق مباشرة على صفحة الإضافة',
     shortcutBannerText:'أضف اختصارًا على الشاشة الرئيسية يفتح هذه الصفحة مباشرة لتسجيل عملية دفع بضغطة واحدة. اضغط على ⋯ بالأسفل لمعرفة الطريقة.',
@@ -727,6 +770,8 @@ const I18N={
     toastAutoBackupCreated:'💾 تم إنشاء نسخة احتياطية تلقائية وتنزيلها', toastAutoBackupOn:'تم تفعيل النسخ الاحتياطي التلقائي', toastAutoBackupOff:'تم إيقاف النسخ الاحتياطي التلقائي',
     toastCatUpdated:'تم تحديث الفئة', toastCatDeleted:'تم حذف الفئة', toastCatAdded:'تمت إضافة الفئة ✓', toastEnterCatName:'أدخل اسم الفئة',
     toastWalletAdded:'تمت إضافة المحفظة ✓', toastEnterWalletName:'أدخل اسم المحفظة', toastWalletDeleted:'تم حذف المحفظة', toastWalletUpdated:'تم تحديث المحفظة', toastCantDeleteLastWallet:'يجب أن تبقى محفظة واحدة على الأقل',
+    toastSavingsAdded:'تمت إضافة هدف الادخار ✓', toastEnterSavingsName:'أدخل اسم الهدف', toastEnterSavingsTarget:'أدخل مبلغًا مستهدفًا صحيحًا', toastSavingsUpdated:'تم تحديث الهدف', toastSavingsDeleted:'تم حذف الهدف',
+    toastFundsAdded:'تمت إضافة المبلغ للهدف ✓', toastFundsWithdrawn:'تم سحب المبلغ من الهدف',
     toastPinOff:'تم إيقاف القفل', toastPinOn:'تم تفعيل قفل الرمز', toastPinDisabled:'تم إيقاف قفل الرمز',
     toastRecurStopped:'تم إيقاف التكرار', toastUndoDone:'تم التراجع عن الحذف ✓', toastReceiptTooBig:'تعذّر معالجة الصورة',
     confirmDeleteCat:'حذف هذه الفئة؟ العمليات المسجّلة بها ستبقى لكن ستظهر كـ"أخرى".',
@@ -734,6 +779,7 @@ const I18N={
     confirmReplaceOrMerge:'اضغط "موافق" لاستبدال بياناتك الحالية بالكامل، أو "إلغاء" لدمجها مع بياناتك الحالية.',
     confirmClearAll:'سيتم حذف كل الحركات والمعاملات المتكررة نهائيًا من هذا الجهاز. ننصح بأخذ نسخة احتياطية أولاً. متابعة؟',
     confirmDeleteWallet:'حذف هذه المحفظة؟ ستُنقل عملياتها إلى المحفظة الرئيسية المتبقية.', confirmForgotPin:'لا توجد وسيلة لاستعادة الرمز المنسي. المتابعة ستوقف قفل الرمز فقط (بياناتك المالية تبقى محفوظة كما هي). هل تريد المتابعة؟',
+    confirmDeleteSavings:'حذف هدف الادخار هذا؟ سيُفقد المبلغ المُدخر المسجّل ضمنه.',
     printTitle:'دفتري — تقرير', printGenerated:'تم إنشاؤه بتاريخ', printIncome:'إجمالي الدخل', printExpense:'إجمالي المصروف', printNet:'الصافي',
     printByCat:'الإنفاق حسب الفئة', printAllTx:'كل الحركات', printDate:'التاريخ', printCat:'الفئة', printNote:'ملاحظة', printAmount:'المبلغ', printWalletCol:'المحفظة', printReceiptCol:'🧾',
     otherCat:'أخرى'
@@ -742,6 +788,7 @@ const I18N={
     tagline:'Your personal expense book',
     navHome:'Home', navAdd:'Add', navLog:'Log', navReports:'Reports', navSettings:'Settings',
     balanceLabel:'Current Balance', totalIncome:'Total Income', totalExpense:'Total Expenses', monthExpense:'📅 This Month\'s Expenses',
+    toggleBalanceLabel:'Show/Hide balance',
     last6months:'Last 6 Months', last5tx:'Last 5 Transactions',
     emptyHomeTitle:'Your ledger is empty', emptyHomeSub:'Tap "Add" to record your first transaction',
     allWallets:'All Wallets',
@@ -763,6 +810,10 @@ const I18N={
     general:'General', currency:'Currency', darkMode:'Dark Mode', language:'Language',
     walletsSection:'👛 Wallets / Accounts', walletsHint:'Add multiple wallets or accounts (cash, bank, savings...) and track each balance separately.', newWalletName:'New wallet name',
     budgetSection:'🎯 Monthly Budget', budgetHint:'Set a monthly cap for any expense category you want to track. Leave empty or 0 to remove the budget for that category.',
+    savingsSection:'💰 Savings', savingsHint:'Create savings goals (car, house...) with a target amount. Funds added here are kept fully separate from your current balance and are not counted in it.',
+    newSavingsName:'Goal name (e.g. Car)', newSavingsTarget:'Target amount',
+    savingsNameLabel:'Goal name', savingsIconLabel:'Goal icon', savingsTargetLabel:'Target amount', savingsFundsPrompt:'Enter amount (use a negative number to withdraw)',
+    noSavingsGoals:'No savings goals yet',
     recurringSection:'🔁 Recurring Transactions', recurringHint:'Transactions with recurrence enabled from the "Add" screen appear here. A new transaction is created automatically each time you open the app after its due date — no internet or server required.',
     shortcutSection:'Home Screen Shortcut', shortcutRow:'📲 "Log Payment" Shortcut', shortcutSub:'Add a second icon to your home screen that opens the app straight to the add screen',
     shortcutBannerText:'Add a home screen shortcut that opens this page directly to log a payment in one tap. Tap ⋯ below to learn how.',
@@ -789,6 +840,8 @@ const I18N={
     toastAutoBackupCreated:'💾 Automatic backup created and downloaded', toastAutoBackupOn:'Automatic backup enabled', toastAutoBackupOff:'Automatic backup disabled',
     toastCatUpdated:'Category updated', toastCatDeleted:'Category deleted', toastCatAdded:'Category added ✓', toastEnterCatName:'Enter a category name',
     toastWalletAdded:'Wallet added ✓', toastEnterWalletName:'Enter a wallet name', toastWalletDeleted:'Wallet deleted', toastWalletUpdated:'Wallet updated', toastCantDeleteLastWallet:'At least one wallet must remain',
+    toastSavingsAdded:'Savings goal added ✓', toastEnterSavingsName:'Enter a goal name', toastEnterSavingsTarget:'Enter a valid target amount', toastSavingsUpdated:'Goal updated', toastSavingsDeleted:'Goal deleted',
+    toastFundsAdded:'Funds added to goal ✓', toastFundsWithdrawn:'Funds withdrawn from goal',
     toastPinOff:'Lock disabled', toastPinOn:'PIN lock enabled', toastPinDisabled:'PIN lock disabled',
     toastRecurStopped:'Recurrence stopped', toastUndoDone:'Delete undone ✓', toastReceiptTooBig:'Couldn\'t process the image',
     confirmDeleteCat:'Delete this category? Existing transactions will remain but show as "Other".',
@@ -796,6 +849,7 @@ const I18N={
     confirmReplaceOrMerge:'Press "OK" to fully replace your current data, or "Cancel" to merge with your current data.',
     confirmClearAll:'All transactions and recurring transactions on this device will be permanently deleted. We recommend taking a backup first. Continue?',
     confirmDeleteWallet:'Delete this wallet? Its transactions will move to the remaining main wallet.', confirmForgotPin:'There\'s no way to recover a forgotten code. Continuing will only disable the PIN lock (your financial data stays intact). Continue?',
+    confirmDeleteSavings:'Delete this savings goal? Its recorded saved amount will be lost.',
     printTitle:'Daftari — Report', printGenerated:'Generated on', printIncome:'Total Income', printExpense:'Total Expense', printNet:'Net',
     printByCat:'Spending by Category', printAllTx:'All transactions', printDate:'Date', printCat:'Category', printNote:'Note', printAmount:'Amount', printWalletCol:'Wallet', printReceiptCol:'🧾',
     otherCat:'Other'
@@ -805,6 +859,7 @@ function t(key){ return (I18N[settings.lang] && I18N[settings.lang][key]) || I18
 function applyI18n(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder=t(el.dataset.i18nPh); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el=>{ el.title=t(el.dataset.i18nTitle); el.setAttribute('aria-label', t(el.dataset.i18nTitle)); });
   document.getElementById('lockTitle').textContent = t('lockUnlock');
 }
 function applyLangDirection(){
@@ -850,6 +905,7 @@ async function load(){
     wallets = w ? JSON.parse(w) : JSON.parse(JSON.stringify(DEFAULT_WALLETS));
   }catch(e){ wallets=JSON.parse(JSON.stringify(DEFAULT_WALLETS)); }
   if(!wallets.length) wallets=JSON.parse(JSON.stringify(DEFAULT_WALLETS));
+  try{ savingsGoals = JSON.parse(localStorage.getItem(SAV_KEY) || '[]'); }catch(e){ savingsGoals=[]; }
   // migrate transactions/recurring created before multi-wallet support
   let migrated=false;
   const defId=wallets[0].id;
@@ -862,6 +918,7 @@ async function saveCats(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(cat
 async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){} }
 async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){} }
 async function saveWallets(){ try{ localStorage.setItem(WAL_KEY, JSON.stringify(wallets)); }catch(e){} }
+async function saveSavings(){ try{ localStorage.setItem(SAV_KEY, JSON.stringify(savingsGoals)); }catch(e){} }
 
 /* ---------- theme ---------- */
 function applyTheme(){
@@ -1151,11 +1208,8 @@ function renderHome(){
   const now=new Date(); const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   const monthOut=filtered.filter(t=>t.type==='expense'&&t.date.slice(0,7)===ym).reduce((s,t)=>s+t.amount,0);
 
-  const balEl=document.getElementById('homeBalance');
-  balEl.textContent=fmt(balance); balEl.classList.toggle('neg', balance<0);
-  document.getElementById('homeIncome').textContent=fmt(totalIn);
-  document.getElementById('homeExpense').textContent=fmt(totalOut);
-  document.getElementById('homeMonthExpense').textContent=fmt(monthOut);
+  lastHomeStats={balance, income:totalIn, expense:totalOut, monthExpense:monthOut};
+  updateBalanceVisibility();
 
   const recent=[...filtered].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).slice(0,5);
   const recentEl=document.getElementById('homeRecent');
@@ -1177,7 +1231,35 @@ function renderHome(){
   }, simpleOpts());
   renderBudgetAlerts(ym);
   renderUpcomingRecurring();
+  renderSavingsProgress();
 }
+/* ---------- Balance visibility (privacy toggle) ---------- */
+function updateBalanceVisibility(){
+  const balEl=document.getElementById('homeBalance');
+  const eyeBtn=document.getElementById('balanceEyeBtn');
+  if(!balEl) return;
+  const hidden=!!settings.balanceHidden;
+  const mask='••••••';
+  if(hidden){
+    balEl.textContent=mask;
+    balEl.classList.remove('neg');
+  }else{
+    balEl.textContent=fmt(lastHomeStats.balance);
+    balEl.classList.toggle('neg', lastHomeStats.balance<0);
+  }
+  const incEl=document.getElementById('homeIncome');
+  const expEl=document.getElementById('homeExpense');
+  const monEl=document.getElementById('homeMonthExpense');
+  if(incEl) incEl.textContent = hidden ? mask : fmt(lastHomeStats.income);
+  if(expEl) expEl.textContent = hidden ? mask : fmt(lastHomeStats.expense);
+  if(monEl) monEl.textContent = hidden ? mask : fmt(lastHomeStats.monthExpense);
+  if(eyeBtn) eyeBtn.classList.toggle('on', hidden);
+}
+document.getElementById('balanceEyeBtn').addEventListener('click', ()=>{
+  settings.balanceHidden=!settings.balanceHidden;
+  saveSettings();
+  updateBalanceVisibility();
+});
 function txRowHtml(t){
   const c=findCat(t.category);
   const showWalBadge = wallets.length>1 && walletFilter==='all';
@@ -1487,6 +1569,7 @@ function renderSettings(){
   applyLangDirection();
   renderCatManage();
   renderBudgetSettings();
+  renderSavingsManage();
   renderRecurringSettings();
   renderWalletManage();
 }
@@ -1618,6 +1701,88 @@ document.getElementById('addWalletBtn').addEventListener('click', ()=>{
   renderWalletManage(); renderWalletChips(); populateWalletSelect();
   showToast(t('toastWalletAdded'));
 });
+
+/* ---------- Savings goals (fully separate from the current balance) ---------- */
+function renderSavingsManage(){
+  const el=document.getElementById('savingsManageList');
+  if(!el) return;
+  if(savingsGoals.length===0){
+    el.innerHTML=`<div class="empty" style="padding:12px;"><p>${escapeHtml(t('noSavingsGoals'))}</p></div>`;
+    return;
+  }
+  el.innerHTML = savingsGoals.map(g=>`
+    <div class="wallet-manage-row">
+      <span class="ic">${g.icon||'🎯'}</span>
+      <span class="lbl">${escapeHtml(trLabel(g))}</span>
+      <span class="bal">${fmt(g.saved||0)} / ${fmt(g.target||0)}</span>
+      <button class="sv-fund" data-id="${g.id}">💰</button>
+      <button class="sv-edit" data-id="${g.id}">✏️</button>
+      <button class="sv-del" data-id="${g.id}">🗑️</button>
+    </div>`).join('');
+  el.querySelectorAll('.sv-fund').forEach(b=>b.addEventListener('click', ()=>{
+    const g=savingsGoals.find(x=>x.id===b.dataset.id); if(!g) return;
+    const input=prompt(t('savingsFundsPrompt'), '');
+    if(input===null) return;
+    const amt=parseFloat(input);
+    if(isNaN(amt) || amt===0){ showToast(t('toastInvalidAmount')); return; }
+    g.saved=Math.max(0, (g.saved||0)+amt);
+    saveSavings(); renderSavingsManage(); renderSavingsProgress();
+    showToast(amt>0 ? t('toastFundsAdded') : t('toastFundsWithdrawn'));
+  }));
+  el.querySelectorAll('.sv-edit').forEach(b=>b.addEventListener('click', ()=>{
+    const g=savingsGoals.find(x=>x.id===b.dataset.id); if(!g) return;
+    const newLabel=prompt(t('savingsNameLabel')+':', trLabel(g));
+    if(newLabel===null) return;
+    const newIcon=prompt(t('savingsIconLabel')+':', g.icon||'🎯');
+    if(newIcon===null) return;
+    const newTarget=prompt(t('savingsTargetLabel')+':', g.target||0);
+    if(newTarget===null) return;
+    if(settings.lang==='en') g.label_en=newLabel.trim()||g.label_en; else g.label=newLabel.trim()||g.label;
+    g.icon=newIcon.trim()||g.icon;
+    const tv=parseFloat(newTarget); if(tv>0) g.target=tv;
+    saveSavings(); renderSavingsManage(); renderSavingsProgress();
+    showToast(t('toastSavingsUpdated'));
+  }));
+  el.querySelectorAll('.sv-del').forEach(b=>b.addEventListener('click', ()=>{
+    if(!confirm(t('confirmDeleteSavings'))) return;
+    savingsGoals=savingsGoals.filter(g=>g.id!==b.dataset.id);
+    saveSavings(); renderSavingsManage(); renderSavingsProgress();
+    showToast(t('toastSavingsDeleted'));
+  }));
+}
+document.getElementById('addSavBtn').addEventListener('click', ()=>{
+  const icon=document.getElementById('newSavIcon').value.trim()||'🎯';
+  const name=document.getElementById('newSavName').value.trim();
+  const targetVal=parseFloat(document.getElementById('newSavTarget').value);
+  if(!name){ showToast(t('toastEnterSavingsName')); return; }
+  if(!targetVal || targetVal<=0){ showToast(t('toastEnterSavingsTarget')); return; }
+  savingsGoals.push({id:'sv_'+Date.now(), label:name, label_en:name, icon, target:targetVal, saved:0});
+  saveSavings();
+  document.getElementById('newSavName').value=''; document.getElementById('newSavIcon').value=''; document.getElementById('newSavTarget').value='';
+  renderSavingsManage(); renderSavingsProgress();
+  showToast(t('toastSavingsAdded'));
+});
+function renderSavingsProgress(){
+  const box=document.getElementById('savingsProgressBox');
+  const title=document.getElementById('savingsSectionTitle');
+  const rowsEl=document.getElementById('savingsProgressRows');
+  if(!box || !title || !rowsEl) return;
+  if(savingsGoals.length===0){ box.style.display='none'; title.style.display='none'; return; }
+  box.style.display='block'; title.style.display='block';
+  rowsEl.innerHTML=savingsGoals.map(g=>{
+    const target=g.target||0, saved=g.saved||0;
+    const pct = target>0 ? Math.round((saved/target)*100) : 0;
+    const cls = pct>=100 ? '' : 'warn';
+    return `<div class="bud-prog-row">
+      <div class="bud-prog-top">
+        <span class="name">${g.icon||'🎯'} ${escapeHtml(trLabel(g))}</span>
+        <span class="amt">${fmt(saved)} / ${fmt(target)}</span>
+      </div>
+      <div class="bud-prog-track"><div class="bud-prog-fill ${cls}" style="width:${Math.min(100,pct)}%"></div></div>
+      <div class="bud-prog-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+}
 
 /* ---------- Budgets ---------- */
 function renderBudgetSettings(){
