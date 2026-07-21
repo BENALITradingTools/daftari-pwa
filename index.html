@@ -104,9 +104,9 @@
   .empty p{font-size:13px; line-height:1.8; margin:0;}
 
   /* bottom nav */
-  .bottomnav{ position:fixed; bottom:0; left:0; right:0; background:var(--card); border-top:1px solid var(--line); display:flex; padding:6px 4px calc(6px + env(safe-area-inset-bottom)); z-index:20;}
-  .navbtn{flex:1; background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--muted); font-family:'Tajawal'; font-size:10px; padding:6px 2px; cursor:pointer;}
-  .navbtn .ic{font-size:19px;}
+  .bottomnav{ position:fixed; bottom:0; left:0; right:0; background:var(--card); border-top:1px solid var(--line); display:flex; padding:6px 2px calc(6px + env(safe-area-inset-bottom)); z-index:20;}
+  .navbtn{flex:1; background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--muted); font-family:'Tajawal'; font-size:9.5px; padding:6px 1px; cursor:pointer; min-width:0;}
+  .navbtn .ic{font-size:18px;}
   .navbtn.active{color:var(--gold);}
 
   /* forms */
@@ -324,6 +324,37 @@
   .add-wallet-form input.icon-in{max-width:54px; text-align:center;}
   .add-wallet-form button{background:var(--gold); border:none; color:#191308; border-radius:10px; padding:0 14px; font-weight:900; cursor:pointer;}
 
+  /* savings tab cards */
+  .sav-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:12px;}
+  .sav-card-top{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .sav-card-top .ic{font-size:22px; width:34px; height:34px; border-radius:10px; background:var(--card-2); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .sav-card-top .name{flex:1; font-size:14.5px; font-weight:700; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .sav-card-top .icbtn{background:none; border:none; color:var(--muted); font-size:14px; cursor:pointer; padding:4px;}
+  .sav-card-amt{display:flex; align-items:baseline; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:6px; direction:ltr;}
+  .sav-card-amt .saved{font-size:17px; font-weight:900; color:var(--ink); direction:ltr;}
+  .sav-card-remain{font-size:11px; color:var(--muted); margin-top:6px;}
+  .sav-card-remain.done{color:var(--sage); font-weight:700;}
+  .sav-card-actions{display:flex; gap:8px; margin-top:12px;}
+  .sav-card-actions button{flex:1; border:none; border-radius:10px; padding:10px; font-family:'Tajawal'; font-weight:700; font-size:12.5px; cursor:pointer;}
+  .sav-btn-add{background:var(--sage); color:#0e1a14;}
+  .sav-btn-withdraw{background:var(--card-2); color:var(--ink); border:1px solid var(--line) !important;}
+
+  /* savings add/withdraw modal */
+  .sav-modal{position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:90; display:none; align-items:flex-end; justify-content:center;}
+  .sav-modal.open{display:flex;}
+  .sav-modal-box{background:var(--card); width:100%; max-width:480px; border-radius:20px 20px 0 0; padding:20px; padding-bottom:calc(20px + env(safe-area-inset-bottom));}
+  .sav-modal-title{font-size:15px; font-weight:900; margin-bottom:4px;}
+  .sav-modal-sub{font-size:12px; color:var(--muted); margin-bottom:14px;}
+  .sav-modal-box input{width:100%; box-sizing:border-box; background:var(--card-2); border:1px solid var(--line); color:var(--ink); border-radius:12px; padding:13px; font-family:'Tajawal'; font-size:16px; text-align:center;}
+  .sav-modal-quick{background:none; border:none; color:var(--gold); font-size:12.5px; font-weight:700; cursor:pointer; margin-top:10px; padding:4px;}
+  .sav-modal-actions{display:flex; gap:8px; margin-top:16px;}
+  .sav-modal-actions button{flex:1; border:none; border-radius:12px; padding:13px; font-family:'Tajawal'; font-weight:900; font-size:14px; cursor:pointer;}
+  .sav-modal-cancel{background:var(--card-2); color:var(--ink); border:1px solid var(--line) !important;}
+  .sav-modal-confirm{background:var(--gold); color:#191308;}
+  .sav-summary-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;}
+  .sav-summary-card .lbl{font-size:12px; color:var(--muted);}
+  .sav-summary-card .val{font-size:18px; font-weight:900; direction:ltr;}
+
   /* ---- language switch pill (settings) ---- */
   .lang-pill{display:flex; background:var(--card-2); border-radius:99px; padding:3px; gap:2px;}
   .lang-pill button{border:none; background:none; color:var(--muted); font-family:'Tajawal'; font-size:12px; font-weight:700; padding:6px 12px; border-radius:99px; cursor:pointer;}
@@ -437,6 +468,37 @@
     <button class="cancel-link" id="cancelEditBtn" style="display:none;" data-i18n="cancelEdit">إلغاء التعديل</button>
   </main>
 
+  <main id="tabSavings">
+    <div class="info-note" style="margin-bottom:14px;" data-i18n="savingsHint">أنشئ أهدافًا للادخار (سيارة، منزل...) بمبلغ مستهدف. الأموال المضافة هنا منفصلة تمامًا عن رصيدك الحالي ولا تُحتسب ضمنه.</div>
+    <div class="sav-summary-card" id="savTotalsCard" style="display:none;">
+      <div><div class="lbl" data-i18n="savingsTotalSaved">إجمالي المدخرات</div><div class="val" id="savTotalSaved">0.00</div></div>
+      <div style="text-align:left;"><div class="lbl" data-i18n="savingsTotalTarget">إجمالي الأهداف</div><div class="val" id="savTotalTarget">0.00</div></div>
+    </div>
+    <div id="savingsCardsList"></div>
+    <div class="section-title" data-i18n="addNewSavingsGoal">➕ هدف ادخار جديد</div>
+    <div class="card-box">
+      <div class="add-wallet-form">
+        <input type="text" id="newSavIcon" class="icon-in" placeholder="🎯" maxlength="2">
+        <input type="text" id="newSavName" placeholder="اسم الهدف" data-i18n-ph="newSavingsName">
+        <input type="number" id="newSavTarget" placeholder="المبلغ المستهدف" inputmode="decimal" min="0" step="1" style="max-width:110px;" data-i18n-ph="newSavingsTarget">
+        <button id="addSavBtn">+</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="sav-modal" id="savFundModal">
+    <div class="sav-modal-box">
+      <div class="sav-modal-title" id="savModalTitle"></div>
+      <div class="sav-modal-sub" id="savModalSub"></div>
+      <input type="number" id="savModalAmount" inputmode="decimal" min="0" step="1" placeholder="0.00">
+      <button type="button" class="sav-modal-quick" id="savModalQuickBtn" style="display:none;"></button>
+      <div class="sav-modal-actions">
+        <button class="sav-modal-cancel" id="savModalCancelBtn" data-i18n="cancel">إلغاء</button>
+        <button class="sav-modal-confirm" id="savModalConfirmBtn" data-i18n="confirm">تأكيد</button>
+      </div>
+    </div>
+  </div>
+
   <main id="tabLog">
     <input type="text" id="searchInput" placeholder="🔍 ابحث في الملاحظات أو الفئات" data-i18n-ph="searchPh">
     <div class="filters">
@@ -530,18 +592,6 @@
       <div id="budgetSettingsList"></div>
     </div>
 
-    <div class="section-title" data-i18n="savingsSection">💰 المدخرات</div>
-    <div class="card-box">
-      <div class="info-note" style="margin-top:0; margin-bottom:10px;" data-i18n="savingsHint">أنشئ أهدافًا للادخار (سيارة، منزل...) بمبلغ مستهدف. الأموال المضافة هنا منفصلة تمامًا عن رصيدك الحالي ولا تُحتسب ضمنه.</div>
-      <div id="savingsManageList"></div>
-      <div class="add-wallet-form">
-        <input type="text" id="newSavIcon" class="icon-in" placeholder="🎯" maxlength="2">
-        <input type="text" id="newSavName" placeholder="اسم الهدف" data-i18n-ph="newSavingsName">
-        <input type="number" id="newSavTarget" placeholder="المبلغ المستهدف" inputmode="decimal" min="0" step="1" style="max-width:110px;" data-i18n-ph="newSavingsTarget">
-        <button id="addSavBtn">+</button>
-      </div>
-    </div>
-
     <div class="section-title" data-i18n="recurringSection">🔁 المعاملات المتكررة</div>
     <div class="card-box">
       <div class="info-note" style="margin-top:0; margin-bottom:10px;" data-i18n="recurringHint">الحركات التي فعّلت لها التكرار من شاشة "إضافة" تظهر هنا. يتم إنشاء الحركة الجديدة تلقائيًا في كل مرة تفتح فيها التطبيق بعد حلول موعدها — لا حاجة لإنترنت أو خادم.</div>
@@ -626,6 +676,7 @@
 <nav class="bottomnav">
   <button class="navbtn active" data-tab="tabHome"><span class="ic">🏠</span><span data-i18n="navHome">الرئيسية</span></button>
   <button class="navbtn" data-tab="tabAdd"><span class="ic">➕</span><span data-i18n="navAdd">إضافة</span></button>
+  <button class="navbtn" data-tab="tabSavings"><span class="ic">💰</span><span data-i18n="navSavings">المدخرات</span></button>
   <button class="navbtn" data-tab="tabLog"><span class="ic">📋</span><span data-i18n="navLog">السجل</span></button>
   <button class="navbtn" data-tab="tabReports"><span class="ic">📊</span><span data-i18n="navReports">التقارير</span></button>
   <button class="navbtn" data-tab="tabSettings"><span class="ic">⚙️</span><span data-i18n="navSettings">الإعدادات</span></button>
@@ -716,7 +767,7 @@ const MONTHS_EN=['January','February','March','April','May','June','July','Augus
 const I18N={
   ar:{
     tagline:'دفتر مصاريفك الشخصي',
-    navHome:'الرئيسية', navAdd:'إضافة', navLog:'السجل', navReports:'التقارير', navSettings:'الإعدادات',
+    navHome:'الرئيسية', navAdd:'إضافة', navSavings:'المدخرات', navLog:'السجل', navReports:'التقارير', navSettings:'الإعدادات',
     balanceLabel:'الرصيد الحالي', totalIncome:'إجمالي الدخل', totalExpense:'إجمالي المصروفات', monthExpense:'📅 مصروف هذا الشهر',
     toggleBalanceLabel:'إخفاء/إظهار الرصيد',
     last6months:'آخر 6 أشهر', last5tx:'آخر 5 عمليات',
@@ -744,6 +795,11 @@ const I18N={
     newSavingsName:'اسم الهدف (مثال: سيارة)', newSavingsTarget:'المبلغ المستهدف',
     savingsNameLabel:'اسم الهدف', savingsIconLabel:'أيقونة الهدف', savingsTargetLabel:'المبلغ المستهدف', savingsFundsPrompt:'أدخل المبلغ (استخدم رقمًا سالبًا للسحب)',
     noSavingsGoals:'لا توجد أهداف ادخار بعد',
+    addNewSavingsGoal:'➕ هدف ادخار جديد', savingsAddFundsBtn:'➕ إضافة', savingsWithdrawBtn:'➖ سحب',
+    savingsRemainingLabel:'المتبقي للوصول للهدف', savingsAvailableLabel:'المتاح للسحب', savingsGoalReached:'تم الوصول للهدف 🎉',
+    savingsFillRemaining:'إكمال المبلغ المتبقي', savingsWithdrawAll:'سحب الكل',
+    savingsTotalSaved:'إجمالي المدخرات', savingsTotalTarget:'إجمالي الأهداف',
+    cancel:'إلغاء', confirm:'تأكيد', moveUp:'نقل لأعلى', moveDown:'نقل لأسفل',
     recurringSection:'🔁 المعاملات المتكررة', recurringHint:'الحركات التي فعّلت لها التكرار من شاشة "إضافة" تظهر هنا. يتم إنشاء الحركة الجديدة تلقائيًا في كل مرة تفتح فيها التطبيق بعد حلول موعدها — لا حاجة لإنترنت أو خادم.',
     shortcutSection:'اختصار الشاشة الرئيسية', shortcutRow:'📲 اختصار "تسجيل دفعة"', shortcutSub:'أضف أيقونة ثانية على شاشتك الرئيسية تفتح التطبيق مباشرة على صفحة الإضافة',
     shortcutBannerText:'أضف اختصارًا على الشاشة الرئيسية يفتح هذه الصفحة مباشرة لتسجيل عملية دفع بضغطة واحدة. اضغط على ⋯ بالأسفل لمعرفة الطريقة.',
@@ -786,7 +842,7 @@ const I18N={
   },
   en:{
     tagline:'Your personal expense book',
-    navHome:'Home', navAdd:'Add', navLog:'Log', navReports:'Reports', navSettings:'Settings',
+    navHome:'Home', navAdd:'Add', navSavings:'Savings', navLog:'Log', navReports:'Reports', navSettings:'Settings',
     balanceLabel:'Current Balance', totalIncome:'Total Income', totalExpense:'Total Expenses', monthExpense:'📅 This Month\'s Expenses',
     toggleBalanceLabel:'Show/Hide balance',
     last6months:'Last 6 Months', last5tx:'Last 5 Transactions',
@@ -814,6 +870,11 @@ const I18N={
     newSavingsName:'Goal name (e.g. Car)', newSavingsTarget:'Target amount',
     savingsNameLabel:'Goal name', savingsIconLabel:'Goal icon', savingsTargetLabel:'Target amount', savingsFundsPrompt:'Enter amount (use a negative number to withdraw)',
     noSavingsGoals:'No savings goals yet',
+    addNewSavingsGoal:'➕ New Savings Goal', savingsAddFundsBtn:'➕ Add', savingsWithdrawBtn:'➖ Withdraw',
+    savingsRemainingLabel:'Remaining to reach goal', savingsAvailableLabel:'Available to withdraw', savingsGoalReached:'Goal reached 🎉',
+    savingsFillRemaining:'Fill remaining amount', savingsWithdrawAll:'Withdraw all',
+    savingsTotalSaved:'Total Saved', savingsTotalTarget:'Total Target',
+    cancel:'Cancel', confirm:'Confirm', moveUp:'Move up', moveDown:'Move down',
     recurringSection:'🔁 Recurring Transactions', recurringHint:'Transactions with recurrence enabled from the "Add" screen appear here. A new transaction is created automatically each time you open the app after its due date — no internet or server required.',
     shortcutSection:'Home Screen Shortcut', shortcutRow:'📲 "Log Payment" Shortcut', shortcutSub:'Add a second icon to your home screen that opens the app straight to the add screen',
     shortcutBannerText:'Add a home screen shortcut that opens this page directly to log a payment in one tap. Tap ⋯ below to learn how.',
@@ -970,6 +1031,7 @@ function switchTab(name){
   try{
     if(name==='tabHome'){ renderWalletChips(); renderHome(); }
     if(name==='tabAdd' && !editingId) resetAddForm();
+    if(name==='tabSavings') renderSavingsCards();
     if(name==='tabLog') renderLog();
     if(name==='tabReports') renderReports();
     if(name==='tabSettings') renderSettings();
@@ -1569,7 +1631,6 @@ function renderSettings(){
   applyLangDirection();
   renderCatManage();
   renderBudgetSettings();
-  renderSavingsManage();
   renderRecurringSettings();
   renderWalletManage();
 }
@@ -1703,32 +1764,52 @@ document.getElementById('addWalletBtn').addEventListener('click', ()=>{
 });
 
 /* ---------- Savings goals (fully separate from the current balance) ---------- */
-function renderSavingsManage(){
-  const el=document.getElementById('savingsManageList');
+function renderSavingsCards(){
+  const el=document.getElementById('savingsCardsList');
   if(!el) return;
+  const totalsCard=document.getElementById('savTotalsCard');
   if(savingsGoals.length===0){
-    el.innerHTML=`<div class="empty" style="padding:12px;"><p>${escapeHtml(t('noSavingsGoals'))}</p></div>`;
+    el.innerHTML=`<div class="empty" style="padding:30px 16px;"><div class="em">🎯</div><p>${escapeHtml(t('noSavingsGoals'))}</p></div>`;
+    if(totalsCard) totalsCard.style.display='none';
     return;
   }
-  el.innerHTML = savingsGoals.map(g=>`
-    <div class="wallet-manage-row">
-      <span class="ic">${g.icon||'🎯'}</span>
-      <span class="lbl">${escapeHtml(trLabel(g))}</span>
-      <span class="bal">${fmt(g.saved||0)} / ${fmt(g.target||0)}</span>
-      <button class="sv-fund" data-id="${g.id}">💰</button>
-      <button class="sv-edit" data-id="${g.id}">✏️</button>
-      <button class="sv-del" data-id="${g.id}">🗑️</button>
-    </div>`).join('');
-  el.querySelectorAll('.sv-fund').forEach(b=>b.addEventListener('click', ()=>{
-    const g=savingsGoals.find(x=>x.id===b.dataset.id); if(!g) return;
-    const input=prompt(t('savingsFundsPrompt'), '');
-    if(input===null) return;
-    const amt=parseFloat(input);
-    if(isNaN(amt) || amt===0){ showToast(t('toastInvalidAmount')); return; }
-    g.saved=Math.max(0, (g.saved||0)+amt);
-    saveSavings(); renderSavingsManage(); renderSavingsProgress();
-    showToast(amt>0 ? t('toastFundsAdded') : t('toastFundsWithdrawn'));
-  }));
+  if(totalsCard){
+    const totSaved=savingsGoals.reduce((s,g)=>s+(g.saved||0),0);
+    const totTarget=savingsGoals.reduce((s,g)=>s+(g.target||0),0);
+    document.getElementById('savTotalSaved').textContent=fmt(totSaved);
+    document.getElementById('savTotalTarget').textContent=fmt(totTarget);
+    totalsCard.style.display='flex';
+  }
+  el.innerHTML = savingsGoals.map((g,idx)=>{
+    const target=g.target||0, saved=g.saved||0;
+    const pct = target>0 ? Math.round((saved/target)*100) : 0;
+    const cls = pct>=100 ? '' : 'warn';
+    const remain = Math.max(0, target-saved);
+    const remainHtml = remain<=0
+      ? `<div class="sav-card-remain done">✓ ${escapeHtml(t('savingsGoalReached'))}</div>`
+      : `<div class="sav-card-remain">${escapeHtml(t('savingsRemainingLabel'))}: ${fmt(remain)}</div>`;
+    return `<div class="sav-card">
+      <div class="sav-card-top">
+        <span class="ic">${g.icon||'🎯'}</span>
+        <span class="name">${escapeHtml(trLabel(g))}</span>
+        <button class="icbtn sv-up" data-id="${g.id}" ${idx===0?'style="opacity:.3;"':''} title="${escapeHtml(t('moveUp'))}">⬆️</button>
+        <button class="icbtn sv-down" data-id="${g.id}" ${idx===savingsGoals.length-1?'style="opacity:.3;"':''} title="${escapeHtml(t('moveDown'))}">⬇️</button>
+        <button class="icbtn sv-edit" data-id="${g.id}">✏️</button>
+        <button class="icbtn sv-del" data-id="${g.id}">🗑️</button>
+      </div>
+      <div class="sav-card-amt"><span class="saved">${fmt(saved)}</span><span> / ${fmt(target)}</span></div>
+      <div class="bud-prog-track"><div class="bud-prog-fill ${cls}" style="width:${Math.min(100,pct)}%"></div></div>
+      ${remainHtml}
+      <div class="sav-card-actions">
+        <button class="sav-btn-add sv-add" data-id="${g.id}">${escapeHtml(t('savingsAddFundsBtn'))}</button>
+        <button class="sav-btn-withdraw sv-withdraw" data-id="${g.id}">${escapeHtml(t('savingsWithdrawBtn'))}</button>
+      </div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.sv-add').forEach(b=>b.addEventListener('click', ()=>openSavingsFundModal(b.dataset.id,'add')));
+  el.querySelectorAll('.sv-withdraw').forEach(b=>b.addEventListener('click', ()=>openSavingsFundModal(b.dataset.id,'withdraw')));
+  el.querySelectorAll('.sv-up').forEach(b=>b.addEventListener('click', ()=>moveSavingsGoal(b.dataset.id,-1)));
+  el.querySelectorAll('.sv-down').forEach(b=>b.addEventListener('click', ()=>moveSavingsGoal(b.dataset.id,1)));
   el.querySelectorAll('.sv-edit').forEach(b=>b.addEventListener('click', ()=>{
     const g=savingsGoals.find(x=>x.id===b.dataset.id); if(!g) return;
     const newLabel=prompt(t('savingsNameLabel')+':', trLabel(g));
@@ -1740,15 +1821,22 @@ function renderSavingsManage(){
     if(settings.lang==='en') g.label_en=newLabel.trim()||g.label_en; else g.label=newLabel.trim()||g.label;
     g.icon=newIcon.trim()||g.icon;
     const tv=parseFloat(newTarget); if(tv>0) g.target=tv;
-    saveSavings(); renderSavingsManage(); renderSavingsProgress();
+    saveSavings(); renderSavingsCards(); renderSavingsProgress();
     showToast(t('toastSavingsUpdated'));
   }));
   el.querySelectorAll('.sv-del').forEach(b=>b.addEventListener('click', ()=>{
     if(!confirm(t('confirmDeleteSavings'))) return;
     savingsGoals=savingsGoals.filter(g=>g.id!==b.dataset.id);
-    saveSavings(); renderSavingsManage(); renderSavingsProgress();
+    saveSavings(); renderSavingsCards(); renderSavingsProgress();
     showToast(t('toastSavingsDeleted'));
   }));
+}
+function moveSavingsGoal(id, dir){
+  const idx=savingsGoals.findIndex(g=>g.id===id);
+  const j=idx+dir;
+  if(idx<0 || j<0 || j>=savingsGoals.length) return;
+  const tmp=savingsGoals[idx]; savingsGoals[idx]=savingsGoals[j]; savingsGoals[j]=tmp;
+  saveSavings(); renderSavingsCards();
 }
 document.getElementById('addSavBtn').addEventListener('click', ()=>{
   const icon=document.getElementById('newSavIcon').value.trim()||'🎯';
@@ -1759,8 +1847,61 @@ document.getElementById('addSavBtn').addEventListener('click', ()=>{
   savingsGoals.push({id:'sv_'+Date.now(), label:name, label_en:name, icon, target:targetVal, saved:0});
   saveSavings();
   document.getElementById('newSavName').value=''; document.getElementById('newSavIcon').value=''; document.getElementById('newSavTarget').value='';
-  renderSavingsManage(); renderSavingsProgress();
+  renderSavingsCards(); renderSavingsProgress();
   showToast(t('toastSavingsAdded'));
+});
+
+/* ---------- Add / withdraw funds modal ---------- */
+let savModalGoalId=null, savModalMode='add';
+function openSavingsFundModal(goalId, mode){
+  const g=savingsGoals.find(x=>x.id===goalId); if(!g) return;
+  savModalGoalId=goalId; savModalMode=mode;
+  const modal=document.getElementById('savFundModal');
+  const titleEl=document.getElementById('savModalTitle');
+  const subEl=document.getElementById('savModalSub');
+  const amtEl=document.getElementById('savModalAmount');
+  const quickBtn=document.getElementById('savModalQuickBtn');
+  const confirmBtn=document.getElementById('savModalConfirmBtn');
+  const remain=Math.max(0,(g.target||0)-(g.saved||0));
+  amtEl.value='';
+  confirmBtn.className='sav-modal-confirm';
+  if(mode==='add'){
+    titleEl.textContent=`${t('savingsAddFundsBtn')} — ${trLabel(g)}`;
+    subEl.textContent = remain>0 ? `${t('savingsRemainingLabel')}: ${fmt(remain)}` : t('savingsGoalReached');
+    if(remain>0){
+      quickBtn.style.display='inline-block';
+      quickBtn.textContent=`↳ ${t('savingsFillRemaining')} (${fmt(remain)})`;
+      quickBtn.onclick=()=>{ amtEl.value=remain; };
+    } else quickBtn.style.display='none';
+    amtEl.max=''; amtEl.removeAttribute('max');
+  } else {
+    titleEl.textContent=`${t('savingsWithdrawBtn')} — ${trLabel(g)}`;
+    subEl.textContent = `${t('savingsAvailableLabel')}: ${fmt(g.saved||0)}`;
+    if((g.saved||0)>0){
+      quickBtn.style.display='inline-block';
+      quickBtn.textContent=`↳ ${t('savingsWithdrawAll')} (${fmt(g.saved||0)})`;
+      quickBtn.onclick=()=>{ amtEl.value=g.saved||0; };
+    } else quickBtn.style.display='none';
+  }
+  modal.classList.add('open');
+  setTimeout(()=>amtEl.focus(), 50);
+}
+function closeSavingsFundModal(){
+  document.getElementById('savFundModal').classList.remove('open');
+  savModalGoalId=null;
+}
+document.getElementById('savModalCancelBtn').addEventListener('click', closeSavingsFundModal);
+document.getElementById('savFundModal').addEventListener('click', (e)=>{ if(e.target.id==='savFundModal') closeSavingsFundModal(); });
+document.getElementById('savModalConfirmBtn').addEventListener('click', ()=>{
+  const g=savingsGoals.find(x=>x.id===savModalGoalId); if(!g) return;
+  const raw=parseFloat(document.getElementById('savModalAmount').value);
+  if(isNaN(raw) || raw<=0){ showToast(t('toastInvalidAmount')); return; }
+  if(savModalMode==='withdraw' && raw>(g.saved||0)){ showToast(t('toastInvalidAmount')); return; }
+  const delta = savModalMode==='add' ? raw : -raw;
+  g.saved=Math.max(0, (g.saved||0)+delta);
+  saveSavings(); renderSavingsCards(); renderSavingsProgress();
+  showToast(savModalMode==='add' ? t('toastFundsAdded') : t('toastFundsWithdrawn'));
+  closeSavingsFundModal();
 });
 function renderSavingsProgress(){
   const box=document.getElementById('savingsProgressBox');
