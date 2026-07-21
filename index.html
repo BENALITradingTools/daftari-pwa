@@ -75,11 +75,11 @@
   .balance-eye .eye-closed{display:none;}
   .balance-eye.on .eye-open{display:none;}
   .balance-eye.on .eye-closed{display:block;}
-  .mini-stats{display:flex; gap:9px; flex-wrap:wrap;}
-  .mini-stat{flex:1; min-width:100px; background:rgba(0,0,0,0.15); border-radius:12px; padding:9px 11px;}
+  .mini-stats{display:flex; flex-direction:column; gap:7px;}
+  .mini-stat{display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(0,0,0,0.15); border-radius:12px; padding:10px 13px;}
   body.light .mini-stat{background:rgba(0,0,0,0.05);}
-  .mini-stat .lbl{font-size:10.5px; color:var(--muted); display:flex; align-items:center; gap:5px;}
-  .mini-stat .val{font-size:15px; font-weight:700; margin-top:3px; direction:ltr; text-align:right;}
+  .mini-stat .lbl{font-size:12px; color:var(--muted); display:flex; align-items:center; gap:5px; white-space:nowrap;}
+  .mini-stat .val{font-size:15px; font-weight:700; margin-top:0; direction:ltr; text-align:left;}
   .dot{width:7px; height:7px; border-radius:50%; display:inline-block;}
   .dot.in{background:var(--sage);} .dot.out{background:var(--rust);}
 
@@ -351,9 +351,6 @@
   .sav-modal-actions button{flex:1; border:none; border-radius:12px; padding:13px; font-family:'Tajawal'; font-weight:900; font-size:14px; cursor:pointer;}
   .sav-modal-cancel{background:var(--card-2); color:var(--ink); border:1px solid var(--line) !important;}
   .sav-modal-confirm{background:var(--gold); color:#191308;}
-  .sav-summary-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;}
-  .sav-summary-card .lbl{font-size:12px; color:var(--muted);}
-  .sav-summary-card .val{font-size:18px; font-weight:900; direction:ltr;}
 
   /* ---- language switch pill (settings) ---- */
   .lang-pill{display:flex; background:var(--card-2); border-radius:99px; padding:3px; gap:2px;}
@@ -391,9 +388,9 @@
         </button>
       </div>
       <div class="mini-stats">
+        <div class="mini-stat"><div class="lbl" data-i18n="monthExpense">📅 مصروف هذا الشهر</div><div class="val" id="homeMonthExpense">0.00</div></div>
         <div class="mini-stat"><div class="lbl"><span class="dot in"></span> <span data-i18n="totalIncome">إجمالي الدخل</span></div><div class="val" id="homeIncome">0.00</div></div>
         <div class="mini-stat"><div class="lbl"><span class="dot out"></span> <span data-i18n="totalExpense">إجمالي المصروفات</span></div><div class="val" id="homeExpense">0.00</div></div>
-        <div class="mini-stat"><div class="lbl" data-i18n="monthExpense">📅 مصروف هذا الشهر</div><div class="val" id="homeMonthExpense">0.00</div></div>
       </div>
     </div>
     <div id="budgetAlerts"></div>
@@ -466,10 +463,6 @@
 
   <main id="tabSavings">
     <div class="info-note" style="margin-bottom:14px;" data-i18n="savingsHint">أنشئ أهدافًا للادخار (سيارة، منزل...) بمبلغ مستهدف. الأموال المضافة هنا منفصلة تمامًا عن رصيدك الحالي ولا تُحتسب ضمنه.</div>
-    <div class="sav-summary-card" id="savTotalsCard" style="display:none;">
-      <div><div class="lbl" data-i18n="savingsTotalSaved">إجمالي المدخرات</div><div class="val" id="savTotalSaved">0.00</div></div>
-      <div style="text-align:left;"><div class="lbl" data-i18n="savingsTotalTarget">إجمالي الأهداف</div><div class="val" id="savTotalTarget">0.00</div></div>
-    </div>
     <div id="savingsCardsList"></div>
     <div class="section-title" data-i18n="addNewSavingsGoal">➕ هدف ادخار جديد</div>
     <div class="card-box">
@@ -794,7 +787,6 @@ const I18N={
     addNewSavingsGoal:'➕ هدف ادخار جديد', savingsAddFundsBtn:'➕ إضافة', savingsWithdrawBtn:'➖ سحب',
     savingsRemainingLabel:'المتبقي للوصول للهدف', savingsAvailableLabel:'المتاح للسحب', savingsGoalReached:'تم الوصول للهدف 🎉',
     savingsFillRemaining:'إكمال المبلغ المتبقي', savingsWithdrawAll:'سحب الكل',
-    savingsTotalSaved:'إجمالي المدخرات', savingsTotalTarget:'إجمالي الأهداف',
     cancel:'إلغاء', confirm:'تأكيد', moveUp:'نقل لأعلى', moveDown:'نقل لأسفل',
     recurringSection:'🔁 المعاملات المتكررة', recurringHint:'الحركات التي فعّلت لها التكرار من شاشة "إضافة" تظهر هنا. يتم إنشاء الحركة الجديدة تلقائيًا في كل مرة تفتح فيها التطبيق بعد حلول موعدها — لا حاجة لإنترنت أو خادم.',
     shortcutSection:'اختصار الشاشة الرئيسية', shortcutRow:'📲 اختصار "تسجيل دفعة"', shortcutSub:'أضف أيقونة ثانية على شاشتك الرئيسية تفتح التطبيق مباشرة على صفحة الإضافة',
@@ -869,7 +861,6 @@ const I18N={
     addNewSavingsGoal:'➕ New Savings Goal', savingsAddFundsBtn:'➕ Add', savingsWithdrawBtn:'➖ Withdraw',
     savingsRemainingLabel:'Remaining to reach goal', savingsAvailableLabel:'Available to withdraw', savingsGoalReached:'Goal reached 🎉',
     savingsFillRemaining:'Fill remaining amount', savingsWithdrawAll:'Withdraw all',
-    savingsTotalSaved:'Total Saved', savingsTotalTarget:'Total Target',
     cancel:'Cancel', confirm:'Confirm', moveUp:'Move up', moveDown:'Move down',
     recurringSection:'🔁 Recurring Transactions', recurringHint:'Transactions with recurrence enabled from the "Add" screen appear here. A new transaction is created automatically each time you open the app after its due date — no internet or server required.',
     shortcutSection:'Home Screen Shortcut', shortcutRow:'📲 "Log Payment" Shortcut', shortcutSub:'Add a second icon to your home screen that opens the app straight to the add screen',
@@ -1762,18 +1753,9 @@ document.getElementById('addWalletBtn').addEventListener('click', ()=>{
 function renderSavingsCards(){
   const el=document.getElementById('savingsCardsList');
   if(!el) return;
-  const totalsCard=document.getElementById('savTotalsCard');
   if(savingsGoals.length===0){
     el.innerHTML=`<div class="empty" style="padding:30px 16px;"><div class="em">🎯</div><p>${escapeHtml(t('noSavingsGoals'))}</p></div>`;
-    if(totalsCard) totalsCard.style.display='none';
     return;
-  }
-  if(totalsCard){
-    const totSaved=savingsGoals.reduce((s,g)=>s+(g.saved||0),0);
-    const totTarget=savingsGoals.reduce((s,g)=>s+(g.target||0),0);
-    document.getElementById('savTotalSaved').textContent=fmt(totSaved);
-    document.getElementById('savTotalTarget').textContent=fmt(totTarget);
-    totalsCard.style.display='flex';
   }
   el.innerHTML = savingsGoals.map((g,idx)=>{
     const target=g.target||0, saved=g.saved||0;
