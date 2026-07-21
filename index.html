@@ -398,10 +398,6 @@
     </div>
     <div id="budgetAlerts"></div>
     <div id="upcomingRecurring"></div>
-    <div class="section-title" id="savingsSectionTitle" style="display:none;" data-i18n="savingsSection">💰 المدخرات</div>
-    <div class="card-box" id="savingsProgressBox" style="display:none;">
-      <div id="savingsProgressRows"></div>
-    </div>
     <div class="section-title" data-i18n="last6months">آخر 6 أشهر</div>
     <div class="card-box"><div class="chart-box"><canvas id="homeChart"></canvas></div></div>
     <div class="section-title" data-i18n="last5tx">آخر 5 عمليات</div>
@@ -1293,7 +1289,6 @@ function renderHome(){
   }, simpleOpts());
   renderBudgetAlerts(ym);
   renderUpcomingRecurring();
-  renderSavingsProgress();
 }
 /* ---------- Balance visibility (privacy toggle) ---------- */
 function updateBalanceVisibility(){
@@ -1821,13 +1816,13 @@ function renderSavingsCards(){
     if(settings.lang==='en') g.label_en=newLabel.trim()||g.label_en; else g.label=newLabel.trim()||g.label;
     g.icon=newIcon.trim()||g.icon;
     const tv=parseFloat(newTarget); if(tv>0) g.target=tv;
-    saveSavings(); renderSavingsCards(); renderSavingsProgress();
+    saveSavings(); renderSavingsCards();
     showToast(t('toastSavingsUpdated'));
   }));
   el.querySelectorAll('.sv-del').forEach(b=>b.addEventListener('click', ()=>{
     if(!confirm(t('confirmDeleteSavings'))) return;
     savingsGoals=savingsGoals.filter(g=>g.id!==b.dataset.id);
-    saveSavings(); renderSavingsCards(); renderSavingsProgress();
+    saveSavings(); renderSavingsCards();
     showToast(t('toastSavingsDeleted'));
   }));
 }
@@ -1847,7 +1842,7 @@ document.getElementById('addSavBtn').addEventListener('click', ()=>{
   savingsGoals.push({id:'sv_'+Date.now(), label:name, label_en:name, icon, target:targetVal, saved:0});
   saveSavings();
   document.getElementById('newSavName').value=''; document.getElementById('newSavIcon').value=''; document.getElementById('newSavTarget').value='';
-  renderSavingsCards(); renderSavingsProgress();
+  renderSavingsCards();
   showToast(t('toastSavingsAdded'));
 });
 
@@ -1899,31 +1894,10 @@ document.getElementById('savModalConfirmBtn').addEventListener('click', ()=>{
   if(savModalMode==='withdraw' && raw>(g.saved||0)){ showToast(t('toastInvalidAmount')); return; }
   const delta = savModalMode==='add' ? raw : -raw;
   g.saved=Math.max(0, (g.saved||0)+delta);
-  saveSavings(); renderSavingsCards(); renderSavingsProgress();
+  saveSavings(); renderSavingsCards();
   showToast(savModalMode==='add' ? t('toastFundsAdded') : t('toastFundsWithdrawn'));
   closeSavingsFundModal();
 });
-function renderSavingsProgress(){
-  const box=document.getElementById('savingsProgressBox');
-  const title=document.getElementById('savingsSectionTitle');
-  const rowsEl=document.getElementById('savingsProgressRows');
-  if(!box || !title || !rowsEl) return;
-  if(savingsGoals.length===0){ box.style.display='none'; title.style.display='none'; return; }
-  box.style.display='block'; title.style.display='block';
-  rowsEl.innerHTML=savingsGoals.map(g=>{
-    const target=g.target||0, saved=g.saved||0;
-    const pct = target>0 ? Math.round((saved/target)*100) : 0;
-    const cls = pct>=100 ? '' : 'warn';
-    return `<div class="bud-prog-row">
-      <div class="bud-prog-top">
-        <span class="name">${g.icon||'🎯'} ${escapeHtml(trLabel(g))}</span>
-        <span class="amt">${fmt(saved)} / ${fmt(target)}</span>
-      </div>
-      <div class="bud-prog-track"><div class="bud-prog-fill ${cls}" style="width:${Math.min(100,pct)}%"></div></div>
-      <div class="bud-prog-pct">${pct}%</div>
-    </div>`;
-  }).join('');
-}
 
 /* ---------- Budgets ---------- */
 function renderBudgetSettings(){
