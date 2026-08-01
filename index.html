@@ -613,6 +613,7 @@
         </select>
       </div>
       <div class="info-note" id="lastBackupInfo" style="margin-top:0;"></div>
+      <button class="save-btn" id="restoreAutoBackupBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="restoreAutoBackup">↩️ استعادة النسخة التلقائية الأخيرة</button>
       <div style="height:14px;"></div>
       <div class="set-row"><div class="lab" data-i18n="exportBackup">⬇️ تصدير نسخة احتياطية</div></div>
       <div style="height:8px;"></div>
@@ -683,7 +684,7 @@
 <div id="printReport"></div>
 
 <script>
-const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1', REC_KEY='daftari_recurring_v1', WAL_KEY='daftari_wallets_v1', SAV_KEY='daftari_savings_v1';
+const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1', REC_KEY='daftari_recurring_v1', WAL_KEY='daftari_wallets_v1', SAV_KEY='daftari_savings_v1', AUTO_KEY='daftari_auto_backup_v1';
 let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', lang:'ar', pinEnabled:false, pinHash:'', budgets:{}, notifEnabled:false, autoBackupEnabled:true, autoBackupDays:7, lastAutoBackup:null, balanceHidden:false};
 let recurring=[];
 let wallets=[];
@@ -793,7 +794,8 @@ const I18N={
     shortcutBannerText:'أضف اختصارًا على الشاشة الرئيسية يفتح هذه الصفحة مباشرة لتسجيل عملية دفع بضغطة واحدة. اضغط على ⋯ بالأسفل لمعرفة الطريقة.',
     howToShortcut:'كيف أضيف الاختصار؟',
     backupSection:'النسخ الاحتياطي', exportBackup:'⬇️ تصدير نسخة احتياطية', downloadBackup:'تنزيل نسخة احتياطية', restoreBackup:'استعادة من نسخة احتياطية',
-    autoBackupRow:'💾 نسخة احتياطية تلقائية', autoBackupSub:'ينزّل التطبيق نسخة احتياطية تلقائيًا عند فتحه بعد مرور المدة المحددة أدناه — لا حاجة لأي ضغطة زر',
+    autoBackupRow:'💾 نسخة احتياطية تلقائية', autoBackupSub:'يحفظ التطبيق نسخة احتياطية داخل ذاكرته الخاصة تلقائيًا بعد مرور المدة المحددة أدناه — دون أي نافذة "حفظ باسم" ودون أي تدخل منك. لإنشاء ملف يمكنك نقله لجهاز آخر، استخدم زر "تنزيل نسخة احتياطية" أدناه.',
+    restoreAutoBackup:'↩️ استعادة النسخة التلقائية الأخيرة', confirmRestoreAuto:'سيتم استبدال بياناتك الحالية بآخر نسخة احتياطية تلقائية محفوظة على الجهاز. هل تريد المتابعة؟', toastNoAutoBackup:'لا توجد نسخة احتياطية تلقائية محفوظة بعد',
     autoBackupIntervalLabel:'التكرار', everyDay:'كل يوم', every3Days:'كل 3 أيام', every7Days:'كل أسبوع', every14Days:'كل أسبوعين', every30Days:'كل شهر',
     lastBackupNever:'لم يتم إنشاء أي نسخة احتياطية بعد', lastBackupLabel:'آخر نسخة احتياطية:',
     notifSection:'🔔 الإشعارات', notifRow:'تنبيه المعاملات المستحقة', notifSub:'إشعار من نظام التشغيل عند فتح التطبيق إن وُجدت معاملة متكررة مستحقة خلال يوم أو يومين',
@@ -811,7 +813,7 @@ const I18N={
     toastCurrencyChanged:'تم تغيير العملة', toastNotifOn:'تم تفعيل الإشعارات ✓', toastNotifOff:'تم إيقاف الإشعارات', toastNotifDenied:'الإذن مرفوض من إعدادات المتصفح', toastNoNotifSupport:'متصفحك لا يدعم الإشعارات',
     toastBudgetSaved:'تم حفظ الميزانية',
     toastNoDataExport:'لا توجد بيانات لتصديرها', toastBackupCreated:'تم إنشاء النسخة الاحتياطية', toastBackupImported:'تم استيراد النسخة الاحتياطية ✓', toastBackupInvalid:'ملف النسخة الاحتياطية غير صالح',
-    toastAutoBackupCreated:'💾 تم إنشاء نسخة احتياطية تلقائية وتنزيلها', toastAutoBackupOn:'تم تفعيل النسخ الاحتياطي التلقائي', toastAutoBackupOff:'تم إيقاف النسخ الاحتياطي التلقائي',
+    toastAutoBackupCreated:'💾 تم حفظ نسخة احتياطية تلقائية على الجهاز', toastAutoBackupOn:'تم تفعيل النسخ الاحتياطي التلقائي', toastAutoBackupOff:'تم إيقاف النسخ الاحتياطي التلقائي',
     toastCatUpdated:'تم تحديث الفئة', toastCatDeleted:'تم حذف الفئة', toastCatAdded:'تمت إضافة الفئة ✓', toastEnterCatName:'أدخل اسم الفئة',
     toastWalletAdded:'تمت إضافة المحفظة ✓', toastEnterWalletName:'أدخل اسم المحفظة', toastWalletDeleted:'تم حذف المحفظة', toastWalletUpdated:'تم تحديث المحفظة', toastCantDeleteLastWallet:'يجب أن تبقى محفظة واحدة على الأقل',
     toastSavingsAdded:'تمت إضافة هدف الادخار ✓', toastEnterSavingsName:'أدخل اسم الهدف', toastEnterSavingsTarget:'أدخل مبلغًا مستهدفًا صحيحًا', toastSavingsUpdated:'تم تحديث الهدف', toastSavingsDeleted:'تم حذف الهدف',
@@ -867,7 +869,8 @@ const I18N={
     shortcutBannerText:'Add a home screen shortcut that opens this page directly to log a payment in one tap. Tap ⋯ below to learn how.',
     howToShortcut:'How do I add the shortcut?',
     backupSection:'Backup', exportBackup:'⬇️ Export Backup', downloadBackup:'Download Backup', restoreBackup:'Restore from Backup',
-    autoBackupRow:'💾 Automatic backup', autoBackupSub:'The app automatically downloads a backup file when opened after the interval below has passed — no button tap needed',
+    autoBackupRow:'💾 Automatic backup', autoBackupSub:'The app saves a backup inside its own local storage automatically once the interval below has passed — no "Save As" dialog and no action needed from you. To create a portable file you can move to another device, use "Download Backup" below.',
+    restoreAutoBackup:'↩️ Restore Last Automatic Backup', confirmRestoreAuto:'This will replace your current data with the last automatic backup saved on this device. Continue?', toastNoAutoBackup:'No automatic backup has been saved yet',
     autoBackupIntervalLabel:'Frequency', everyDay:'Every day', every3Days:'Every 3 days', every7Days:'Every week', every14Days:'Every 2 weeks', every30Days:'Every month',
     lastBackupNever:'No automatic backup created yet', lastBackupLabel:'Last automatic backup:',
     notifSection:'🔔 Notifications', notifRow:'Due Transaction Alerts', notifSub:'OS notification when opening the app if a recurring transaction is due within a day or two',
@@ -885,7 +888,7 @@ const I18N={
     toastCurrencyChanged:'Currency changed', toastNotifOn:'Notifications enabled ✓', toastNotifOff:'Notifications disabled', toastNotifDenied:'Permission denied in browser settings', toastNoNotifSupport:'Your browser doesn\'t support notifications',
     toastBudgetSaved:'Budget saved',
     toastNoDataExport:'No data to export', toastBackupCreated:'Backup created', toastBackupImported:'Backup imported ✓', toastBackupInvalid:'Invalid backup file',
-    toastAutoBackupCreated:'💾 Automatic backup created and downloaded', toastAutoBackupOn:'Automatic backup enabled', toastAutoBackupOff:'Automatic backup disabled',
+    toastAutoBackupCreated:'💾 Automatic backup saved on this device', toastAutoBackupOn:'Automatic backup enabled', toastAutoBackupOff:'Automatic backup disabled',
     toastCatUpdated:'Category updated', toastCatDeleted:'Category deleted', toastCatAdded:'Category added ✓', toastEnterCatName:'Enter a category name',
     toastWalletAdded:'Wallet added ✓', toastEnterWalletName:'Enter a wallet name', toastWalletDeleted:'Wallet deleted', toastWalletUpdated:'Wallet updated', toastCantDeleteLastWallet:'At least one wallet must remain',
     toastSavingsAdded:'Savings goal added ✓', toastEnterSavingsName:'Enter a goal name', toastEnterSavingsTarget:'Enter a valid target amount', toastSavingsUpdated:'Goal updated', toastSavingsDeleted:'Goal deleted',
@@ -2135,6 +2138,21 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
   downloadBackupFile();
   showToast(t('toastBackupCreated'));
 });
+// Silent, on-device snapshot: no download, no "Save As" dialog, no tap required.
+// This is stored inside the app's own local storage (same mechanism that already
+// saves every transaction automatically) and can be restored from Settings.
+function saveAutoBackupSnapshot(){
+  try{
+    localStorage.setItem(AUTO_KEY, JSON.stringify(buildBackupPayload()));
+    return true;
+  }catch(e){ return false; }
+}
+function readAutoBackupSnapshot(){
+  try{
+    const raw=localStorage.getItem(AUTO_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
 function maybeAutoBackup(){
   if(!settings.autoBackupEnabled) return;
   if(transactions.length===0) return;
@@ -2142,12 +2160,14 @@ function maybeAutoBackup(){
   const last=settings.lastAutoBackup ? new Date(settings.lastAutoBackup) : null;
   const dueMs=days*24*60*60*1000;
   if(last && (Date.now()-last.getTime())<dueMs) return;
-  try{
-    downloadBackupFile();
+  if(saveAutoBackupSnapshot()){
     settings.lastAutoBackup=new Date().toISOString();
     saveSettings();
+    renderLastBackupInfo();
     showToast(t('toastAutoBackupCreated'));
-  }catch(e){ /* silent — user can still export manually from Settings */ }
+  }
+  // On failure, stay silent — the user's data is still safe in the app's normal
+  // storage; they can always create a manual, downloadable backup from Settings.
 }
 document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click());
 document.getElementById('importFile').addEventListener('change', (e)=>{
@@ -2186,6 +2206,29 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
   };
   reader.readAsText(file);
   e.target.value='';
+});
+function applyBackupPayload(parsed){
+  const incoming=Array.isArray(parsed)?parsed:parsed.transactions;
+  if(!Array.isArray(incoming)) throw new Error('bad');
+  transactions=incoming;
+  if(parsed.categories) categories=parsed.categories;
+  if(Array.isArray(parsed.recurring)) recurring=parsed.recurring;
+  if(Array.isArray(parsed.wallets) && parsed.wallets.length) wallets=parsed.wallets;
+  const defId=wallets[0].id;
+  transactions.forEach(tx=>{ if(!tx.wallet) tx.wallet=defId; });
+  recurring.forEach(r=>{ if(!r.wallet) r.wallet=defId; });
+  saveTx(); saveCats(); saveRecurring(); saveWallets();
+}
+const restoreAutoBtn=document.getElementById('restoreAutoBackupBtn');
+if(restoreAutoBtn) restoreAutoBtn.addEventListener('click', ()=>{
+  const snapshot=readAutoBackupSnapshot();
+  if(!snapshot){ showToast(t('toastNoAutoBackup')); return; }
+  if(!confirm(t('confirmRestoreAuto'))) return;
+  try{
+    applyBackupPayload(snapshot);
+    showToast(t('toastBackupImported'));
+    switchTab('tabHome');
+  }catch(err){ showToast(t('toastBackupInvalid')); }
 });
 document.getElementById('clearAllBtn').addEventListener('click', ()=>{
   if(transactions.length===0) return;
