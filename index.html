@@ -295,10 +295,8 @@
   .wallet-chip{flex-shrink:0; background:var(--card); border:1.5px solid var(--line); color:var(--muted); border-radius:99px; padding:8px 14px; font-family:'Tajawal'; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:5px;}
   .wallet-chip.sel{border-color:var(--gold); color:var(--gold); background:rgba(201,162,74,0.12);}
 
-  /* ---- add-form collapsible "more" section ---- */
-  .more-toggle-btn{width:100%; background:var(--card-2); border:1px solid var(--line); color:var(--ink); padding:11px; border-radius:12px; font-family:'Tajawal'; font-weight:700; font-size:13px; margin-top:14px; cursor:pointer;}
-  #addMoreSection{display:none;}
-  #addMoreSection.open{display:block;}
+  /* ---- add-form fields ---- */
+  #addMoreSection{margin-top:14px;}
 
   /* ---- receipt upload ---- */
   .receipt-row{display:flex; align-items:center; gap:10px; margin-top:6px;}
@@ -426,8 +424,6 @@
       <label data-i18n="billTypeLabel">نوع الفاتورة</label>
       <div class="cat-grid" id="billTypeGrid"></div>
     </div>
-
-    <button type="button" class="more-toggle-btn" id="addMoreToggle" data-i18n="showMore">عرض المزيد ▾</button>
 
     <div id="addMoreSection">
       <label data-i18n="walletLabel">المحفظة</label>
@@ -1093,14 +1089,6 @@ document.querySelectorAll('.type-toggle button').forEach(btn=>{
     currentType=btn.dataset.type; selectedCategory=null; catGridExpanded=false; selectedBillType=null; renderCatGrid();
   });
 });
-function setMoreOpen(open){
-  document.getElementById('addMoreSection').classList.toggle('open', open);
-  document.getElementById('addMoreToggle').textContent = open ? t('showLess') : t('showMore');
-}
-document.getElementById('addMoreToggle').addEventListener('click', ()=>{
-  const isOpen=document.getElementById('addMoreSection').classList.contains('open');
-  setMoreOpen(!isOpen);
-});
 function clearReceiptPreview(){
   pendingReceipt=null;
   const row=document.getElementById('receiptRow');
@@ -1174,7 +1162,6 @@ function resetAddForm(){
   document.getElementById('recurBox').style.display='block';
   document.getElementById('recurSwitch').classList.remove('on');
   document.getElementById('recurFreqRow').style.display='none';
-  setMoreOpen(false);
 }
 function openEdit(tx){
   editingId=tx.id;
@@ -1194,7 +1181,6 @@ function openEdit(tx){
   document.getElementById('recurBox').style.display='none';
   document.getElementById('recurSwitch').classList.remove('on');
   document.getElementById('recurFreqRow').style.display='none';
-  setMoreOpen(true);
   switchTab('tabAdd');
 }
 document.getElementById('cancelEditBtn').addEventListener('click', resetAddForm);
@@ -1209,7 +1195,7 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
   const note=document.getElementById('noteInput').value.trim();
   const wallet=document.getElementById('walletSelect').value || wallets[0].id;
   if(!amount || amount<=0){ showToast(t('toastInvalidAmount')); return; }
-  if(!selectedCategory){ setMoreOpen(true); showToast(t('toastChooseCat')); return; }
+  if(!selectedCategory){ showToast(t('toastChooseCat')); return; }
   const receipt=pendingReceipt || null;
   const billType = (currentType==='expense' && selectedCategory==='bills') ? selectedBillType : null;
   if(editingId){
