@@ -353,6 +353,37 @@
   .sav-modal-cancel{background:var(--card-2); color:var(--ink); border:1px solid var(--line) !important;}
   .sav-modal-confirm{background:var(--gold); color:#191308;}
 
+  /* debts tab summary */
+  .debt-summary{display:flex; gap:10px; margin-bottom:16px;}
+  .debt-summary .box{flex:1; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; text-align:center;}
+  .debt-summary .box .lbl{font-size:11px; color:var(--muted); margin-bottom:4px;}
+  .debt-summary .box .val{font-size:15px; font-weight:900; direction:ltr;}
+  .debt-summary .box .val.owed{color:var(--sage);}
+  .debt-summary .box .val.iowe{color:var(--rust);}
+
+  /* debts tab cards */
+  .debt-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:12px;}
+  .debt-card-top{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .debt-card-top .ic{font-size:22px; width:34px; height:34px; border-radius:10px; background:var(--card-2); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .debt-card-top .name{flex:1; font-size:14.5px; font-weight:700; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .debt-card-top .icbtn{background:none; border:none; color:var(--muted); font-size:14px; cursor:pointer; padding:4px;}
+  .debt-badge{font-size:10px; font-weight:700; border-radius:99px; padding:2px 9px; display:inline-block; white-space:nowrap;}
+  .debt-badge.owed{background:rgba(111,162,135,0.18); color:var(--sage);}
+  .debt-badge.iowe{background:rgba(193,89,74,0.18); color:var(--rust);}
+  .debt-card-amt{display:flex; align-items:baseline; justify-content:space-between; font-size:12px; color:var(--muted); margin:8px 0 6px; direction:ltr;}
+  .debt-card-amt .rem{font-size:17px; font-weight:900; color:var(--ink); direction:ltr;}
+  .debt-card-due{font-size:11px; color:var(--muted); margin-top:2px;}
+  .debt-card-due.overdue{color:var(--rust); font-weight:700;}
+  .debt-card-note{font-size:11.5px; color:var(--muted); margin-top:4px;}
+  .debt-card-done{font-size:11px; color:var(--sage); font-weight:700; margin-top:6px;}
+  .debt-card-actions{display:flex; gap:8px; margin-top:12px;}
+  .debt-card-actions button{flex:1; border:none; border-radius:10px; padding:10px; font-family:'Tajawal'; font-weight:700; font-size:12.5px; cursor:pointer;}
+  .debt-btn-settle{background:var(--gold); color:#191308;}
+  .debt-btn-del{background:var(--card-2); color:var(--rust); border:1px solid var(--line) !important;}
+  .add-debt-form{display:flex; gap:6px; flex-wrap:wrap; margin-top:0;}
+  .add-debt-form input, .add-debt-form select{flex:1; min-width:100px;}
+  .add-debt-form input.icon-in{max-width:54px; flex:none; text-align:center;}
+
   /* ---- language switch pill (settings) ---- */
   .lang-pill{display:flex; background:var(--card-2); border-radius:99px; padding:3px; gap:2px;}
   .lang-pill button{border:none; background:none; color:var(--muted); font-family:'Tajawal'; font-size:12px; font-weight:700; padding:6px 12px; border-radius:99px; cursor:pointer;}
@@ -483,6 +514,48 @@
       <div class="sav-modal-actions">
         <button class="sav-modal-cancel" id="savModalCancelBtn" data-i18n="cancel">إلغاء</button>
         <button class="sav-modal-confirm" id="savModalConfirmBtn" data-i18n="confirm">تأكيد</button>
+      </div>
+    </div>
+  </div>
+
+  <main id="tabDebts">
+    <div class="info-note" style="margin-bottom:14px;" data-i18n="debtsHint">تتبّع الأموال التي لك عند الآخرين والأموال التي عليك لهم. هذه الأرقام منفصلة تمامًا عن رصيدك ولا تُحتسب ضمنه.</div>
+    <div class="debt-summary">
+      <div class="box"><div class="lbl" data-i18n="debtsTotalOwedToMe">لي عند الآخرين</div><div class="val owed" id="debtTotalOwed">0.00</div></div>
+      <div class="box"><div class="lbl" data-i18n="debtsTotalIOwe">عليّ للآخرين</div><div class="val iowe" id="debtTotalIOwe">0.00</div></div>
+    </div>
+    <div class="section-title" data-i18n="debtsOwedToMeSection">💚 لي عند الآخرين</div>
+    <div id="debtsOwedToMeList"></div>
+    <div class="section-title" data-i18n="debtsIOweSection">❤️ عليّ للآخرين</div>
+    <div id="debtsIOweList"></div>
+    <div class="section-title" data-i18n="addNewDebt">➕ دين جديد</div>
+    <div class="card-box">
+      <div class="add-debt-form">
+        <input type="text" id="newDebtIcon" class="icon-in" placeholder="🤝" maxlength="2">
+        <input type="text" id="newDebtPerson" placeholder="اسم الشخص" data-i18n-ph="newDebtPersonPh" style="flex:2;">
+        <select id="newDebtDirection">
+          <option value="owed_to_me" data-i18n="debtOwedToMe">لي (عند الآخرين)</option>
+          <option value="i_owe" data-i18n="debtIOwe">عليّ (للآخرين)</option>
+        </select>
+      </div>
+      <div class="add-debt-form" style="margin-top:8px;">
+        <input type="number" id="newDebtAmount" placeholder="المبلغ" inputmode="decimal" min="0" step="1" data-i18n-ph="newDebtAmountPh">
+        <input type="date" id="newDebtDueDate">
+      </div>
+      <input type="text" id="newDebtNote" placeholder="ملاحظة (اختياري)" data-i18n-ph="newDebtNotePh" style="margin-top:8px; width:100%; box-sizing:border-box;">
+      <button class="save-btn" id="addDebtBtn" style="margin-top:10px;" data-i18n="addDebtBtn">➕ إضافة الدين</button>
+    </div>
+  </main>
+
+  <div class="sav-modal" id="debtSettleModal">
+    <div class="sav-modal-box">
+      <div class="sav-modal-title" id="debtModalTitle"></div>
+      <div class="sav-modal-sub" id="debtModalSub"></div>
+      <input type="number" id="debtModalAmount" inputmode="decimal" min="0" step="1" placeholder="0.00">
+      <button type="button" class="sav-modal-quick" id="debtModalQuickBtn"></button>
+      <div class="sav-modal-actions">
+        <button class="sav-modal-cancel" id="debtModalCancelBtn" data-i18n="cancel">إلغاء</button>
+        <button class="sav-modal-confirm" id="debtModalConfirmBtn" data-i18n="confirm">تأكيد</button>
       </div>
     </div>
   </div>
@@ -670,6 +743,7 @@
   <button class="navbtn active" data-tab="tabHome"><span class="ic">🏠</span><span data-i18n="navHome">الرئيسية</span></button>
   <button class="navbtn" data-tab="tabAdd"><span class="ic">➕</span><span data-i18n="navAdd">إضافة</span></button>
   <button class="navbtn" data-tab="tabSavings"><span class="ic">💰</span><span data-i18n="navSavings">المدخرات</span></button>
+  <button class="navbtn" data-tab="tabDebts"><span class="ic">🤝</span><span data-i18n="navDebts">الديون</span></button>
   <button class="navbtn" data-tab="tabLog"><span class="ic">📋</span><span data-i18n="navLog">السجل</span></button>
   <button class="navbtn" data-tab="tabReports"><span class="ic">📊</span><span data-i18n="navReports">التقارير</span></button>
   <button class="navbtn" data-tab="tabSettings"><span class="ic">⚙️</span><span data-i18n="navSettings">الإعدادات</span></button>
@@ -687,11 +761,12 @@
 <div id="printReport"></div>
 
 <script>
-const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1', REC_KEY='daftari_recurring_v1', WAL_KEY='daftari_wallets_v1', SAV_KEY='daftari_savings_v1', AUTO_KEY='daftari_auto_backup_v1';
+const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1', REC_KEY='daftari_recurring_v1', WAL_KEY='daftari_wallets_v1', SAV_KEY='daftari_savings_v1', AUTO_KEY='daftari_auto_backup_v1', DEBT_KEY='daftari_debts_v1';
 let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', lang:'ar', pinEnabled:false, pinHash:'', budgets:{}, notifEnabled:false, autoBackupEnabled:true, autoBackupDays:7, lastAutoBackup:null, balanceHidden:false};
 let recurring=[];
 let wallets=[];
 let savingsGoals=[];
+let debts=[];
 let lastHomeStats={balance:0, income:0, expense:0, monthExpense:0};
 let editingId=null, currentType='expense', selectedCategory=null;
 let charts={};
@@ -760,7 +835,7 @@ const MONTHS_EN=['January','February','March','April','May','June','July','Augus
 const I18N={
   ar:{
     tagline:'دفتر مصاريفك الشخصي',
-    navHome:'الرئيسية', navAdd:'إضافة', navSavings:'المدخرات', navLog:'السجل', navReports:'التقارير', navSettings:'الإعدادات',
+    navHome:'الرئيسية', navAdd:'إضافة', navSavings:'المدخرات', navDebts:'الديون', navLog:'السجل', navReports:'التقارير', navSettings:'الإعدادات',
     balanceLabel:'الرصيد الحالي', totalIncome:'إجمالي الدخل', totalExpense:'إجمالي المصروفات', monthExpense:'📅 مصروف هذا الشهر',
     toggleBalanceLabel:'إخفاء/إظهار الرصيد',
     last6months:'آخر 6 أشهر', last5tx:'آخر 5 عمليات',
@@ -830,13 +905,31 @@ const I18N={
     confirmClearAll:'سيتم حذف كل الحركات والمعاملات المتكررة نهائيًا من هذا الجهاز. ننصح بأخذ نسخة احتياطية أولاً. متابعة؟',
     confirmDeleteWallet:'حذف هذه المحفظة؟ ستُنقل عملياتها إلى المحفظة الرئيسية المتبقية.', confirmForgotPin:'لا توجد وسيلة لاستعادة الرمز المنسي. المتابعة ستوقف قفل الرمز فقط (بياناتك المالية تبقى محفوظة كما هي). هل تريد المتابعة؟',
     confirmDeleteSavings:'حذف هدف الادخار هذا؟ سيُفقد المبلغ المُدخر المسجّل ضمنه.',
+
+    debtsHint:'تتبّع الأموال التي لك عند الآخرين والأموال التي عليك لهم. هذه الأرقام منفصلة تمامًا عن رصيدك ولا تُحتسب ضمنه.',
+    debtsTotalOwedToMe:'لي عند الآخرين', debtsTotalIOwe:'عليّ للآخرين',
+    debtsOwedToMeSection:'💚 لي عند الآخرين', debtsIOweSection:'❤️ عليّ للآخرين',
+    noDebtsOwedToMe:'لا توجد ديون مسجّلة لك حاليًا', noDebtsIOwe:'لا توجد ديون عليك حاليًا',
+    addNewDebt:'➕ دين جديد', addDebtBtn:'➕ إضافة الدين',
+    newDebtPersonPh:'اسم الشخص', newDebtAmountPh:'المبلغ', newDebtNotePh:'ملاحظة (اختياري)',
+    debtOwedToMe:'لي (عند الآخرين)', debtIOwe:'عليّ (للآخرين)',
+    debtDueLabel:'تاريخ الاستحقاق', debtDueOverdue:'⚠️ متأخر عن الاستحقاق',
+    debtSettledBadge:'✓ تم التسديد بالكامل',
+    debtSettleBtn:'💵 تسديد', debtEditBtn:'✏️', debtDeleteBtn:'🗑️',
+    debtRemainingLabel:'المتبقي', debtOfLabel:'من',
+    debtSettlePrompt:'أدخل المبلغ المسدَّد',
+    debtSettleFillRemaining:'↳ تسديد كامل المتبقي',
+    debtPersonNameLabel:'اسم الشخص', debtIconLabel:'الأيقونة', debtAmountLabel:'المبلغ الإجمالي', debtDueDateLabel:'تاريخ الاستحقاق (YYYY-MM-DD)', debtNoteLabel:'ملاحظة',
+    toastDebtAdded:'تمت إضافة الدين ✓', toastEnterDebtPerson:'أدخل اسم الشخص', toastEnterDebtAmount:'أدخل مبلغًا صحيحًا',
+    toastDebtUpdated:'تم تحديث الدين', toastDebtDeleted:'تم حذف الدين', toastDebtSettled:'تم تسجيل التسديد ✓',
+    confirmDeleteDebt:'حذف هذا الدين نهائيًا؟',
     printTitle:'دفتري — تقرير', printGenerated:'تم إنشاؤه بتاريخ', printIncome:'إجمالي الدخل', printExpense:'إجمالي المصروف', printNet:'الصافي',
     printByCat:'الإنفاق حسب الفئة', printAllTx:'كل الحركات', printDate:'التاريخ', printCat:'الفئة', printNote:'ملاحظة', printAmount:'المبلغ', printWalletCol:'المحفظة', printReceiptCol:'🧾',
     otherCat:'أخرى'
   },
   en:{
     tagline:'Your personal expense book',
-    navHome:'Home', navAdd:'Add', navSavings:'Savings', navLog:'Log', navReports:'Reports', navSettings:'Settings',
+    navHome:'Home', navAdd:'Add', navSavings:'Savings', navDebts:'Debts', navLog:'Log', navReports:'Reports', navSettings:'Settings',
     balanceLabel:'Current Balance', totalIncome:'Total Income', totalExpense:'Total Expenses', monthExpense:'📅 This Month\'s Expenses',
     toggleBalanceLabel:'Show/Hide balance',
     last6months:'Last 6 Months', last5tx:'Last 5 Transactions',
@@ -906,6 +999,24 @@ const I18N={
     confirmClearAll:'All transactions and recurring transactions on this device will be permanently deleted. We recommend taking a backup first. Continue?',
     confirmDeleteWallet:'Delete this wallet? Its transactions will move to the remaining main wallet.', confirmForgotPin:'There\'s no way to recover a forgotten code. Continuing will only disable the PIN lock (your financial data stays intact). Continue?',
     confirmDeleteSavings:'Delete this savings goal? Its recorded saved amount will be lost.',
+
+    debtsHint:'Track money others owe you and money you owe others. These amounts are kept fully separate from your balance and are not counted in it.',
+    debtsTotalOwedToMe:'Owed to me', debtsTotalIOwe:'I owe',
+    debtsOwedToMeSection:'💚 Owed to me', debtsIOweSection:'❤️ I owe',
+    noDebtsOwedToMe:'No debts owed to you yet', noDebtsIOwe:"You don't owe anything yet",
+    addNewDebt:'➕ New Debt', addDebtBtn:'➕ Add Debt',
+    newDebtPersonPh:"Person's name", newDebtAmountPh:'Amount', newDebtNotePh:'Note (optional)',
+    debtOwedToMe:'Owed to me', debtIOwe:'I owe',
+    debtDueLabel:'Due date', debtDueOverdue:'⚠️ Overdue',
+    debtSettledBadge:'✓ Fully settled',
+    debtSettleBtn:'💵 Settle', debtEditBtn:'✏️', debtDeleteBtn:'🗑️',
+    debtRemainingLabel:'Remaining', debtOfLabel:'of',
+    debtSettlePrompt:'Enter amount settled',
+    debtSettleFillRemaining:'↳ Settle full remaining amount',
+    debtPersonNameLabel:"Person's name", debtIconLabel:'Icon', debtAmountLabel:'Total amount', debtDueDateLabel:'Due date (YYYY-MM-DD)', debtNoteLabel:'Note',
+    toastDebtAdded:'Debt added ✓', toastEnterDebtPerson:"Enter a person's name", toastEnterDebtAmount:'Enter a valid amount',
+    toastDebtUpdated:'Debt updated', toastDebtDeleted:'Debt deleted', toastDebtSettled:'Payment recorded ✓',
+    confirmDeleteDebt:'Delete this debt permanently?',
     printTitle:'Daftari — Report', printGenerated:'Generated on', printIncome:'Total Income', printExpense:'Total Expense', printNet:'Net',
     printByCat:'Spending by Category', printAllTx:'All transactions', printDate:'Date', printCat:'Category', printNote:'Note', printAmount:'Amount', printWalletCol:'Wallet', printReceiptCol:'🧾',
     otherCat:'Other'
@@ -962,6 +1073,7 @@ async function load(){
   }catch(e){ wallets=JSON.parse(JSON.stringify(DEFAULT_WALLETS)); }
   if(!wallets.length) wallets=JSON.parse(JSON.stringify(DEFAULT_WALLETS));
   try{ savingsGoals = JSON.parse(localStorage.getItem(SAV_KEY) || '[]'); }catch(e){ savingsGoals=[]; }
+  try{ debts = JSON.parse(localStorage.getItem(DEBT_KEY) || '[]'); }catch(e){ debts=[]; }
   // migrate transactions/recurring created before multi-wallet support
   let migrated=false;
   const defId=wallets[0].id;
@@ -975,6 +1087,7 @@ async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify
 async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){} }
 async function saveWallets(){ try{ localStorage.setItem(WAL_KEY, JSON.stringify(wallets)); }catch(e){} }
 async function saveSavings(){ try{ localStorage.setItem(SAV_KEY, JSON.stringify(savingsGoals)); }catch(e){} }
+async function saveDebts(){ try{ localStorage.setItem(DEBT_KEY, JSON.stringify(debts)); }catch(e){} }
 
 /* ---------- theme ---------- */
 function applyTheme(){
@@ -1027,6 +1140,7 @@ function switchTab(name){
     if(name==='tabHome'){ renderWalletChips(); renderHome(); }
     if(name==='tabAdd' && !editingId) resetAddForm();
     if(name==='tabSavings') renderSavingsCards();
+    if(name==='tabDebts') renderDebtsList();
     if(name==='tabLog') renderLog();
     if(name==='tabReports') renderReports();
     if(name==='tabSettings') renderSettings();
@@ -1885,6 +1999,146 @@ document.getElementById('savModalConfirmBtn').addEventListener('click', ()=>{
   closeSavingsFundModal();
 });
 
+/* ---------- Debts (money others owe me / money I owe others — separate from balance) ---------- */
+function debtRemaining(d){ return Math.max(0, (d.amount||0) - (d.paid||0)); }
+function isDebtOverdue(d){
+  if(!d.dueDate || debtRemaining(d)<=0) return false;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const due=new Date(d.dueDate+'T00:00:00');
+  return due < today;
+}
+function renderDebtsList(){
+  const owedEl=document.getElementById('debtsOwedToMeList');
+  const iOweEl=document.getElementById('debtsIOweList');
+  const owed=debts.filter(d=>d.direction==='owed_to_me');
+  const iOwe=debts.filter(d=>d.direction==='i_owe');
+  const totalOwed=owed.reduce((s,d)=>s+debtRemaining(d),0);
+  const totalIOwe=iOwe.reduce((s,d)=>s+debtRemaining(d),0);
+  document.getElementById('debtTotalOwed').textContent=fmt(totalOwed);
+  document.getElementById('debtTotalIOwe').textContent=fmt(totalIOwe);
+
+  function renderGroup(el, list, emptyKey){
+    if(list.length===0){
+      el.innerHTML=`<div class="empty" style="padding:24px 16px;"><div class="em">🤝</div><p>${escapeHtml(t(emptyKey))}</p></div>`;
+      return;
+    }
+    el.innerHTML = list.map(d=>{
+      const remain=debtRemaining(d);
+      const settled=remain<=0;
+      const overdue=isDebtOverdue(d);
+      const badgeClass = d.direction==='owed_to_me' ? 'owed' : 'iowe';
+      const badgeLabel = d.direction==='owed_to_me' ? t('debtOwedToMe') : t('debtIOwe');
+      const dueHtml = d.dueDate ? `<div class="debt-card-due ${overdue?'overdue':''}">${overdue?t('debtDueOverdue')+' — ':''}${t('debtDueLabel')}: ${escapeHtml(d.dueDate)}</div>` : '';
+      const noteHtml = d.note ? `<div class="debt-card-note">${escapeHtml(d.note)}</div>` : '';
+      const statusHtml = settled ? `<div class="debt-card-done">${escapeHtml(t('debtSettledBadge'))}</div>` : '';
+      return `<div class="debt-card" data-id="${d.id}">
+        <div class="debt-card-top">
+          <div class="ic">${d.icon||'🤝'}</div>
+          <div class="name">${escapeHtml(d.person)}</div>
+          <span class="debt-badge ${badgeClass}">${escapeHtml(badgeLabel)}</span>
+          <button class="icbtn dt-edit" data-id="${d.id}" title="${escapeHtml(t('debtEditBtn'))}">✏️</button>
+          <button class="icbtn dt-del" data-id="${d.id}" title="${escapeHtml(t('debtDeleteBtn'))}">🗑️</button>
+        </div>
+        <div class="debt-card-amt"><span>${t('debtRemainingLabel')}</span><span class="rem">${fmt(remain)}</span></div>
+        <div class="debt-card-amt"><span>${t('debtOfLabel')} ${fmt(d.amount||0)}</span><span></span></div>
+        ${dueHtml}${noteHtml}${statusHtml}
+        <div class="debt-card-actions">
+          ${settled ? '' : `<button class="debt-btn-settle dt-settle" data-id="${d.id}">${escapeHtml(t('debtSettleBtn'))}</button>`}
+        </div>
+      </div>`;
+    }).join('');
+    el.querySelectorAll('.dt-settle').forEach(b=>b.addEventListener('click', ()=>openDebtSettleModal(b.dataset.id)));
+    el.querySelectorAll('.dt-edit').forEach(b=>b.addEventListener('click', ()=>editDebt(b.dataset.id)));
+    el.querySelectorAll('.dt-del').forEach(b=>b.addEventListener('click', ()=>deleteDebt(b.dataset.id)));
+  }
+  renderGroup(owedEl, owed, 'noDebtsOwedToMe');
+  renderGroup(iOweEl, iOwe, 'noDebtsIOwe');
+}
+function editDebt(id){
+  const d=debts.find(x=>x.id===id); if(!d) return;
+  const newPerson=prompt(t('debtPersonNameLabel')+':', d.person);
+  if(newPerson===null) return;
+  if(newPerson.trim()) d.person=newPerson.trim();
+  const newIcon=prompt(t('debtIconLabel')+':', d.icon||'🤝');
+  if(newIcon!==null && newIcon.trim()) d.icon=newIcon.trim();
+  const newAmount=prompt(t('debtAmountLabel')+':', d.amount||0);
+  if(newAmount!==null){
+    const v=parseFloat(newAmount);
+    if(!isNaN(v) && v>=0) d.amount=v;
+  }
+  const newDue=prompt(t('debtDueDateLabel')+':', d.dueDate||'');
+  if(newDue!==null) d.dueDate = newDue.trim();
+  const newNote=prompt(t('debtNoteLabel')+':', d.note||'');
+  if(newNote!==null) d.note = newNote.trim();
+  saveDebts(); renderDebtsList();
+  showToast(t('toastDebtUpdated'));
+}
+function deleteDebt(id){
+  if(!confirm(t('confirmDeleteDebt'))) return;
+  debts=debts.filter(d=>d.id!==id);
+  saveDebts(); renderDebtsList();
+  showToast(t('toastDebtDeleted'));
+}
+document.getElementById('addDebtBtn').addEventListener('click', ()=>{
+  const person=document.getElementById('newDebtPerson').value.trim();
+  const icon=document.getElementById('newDebtIcon').value.trim() || '🤝';
+  const direction=document.getElementById('newDebtDirection').value;
+  const amount=parseFloat(document.getElementById('newDebtAmount').value);
+  const dueDate=document.getElementById('newDebtDueDate').value;
+  const note=document.getElementById('newDebtNote').value.trim();
+  if(!person){ showToast(t('toastEnterDebtPerson')); return; }
+  if(isNaN(amount) || amount<=0){ showToast(t('toastEnterDebtAmount')); return; }
+  debts.push({id:'dt_'+Date.now(), person, icon, direction, amount, paid:0, dueDate:dueDate||'', note, createdAt:new Date().toISOString()});
+  saveDebts();
+  document.getElementById('newDebtPerson').value='';
+  document.getElementById('newDebtIcon').value='';
+  document.getElementById('newDebtAmount').value='';
+  document.getElementById('newDebtDueDate').value='';
+  document.getElementById('newDebtNote').value='';
+  renderDebtsList();
+  showToast(t('toastDebtAdded'));
+});
+/* ---------- Debt settle modal ---------- */
+let debtModalId=null;
+function openDebtSettleModal(debtId){
+  const d=debts.find(x=>x.id===debtId); if(!d) return;
+  debtModalId=debtId;
+  const modal=document.getElementById('debtSettleModal');
+  const titleEl=document.getElementById('debtModalTitle');
+  const subEl=document.getElementById('debtModalSub');
+  const quickBtn=document.getElementById('debtModalQuickBtn');
+  const remain=debtRemaining(d);
+  titleEl.textContent=`${t('debtSettleBtn')} — ${d.person}`;
+  subEl.textContent=`${t('debtRemainingLabel')}: ${fmt(remain)}`;
+  document.getElementById('debtModalAmount').value='';
+  if(remain>0){
+    quickBtn.style.display='block';
+    quickBtn.textContent=`${t('debtSettleFillRemaining')} (${fmt(remain)})`;
+  }else{
+    quickBtn.style.display='none';
+  }
+  modal.classList.add('open');
+}
+function closeDebtSettleModal(){
+  document.getElementById('debtSettleModal').classList.remove('open');
+  debtModalId=null;
+}
+document.getElementById('debtModalCancelBtn').addEventListener('click', closeDebtSettleModal);
+document.getElementById('debtSettleModal').addEventListener('click', (e)=>{ if(e.target.id==='debtSettleModal') closeDebtSettleModal(); });
+document.getElementById('debtModalQuickBtn').addEventListener('click', ()=>{
+  const d=debts.find(x=>x.id===debtModalId); if(!d) return;
+  document.getElementById('debtModalAmount').value = debtRemaining(d);
+});
+document.getElementById('debtModalConfirmBtn').addEventListener('click', ()=>{
+  const d=debts.find(x=>x.id===debtModalId); if(!d) return;
+  const raw=parseFloat(document.getElementById('debtModalAmount').value);
+  if(isNaN(raw) || raw<=0){ showToast(t('toastInvalidAmount')); return; }
+  d.paid=(d.paid||0)+raw;
+  saveDebts(); renderDebtsList();
+  showToast(t('toastDebtSettled'));
+  closeDebtSettleModal();
+});
+
 /* ---------- Budgets ---------- */
 function renderBudgetSettings(){
   const el=document.getElementById('budgetSettingsList');
@@ -2125,7 +2379,7 @@ document.getElementById('addCatBtn').addEventListener('click', ()=>{
 
 /* ---------- backup ---------- */
 function buildBackupPayload(){
-  return {app:'daftari', version:4, exportedAt:new Date().toISOString(), transactions, categories, settings, recurring, wallets};
+  return {app:'daftari', version:4, exportedAt:new Date().toISOString(), transactions, categories, settings, recurring, wallets, debts};
 }
 function downloadBackupFile(){
   const payload=buildBackupPayload();
@@ -2185,6 +2439,7 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
         if(parsed.categories) categories=parsed.categories;
         if(Array.isArray(parsed.recurring)) recurring=parsed.recurring;
         if(Array.isArray(parsed.wallets) && parsed.wallets.length) wallets=parsed.wallets;
+        if(Array.isArray(parsed.debts)) debts=parsed.debts;
       }else{
         const ids=new Set(transactions.map(t=>t.id));
         incoming.forEach(t=>{ if(!ids.has(t.id)) transactions.push(t); });
@@ -2196,11 +2451,15 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
           const wids=new Set(wallets.map(w=>w.id));
           parsed.wallets.forEach(w=>{ if(!wids.has(w.id)) wallets.push(w); });
         }
+        if(Array.isArray(parsed.debts)){
+          const dids=new Set(debts.map(d=>d.id));
+          parsed.debts.forEach(d=>{ if(!dids.has(d.id)) debts.push(d); });
+        }
       }
       const defId=wallets[0].id;
       transactions.forEach(tx=>{ if(!tx.wallet) tx.wallet=defId; });
       recurring.forEach(r=>{ if(!r.wallet) r.wallet=defId; });
-      saveTx(); saveCats(); saveRecurring(); saveWallets();
+      saveTx(); saveCats(); saveRecurring(); saveWallets(); saveDebts();
       showToast(t('toastBackupImported'));
       switchTab('tabHome');
     }catch(err){ showToast(t('toastBackupInvalid')); }
@@ -2215,10 +2474,11 @@ function applyBackupPayload(parsed){
   if(parsed.categories) categories=parsed.categories;
   if(Array.isArray(parsed.recurring)) recurring=parsed.recurring;
   if(Array.isArray(parsed.wallets) && parsed.wallets.length) wallets=parsed.wallets;
+  if(Array.isArray(parsed.debts)) debts=parsed.debts;
   const defId=wallets[0].id;
   transactions.forEach(tx=>{ if(!tx.wallet) tx.wallet=defId; });
   recurring.forEach(r=>{ if(!r.wallet) r.wallet=defId; });
-  saveTx(); saveCats(); saveRecurring(); saveWallets();
+  saveTx(); saveCats(); saveRecurring(); saveWallets(); saveDebts();
 }
 const restoreAutoBtn=document.getElementById('restoreAutoBackupBtn');
 if(restoreAutoBtn) restoreAutoBtn.addEventListener('click', ()=>{
