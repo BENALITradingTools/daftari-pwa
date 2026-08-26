@@ -354,15 +354,31 @@
   .sav-modal-confirm{background:var(--gold); color:#191308;}
 
   /* debts tab summary */
-  .debt-summary{display:flex; gap:10px; margin-bottom:16px;}
-  .debt-summary .box{flex:1; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; text-align:center;}
-  .debt-summary .box .lbl{font-size:11px; color:var(--muted); margin-bottom:4px;}
-  .debt-summary .box .val{font-size:15px; font-weight:900; direction:ltr;}
+  .debt-summary{display:flex; gap:10px; margin-bottom:14px;}
+  .debt-summary .box{flex:1; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; text-align:center; min-width:0;}
+  .debt-summary .box .lbl{font-size:10.5px; color:var(--muted); margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .debt-summary .box .val{font-size:14px; font-weight:900; direction:ltr;}
   .debt-summary .box .val.owed{color:var(--sage);}
   .debt-summary .box .val.iowe{color:var(--rust);}
+  .debt-summary .box .cnt{font-size:10px; color:var(--muted); margin-top:3px;}
+
+  /* debts tab toolbar (search) */
+  .debt-toolbar{margin-bottom:12px;}
+  .debt-toolbar input[type="text"]{margin:0;}
+
+  /* debts tab status chips */
+  .debt-chips{display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+  .debt-chips::-webkit-scrollbar{display:none;}
+  .debt-chip{flex:none; display:flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--line); color:var(--muted); border-radius:99px; padding:7px 13px; font-family:'Tajawal'; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;}
+  .debt-chip.active{background:var(--gold); color:#191308; border-color:var(--gold);}
+  .debt-chip .chip-cnt{background:rgba(0,0,0,0.12); border-radius:99px; padding:1px 7px; font-size:10.5px; min-width:14px; text-align:center;}
+  .debt-chip.active .chip-cnt{background:rgba(0,0,0,0.18);}
+  body.light .debt-chip .chip-cnt{background:rgba(0,0,0,0.08);}
+  body.light .debt-chip.active .chip-cnt{background:rgba(0,0,0,0.14);}
 
   /* debts tab cards */
   .debt-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:12px;}
+  .debt-card.is-settled{opacity:0.72;}
   .debt-card-top{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
   .debt-card-top .ic{font-size:22px; width:34px; height:34px; border-radius:10px; background:var(--card-2); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
   .debt-card-top .name{flex:1; font-size:14.5px; font-weight:700; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
@@ -370,16 +386,25 @@
   .debt-badge{font-size:10px; font-weight:700; border-radius:99px; padding:2px 9px; display:inline-block; white-space:nowrap;}
   .debt-badge.owed{background:rgba(111,162,135,0.18); color:var(--sage);}
   .debt-badge.iowe{background:rgba(193,89,74,0.18); color:var(--rust);}
-  .debt-card-amt{display:flex; align-items:baseline; justify-content:space-between; font-size:12px; color:var(--muted); margin:8px 0 6px; direction:ltr;}
-  .debt-card-amt .rem{font-size:17px; font-weight:900; color:var(--ink); direction:ltr;}
+  .debt-card-amt-row{display:flex; align-items:baseline; justify-content:space-between; direction:ltr; margin:8px 0 6px;}
+  .debt-card-amt-main{display:flex; align-items:baseline; gap:6px; min-width:0;}
+  .debt-card-amt-main .rem{font-size:19px; font-weight:900; color:var(--ink); white-space:nowrap;}
+  .debt-card-amt-main .of{font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .debt-card-amt-row .pct{font-size:10.5px; font-weight:800; color:var(--gold); background:rgba(201,162,74,0.14); padding:2px 8px; border-radius:99px; flex-shrink:0;}
+  .debt-progress{height:6px; background:var(--card-2); border-radius:99px; overflow:hidden; margin:2px 0 8px;}
+  .debt-progress-fill{height:100%; background:var(--gold); border-radius:99px; transition:width .25s ease;}
+  .debt-progress-fill.settled{background:var(--sage);}
   .debt-card-due{font-size:11px; color:var(--muted); margin-top:2px;}
   .debt-card-due.overdue{color:var(--rust); font-weight:700;}
+  .debt-card-due.soon{color:var(--gold); font-weight:700;}
   .debt-card-note{font-size:11.5px; color:var(--muted); margin-top:4px;}
   .debt-card-done{font-size:11px; color:var(--sage); font-weight:700; margin-top:6px;}
   .debt-card-actions{display:flex; gap:8px; margin-top:12px;}
   .debt-card-actions button{flex:1; border:none; border-radius:10px; padding:10px; font-family:'Tajawal'; font-weight:700; font-size:12.5px; cursor:pointer;}
   .debt-btn-settle{background:var(--gold); color:#191308;}
   .debt-btn-del{background:var(--card-2); color:var(--rust); border:1px solid var(--line) !important;}
+  .debt-settled-toggle{display:block; width:100%; background:var(--card-2); border:1px dashed var(--line); color:var(--muted); border-radius:12px; padding:10px; font-family:'Tajawal'; font-size:11.5px; font-weight:700; cursor:pointer; margin:4px 0 12px; text-align:center;}
+  .debt-settled-toggle:hover{color:var(--ink); border-color:var(--gold-dim);}
   .add-debt-form{display:flex; gap:6px; flex-wrap:wrap; margin-top:0;}
   .add-debt-form input, .add-debt-form select{flex:1; min-width:100px;}
   .add-debt-form input.icon-in{max-width:54px; flex:none; text-align:center;}
@@ -521,8 +546,18 @@
   <main id="tabDebts">
     <div class="info-note" style="margin-bottom:14px;" data-i18n="debtsHint">تتبّع الأموال التي لك عند الآخرين والأموال التي عليك لهم. هذه الأرقام منفصلة تمامًا عن رصيدك ولا تُحتسب ضمنه.</div>
     <div class="debt-summary">
-      <div class="box"><div class="lbl" data-i18n="debtsTotalOwedToMe">لي عند الآخرين</div><div class="val owed" id="debtTotalOwed">0.00</div></div>
-      <div class="box"><div class="lbl" data-i18n="debtsTotalIOwe">عليّ للآخرين</div><div class="val iowe" id="debtTotalIOwe">0.00</div></div>
+      <div class="box"><div class="lbl" data-i18n="debtsTotalOwedToMe">لي عند الآخرين</div><div class="val owed" id="debtTotalOwed">0.00</div><div class="cnt" id="debtOwedCount"></div></div>
+      <div class="box"><div class="lbl" data-i18n="debtsTotalIOwe">عليّ للآخرين</div><div class="val iowe" id="debtTotalIOwe">0.00</div><div class="cnt" id="debtIOweCount"></div></div>
+      <div class="box"><div class="lbl" data-i18n="debtsNetLabel">الصافي</div><div class="val owed" id="debtTotalNet">0.00</div><div class="cnt" id="debtNetCount"></div></div>
+    </div>
+    <div class="debt-toolbar">
+      <input type="text" id="debtSearchInput" placeholder="🔍 بحث باسم الشخص أو الملاحظة" data-i18n-ph="debtsSearchPh">
+    </div>
+    <div class="debt-chips" id="debtChips">
+      <button class="debt-chip active" data-filter="all"><span data-i18n="debtsChipAll">الكل</span> <span class="chip-cnt" id="chipAllCnt">0</span></button>
+      <button class="debt-chip" data-filter="overdue"><span data-i18n="debtsChipOverdue">⚠️ متأخرة</span> <span class="chip-cnt" id="chipOverdueCnt">0</span></button>
+      <button class="debt-chip" data-filter="soon"><span data-i18n="debtsChipSoon">⏳ تستحق قريبًا</span> <span class="chip-cnt" id="chipSoonCnt">0</span></button>
+      <button class="debt-chip" data-filter="settled"><span data-i18n="debtsChipSettled">✅ مسددة</span> <span class="chip-cnt" id="chipSettledCnt">0</span></button>
     </div>
     <div class="section-title" data-i18n="debtsOwedToMeSection">💚 لي عند الآخرين</div>
     <div id="debtsOwedToMeList"></div>
@@ -556,6 +591,29 @@
       <div class="sav-modal-actions">
         <button class="sav-modal-cancel" id="debtModalCancelBtn" data-i18n="cancel">إلغاء</button>
         <button class="sav-modal-confirm" id="debtModalConfirmBtn" data-i18n="confirm">تأكيد</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sav-modal" id="debtEditModal">
+    <div class="sav-modal-box">
+      <div class="sav-modal-title" data-i18n="debtEditTitle">تعديل الدين</div>
+      <div class="add-debt-form" style="margin-top:14px;">
+        <input type="text" id="editDebtIcon" class="icon-in" maxlength="2">
+        <input type="text" id="editDebtPerson" style="flex:2;" data-i18n-ph="debtPersonNameLabel">
+        <select id="editDebtDirection">
+          <option value="owed_to_me" data-i18n="debtOwedToMe">لي (عند الآخرين)</option>
+          <option value="i_owe" data-i18n="debtIOwe">عليّ (للآخرين)</option>
+        </select>
+      </div>
+      <div class="add-debt-form" style="margin-top:8px;">
+        <input type="number" id="editDebtAmount" inputmode="decimal" min="0" step="1">
+        <input type="date" id="editDebtDueDate">
+      </div>
+      <input type="text" id="editDebtNote" style="margin-top:8px; width:100%; box-sizing:border-box;" data-i18n-ph="debtNoteLabel">
+      <div class="sav-modal-actions">
+        <button class="sav-modal-cancel" id="debtEditCancelBtn" data-i18n="cancel">إلغاء</button>
+        <button class="sav-modal-confirm" id="debtEditSaveBtn" data-i18n="saveChanges">💾 حفظ التعديلات</button>
       </div>
     </div>
   </div>
@@ -923,6 +981,14 @@ const I18N={
     toastDebtAdded:'تمت إضافة الدين ✓', toastEnterDebtPerson:'أدخل اسم الشخص', toastEnterDebtAmount:'أدخل مبلغًا صحيحًا',
     toastDebtUpdated:'تم تحديث الدين', toastDebtDeleted:'تم حذف الدين', toastDebtSettled:'تم تسجيل التسديد ✓',
     confirmDeleteDebt:'حذف هذا الدين نهائيًا؟',
+    debtsNetLabel:'الصافي', debtsSearchPh:'🔍 بحث باسم الشخص أو الملاحظة',
+    debtsShowSettled:'عرض المسددة', debtsHideSettled:'إخفاء المسددة', debtsNoSearchResults:'لا توجد نتائج مطابقة للبحث',
+    debtsNoFilterResults:'لا توجد ديون ضمن هذا التصنيف حاليًا',
+    debtEditTitle:'تعديل الدين', saveChanges:'💾 حفظ التعديلات', toastFixDebtErrors:'يرجى إدخال اسم ومبلغ صحيحَين',
+    debtsChipAll:'الكل', debtsChipOverdue:'⚠️ متأخرة', debtsChipSoon:'⏳ تستحق قريبًا', debtsChipSettled:'✅ مسددة',
+    debtsPeopleSuffix:'شخص', debtsBalanced:'متوازن',
+    debtDueToday:'يستحق اليوم', debtDueTomorrow:'يستحق غدًا', debtDueInDaysPrefix:'يستحق خلال', debtDaysUnit:'يوم',
+    debtOverdueByPrefix:'متأخر منذ',
     printTitle:'دفتري — تقرير', printGenerated:'تم إنشاؤه بتاريخ', printIncome:'إجمالي الدخل', printExpense:'إجمالي المصروف', printNet:'الصافي',
     printByCat:'الإنفاق حسب الفئة', printAllTx:'كل الحركات', printDate:'التاريخ', printCat:'الفئة', printNote:'ملاحظة', printAmount:'المبلغ', printWalletCol:'المحفظة', printReceiptCol:'🧾',
     otherCat:'أخرى'
@@ -1017,6 +1083,14 @@ const I18N={
     toastDebtAdded:'Debt added ✓', toastEnterDebtPerson:"Enter a person's name", toastEnterDebtAmount:'Enter a valid amount',
     toastDebtUpdated:'Debt updated', toastDebtDeleted:'Debt deleted', toastDebtSettled:'Payment recorded ✓',
     confirmDeleteDebt:'Delete this debt permanently?',
+    debtsNetLabel:'Net', debtsSearchPh:'🔍 Search by person or note',
+    debtsShowSettled:'Show settled', debtsHideSettled:'Hide settled', debtsNoSearchResults:'No results match your search',
+    debtsNoFilterResults:'No debts in this category yet',
+    debtEditTitle:'Edit debt', saveChanges:'💾 Save changes', toastFixDebtErrors:'Please enter a valid name and amount',
+    debtsChipAll:'All', debtsChipOverdue:'⚠️ Overdue', debtsChipSoon:'⏳ Due soon', debtsChipSettled:'✅ Settled',
+    debtsPeopleSuffix:'people', debtsBalanced:'Balanced',
+    debtDueToday:'Due today', debtDueTomorrow:'Due tomorrow', debtDueInDaysPrefix:'Due in', debtDaysUnit:'days',
+    debtOverdueByPrefix:'Overdue by',
     printTitle:'Daftari — Report', printGenerated:'Generated on', printIncome:'Total Income', printExpense:'Total Expense', printNet:'Net',
     printByCat:'Spending by Category', printAllTx:'All transactions', printDate:'Date', printCat:'Category', printNote:'Note', printAmount:'Amount', printWalletCol:'Wallet', printReceiptCol:'🧾',
     otherCat:'Other'
@@ -2007,72 +2081,193 @@ function isDebtOverdue(d){
   const due=new Date(d.dueDate+'T00:00:00');
   return due < today;
 }
+function debtDaysUntilDue(d){
+  if(!d.dueDate) return null;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const due=new Date(d.dueDate+'T00:00:00');
+  return Math.round((due - today) / 86400000);
+}
+function isDebtDueSoon(d){
+  if(debtRemaining(d)<=0 || isDebtOverdue(d)) return false;
+  const diff=debtDaysUntilDue(d);
+  return diff!==null && diff>=0 && diff<=7;
+}
+let debtSearchQuery='';
+let debtStatusFilter='all'; /* all | overdue | soon | settled */
+let debtShowSettled={owed:false, iowe:false};
+
+/* Sort: overdue first, then soonest due date, undated last, newest-added as tiebreaker */
+function debtSortCompare(a,b){
+  const aOver=isDebtOverdue(a), bOver=isDebtOverdue(b);
+  if(aOver!==bOver) return aOver?-1:1;
+  const aDue=a.dueDate ? new Date(a.dueDate+'T00:00:00').getTime() : Infinity;
+  const bDue=b.dueDate ? new Date(b.dueDate+'T00:00:00').getTime() : Infinity;
+  if(aDue!==bDue) return aDue-bDue;
+  return new Date(b.createdAt||0) - new Date(a.createdAt||0);
+}
+
+function debtDueStatusText(d, overdue){
+  const diff=debtDaysUntilDue(d);
+  if(diff===null) return {text:'', cls:''};
+  if(overdue){
+    const daysLate=Math.abs(diff);
+    return {text:`${t('debtOverdueByPrefix')} ${daysLate} ${t('debtDaysUnit')}`, cls:'overdue'};
+  }
+  if(debtRemaining(d)>0 && diff>=0 && diff<=7){
+    if(diff===0) return {text:t('debtDueToday'), cls:'soon'};
+    if(diff===1) return {text:t('debtDueTomorrow'), cls:'soon'};
+    return {text:`${t('debtDueInDaysPrefix')} ${diff} ${t('debtDaysUnit')}`, cls:'soon'};
+  }
+  return {text:'', cls:''};
+}
+
+function debtCardHtml(d){
+  const remain=debtRemaining(d);
+  const settled=remain<=0;
+  const overdue=isDebtOverdue(d);
+  const badgeClass = d.direction==='owed_to_me' ? 'owed' : 'iowe';
+  const badgeLabel = d.direction==='owed_to_me' ? t('debtOwedToMe') : t('debtIOwe');
+  const status=debtDueStatusText(d, overdue);
+  const dueHtml = d.dueDate ? `<div class="debt-card-due ${status.cls}">${status.text? status.text+' • ' : ''}${t('debtDueLabel')}: ${escapeHtml(d.dueDate)}</div>` : '';
+  const noteHtml = d.note ? `<div class="debt-card-note">${escapeHtml(d.note)}</div>` : '';
+  const statusHtml = settled ? `<div class="debt-card-done">${escapeHtml(t('debtSettledBadge'))}</div>` : '';
+  const pct = (d.amount||0)>0 ? Math.max(0, Math.min(100, ((d.paid||0)/d.amount)*100)) : 0;
+  return `<div class="debt-card ${settled?'is-settled':''}" data-id="${d.id}">
+    <div class="debt-card-top">
+      <div class="ic">${d.icon||'🤝'}</div>
+      <div class="name">${escapeHtml(d.person)}</div>
+      <span class="debt-badge ${badgeClass}">${escapeHtml(badgeLabel)}</span>
+      <button class="icbtn dt-edit" data-id="${d.id}" title="${escapeHtml(t('debtEditBtn'))}">✏️</button>
+      <button class="icbtn dt-del" data-id="${d.id}" title="${escapeHtml(t('debtDeleteBtn'))}">🗑️</button>
+    </div>
+    <div class="debt-card-amt-row">
+      <div class="debt-card-amt-main"><span class="rem">${fmt(remain)}</span><span class="of">${t('debtOfLabel')} ${fmt(d.amount||0)}</span></div>
+      ${!settled ? `<span class="pct">${Math.round(pct)}%</span>` : ''}
+    </div>
+    <div class="debt-progress"><div class="debt-progress-fill ${settled?'settled':''}" style="width:${pct}%"></div></div>
+    ${dueHtml}${noteHtml}${statusHtml}
+    <div class="debt-card-actions">
+      ${settled ? '' : `<button class="debt-btn-settle dt-settle" data-id="${d.id}">${escapeHtml(t('debtSettleBtn'))}</button>`}
+    </div>
+  </div>`;
+}
+
 function renderDebtsList(){
   const owedEl=document.getElementById('debtsOwedToMeList');
   const iOweEl=document.getElementById('debtsIOweList');
-  const owed=debts.filter(d=>d.direction==='owed_to_me');
-  const iOwe=debts.filter(d=>d.direction==='i_owe');
-  const totalOwed=owed.reduce((s,d)=>s+debtRemaining(d),0);
-  const totalIOwe=iOwe.reduce((s,d)=>s+debtRemaining(d),0);
+  const q=debtSearchQuery;
+  const matches=d=> !q || (d.person||'').toLowerCase().includes(q) || (d.note||'').toLowerCase().includes(q);
+  const owedAll=debts.filter(d=>d.direction==='owed_to_me');
+  const iOweAll=debts.filter(d=>d.direction==='i_owe');
+  const totalOwed=owedAll.reduce((s,d)=>s+debtRemaining(d),0);
+  const totalIOwe=iOweAll.reduce((s,d)=>s+debtRemaining(d),0);
   document.getElementById('debtTotalOwed').textContent=fmt(totalOwed);
   document.getElementById('debtTotalIOwe').textContent=fmt(totalIOwe);
+  document.getElementById('debtOwedCount').textContent = owedAll.length ? `${owedAll.length} ${t('debtsPeopleSuffix')}` : '';
+  document.getElementById('debtIOweCount').textContent = iOweAll.length ? `${iOweAll.length} ${t('debtsPeopleSuffix')}` : '';
+  const net=totalOwed-totalIOwe;
+  const netEl=document.getElementById('debtTotalNet');
+  netEl.textContent=fmt(Math.abs(net));
+  netEl.classList.remove('owed','iowe');
+  netEl.classList.add(net>=0 ? 'owed' : 'iowe');
+  document.getElementById('debtNetCount').textContent = net===0 ? t('debtsBalanced') : '';
 
-  function renderGroup(el, list, emptyKey){
-    if(list.length===0){
+  /* status overview chips — always reflect the true totals, independent of search */
+  const overdueCount=debts.filter(d=>debtRemaining(d)>0 && isDebtOverdue(d)).length;
+  const soonCount=debts.filter(isDebtDueSoon).length;
+  const settledCount=debts.filter(d=>debtRemaining(d)<=0).length;
+  document.getElementById('chipAllCnt').textContent=debts.length;
+  document.getElementById('chipOverdueCnt').textContent=overdueCount;
+  document.getElementById('chipSoonCnt').textContent=soonCount;
+  document.getElementById('chipSettledCnt').textContent=settledCount;
+
+  function renderGroup(el, fullList, emptyKey, key){
+    if(fullList.length===0){
       el.innerHTML=`<div class="empty" style="padding:24px 16px;"><div class="em">🤝</div><p>${escapeHtml(t(emptyKey))}</p></div>`;
       return;
     }
-    el.innerHTML = list.map(d=>{
-      const remain=debtRemaining(d);
-      const settled=remain<=0;
-      const overdue=isDebtOverdue(d);
-      const badgeClass = d.direction==='owed_to_me' ? 'owed' : 'iowe';
-      const badgeLabel = d.direction==='owed_to_me' ? t('debtOwedToMe') : t('debtIOwe');
-      const dueHtml = d.dueDate ? `<div class="debt-card-due ${overdue?'overdue':''}">${overdue?t('debtDueOverdue')+' — ':''}${t('debtDueLabel')}: ${escapeHtml(d.dueDate)}</div>` : '';
-      const noteHtml = d.note ? `<div class="debt-card-note">${escapeHtml(d.note)}</div>` : '';
-      const statusHtml = settled ? `<div class="debt-card-done">${escapeHtml(t('debtSettledBadge'))}</div>` : '';
-      return `<div class="debt-card" data-id="${d.id}">
-        <div class="debt-card-top">
-          <div class="ic">${d.icon||'🤝'}</div>
-          <div class="name">${escapeHtml(d.person)}</div>
-          <span class="debt-badge ${badgeClass}">${escapeHtml(badgeLabel)}</span>
-          <button class="icbtn dt-edit" data-id="${d.id}" title="${escapeHtml(t('debtEditBtn'))}">✏️</button>
-          <button class="icbtn dt-del" data-id="${d.id}" title="${escapeHtml(t('debtDeleteBtn'))}">🗑️</button>
-        </div>
-        <div class="debt-card-amt"><span>${t('debtRemainingLabel')}</span><span class="rem">${fmt(remain)}</span></div>
-        <div class="debt-card-amt"><span>${t('debtOfLabel')} ${fmt(d.amount||0)}</span><span></span></div>
-        ${dueHtml}${noteHtml}${statusHtml}
-        <div class="debt-card-actions">
-          ${settled ? '' : `<button class="debt-btn-settle dt-settle" data-id="${d.id}">${escapeHtml(t('debtSettleBtn'))}</button>`}
-        </div>
-      </div>`;
-    }).join('');
+    const searched=fullList.filter(matches);
+    let pool=searched;
+    if(debtStatusFilter==='overdue') pool=searched.filter(d=>debtRemaining(d)>0 && isDebtOverdue(d));
+    else if(debtStatusFilter==='soon') pool=searched.filter(isDebtDueSoon);
+    else if(debtStatusFilter==='settled') pool=searched.filter(d=>debtRemaining(d)<=0);
+
+    if(pool.length===0){
+      const msg = q ? t('debtsNoSearchResults') : t('debtsNoFilterResults');
+      el.innerHTML=`<div class="empty" style="padding:24px 16px;"><div class="em">🔍</div><p>${escapeHtml(msg)}</p></div>`;
+      return;
+    }
+
+    let html;
+    if(debtStatusFilter==='all'){
+      const active=pool.filter(d=>debtRemaining(d)>0).sort(debtSortCompare);
+      const settled=pool.filter(d=>debtRemaining(d)<=0).sort(debtSortCompare);
+      html=active.map(debtCardHtml).join('');
+      if(settled.length){
+        const label = debtShowSettled[key] ? t('debtsHideSettled') : `${t('debtsShowSettled')} (${settled.length})`;
+        html += `<button class="debt-settled-toggle" data-key="${key}">${escapeHtml(label)}</button>`;
+        if(debtShowSettled[key]) html += settled.map(debtCardHtml).join('');
+      }
+    } else {
+      html = pool.sort(debtSortCompare).map(debtCardHtml).join('');
+    }
+    el.innerHTML=html;
     el.querySelectorAll('.dt-settle').forEach(b=>b.addEventListener('click', ()=>openDebtSettleModal(b.dataset.id)));
-    el.querySelectorAll('.dt-edit').forEach(b=>b.addEventListener('click', ()=>editDebt(b.dataset.id)));
+    el.querySelectorAll('.dt-edit').forEach(b=>b.addEventListener('click', ()=>openDebtEditModal(b.dataset.id)));
     el.querySelectorAll('.dt-del').forEach(b=>b.addEventListener('click', ()=>deleteDebt(b.dataset.id)));
+    el.querySelectorAll('.debt-settled-toggle').forEach(b=>b.addEventListener('click', ()=>{
+      debtShowSettled[b.dataset.key]=!debtShowSettled[b.dataset.key];
+      renderDebtsList();
+    }));
   }
-  renderGroup(owedEl, owed, 'noDebtsOwedToMe');
-  renderGroup(iOweEl, iOwe, 'noDebtsIOwe');
+  renderGroup(owedEl, owedAll, 'noDebtsOwedToMe', 'owed');
+  renderGroup(iOweEl, iOweAll, 'noDebtsIOwe', 'iowe');
 }
-function editDebt(id){
+document.getElementById('debtSearchInput').addEventListener('input', (e)=>{
+  debtSearchQuery=e.target.value.trim().toLowerCase();
+  renderDebtsList();
+});
+document.querySelectorAll('#debtChips .debt-chip').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    debtStatusFilter=btn.dataset.filter;
+    document.querySelectorAll('#debtChips .debt-chip').forEach(b=>b.classList.toggle('active', b===btn));
+    renderDebtsList();
+  });
+});
+/* ---------- Debt edit modal ---------- */
+let debtEditId=null;
+function openDebtEditModal(id){
   const d=debts.find(x=>x.id===id); if(!d) return;
-  const newPerson=prompt(t('debtPersonNameLabel')+':', d.person);
-  if(newPerson===null) return;
-  if(newPerson.trim()) d.person=newPerson.trim();
-  const newIcon=prompt(t('debtIconLabel')+':', d.icon||'🤝');
-  if(newIcon!==null && newIcon.trim()) d.icon=newIcon.trim();
-  const newAmount=prompt(t('debtAmountLabel')+':', d.amount||0);
-  if(newAmount!==null){
-    const v=parseFloat(newAmount);
-    if(!isNaN(v) && v>=0) d.amount=v;
-  }
-  const newDue=prompt(t('debtDueDateLabel')+':', d.dueDate||'');
-  if(newDue!==null) d.dueDate = newDue.trim();
-  const newNote=prompt(t('debtNoteLabel')+':', d.note||'');
-  if(newNote!==null) d.note = newNote.trim();
+  debtEditId=id;
+  document.getElementById('editDebtIcon').value=d.icon||'🤝';
+  document.getElementById('editDebtPerson').value=d.person||'';
+  document.getElementById('editDebtDirection').value=d.direction;
+  document.getElementById('editDebtAmount').value=d.amount||0;
+  document.getElementById('editDebtDueDate').value=d.dueDate||'';
+  document.getElementById('editDebtNote').value=d.note||'';
+  document.getElementById('debtEditModal').classList.add('open');
+}
+function closeDebtEditModal(){
+  document.getElementById('debtEditModal').classList.remove('open');
+  debtEditId=null;
+}
+document.getElementById('debtEditCancelBtn').addEventListener('click', closeDebtEditModal);
+document.getElementById('debtEditModal').addEventListener('click', (e)=>{ if(e.target.id==='debtEditModal') closeDebtEditModal(); });
+document.getElementById('debtEditSaveBtn').addEventListener('click', ()=>{
+  const d=debts.find(x=>x.id===debtEditId); if(!d) return;
+  const person=document.getElementById('editDebtPerson').value.trim();
+  const amount=parseFloat(document.getElementById('editDebtAmount').value);
+  if(!person || isNaN(amount) || amount<0){ showToast(t('toastFixDebtErrors')); return; }
+  d.person=person;
+  d.icon=document.getElementById('editDebtIcon').value.trim() || '🤝';
+  d.direction=document.getElementById('editDebtDirection').value;
+  d.amount=amount;
+  d.dueDate=document.getElementById('editDebtDueDate').value || '';
+  d.note=document.getElementById('editDebtNote').value.trim();
   saveDebts(); renderDebtsList();
   showToast(t('toastDebtUpdated'));
-}
+  closeDebtEditModal();
+});
 function deleteDebt(id){
   if(!confirm(t('confirmDeleteDebt'))) return;
   debts=debts.filter(d=>d.id!==id);
