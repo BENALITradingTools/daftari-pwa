@@ -629,8 +629,8 @@
       </select>
     </div>
     <div class="log-summary">
-      <div class="mini-stat"><div class="lbl"><span class="dot in"></span> <span data-i18n="logMonthIncome">دخل هذا الشهر</span></div><div class="val" id="logIncome">0.00</div></div>
-      <div class="mini-stat"><div class="lbl"><span class="dot out"></span> <span data-i18n="logMonthExpense">مصروف هذا الشهر</span></div><div class="val" id="logExpense">0.00</div></div>
+      <div class="mini-stat"><div class="lbl"><span class="dot in"></span> <span id="logIncomeLabel" data-i18n="logMonthIncome">دخل هذا الشهر</span></div><div class="val" id="logIncome">0.00</div></div>
+      <div class="mini-stat"><div class="lbl"><span class="dot out"></span> <span id="logExpenseLabel" data-i18n="logMonthExpense">مصروف هذا الشهر</span></div><div class="val" id="logExpense">0.00</div></div>
     </div>
     <div id="logList"></div>
   </main>
@@ -909,6 +909,7 @@ const I18N={
     saveBtn:'حفظ الحركة', updateBtn:'تحديث الحركة', cancelEdit:'إلغاء التعديل',
     searchPh:'🔍 ابحث في الملاحظات أو الفئات', allMonths:'كل الشهور والسنوات', allTypes:'الكل', incomeOnly:'دخل فقط', expenseOnly:'مصروف فقط',
     logMonthIncome:'دخل هذا الشهر', logMonthExpense:'مصروف هذا الشهر',
+    logIncomeOf:'دخل ({period})', logExpenseOf:'مصروف ({period})',
     reportWalletSection:'👛 المحفظة',
     reportPeriodSection:'🗂️ فترة التقرير', reportPeriodLabel:'المدة',
     periodThisMonth:'هذا الشهر', periodLastMonth:'الشهر الماضي', periodLast3:'آخر 3 أشهر', periodLast6:'آخر 6 أشهر', periodThisYear:'هذه السنة', periodLastYear:'السنة الماضية', periodAll:'كل الفترات', periodCustom:'مدة مخصصة',
@@ -1011,6 +1012,7 @@ const I18N={
     saveBtn:'Save Transaction', updateBtn:'Update Transaction', cancelEdit:'Cancel Edit',
     searchPh:'🔍 Search notes or categories', allMonths:'All months & years', allTypes:'All', incomeOnly:'Income only', expenseOnly:'Expense only',
     logMonthIncome:'This month\'s income', logMonthExpense:'This month\'s expenses',
+    logIncomeOf:'Income ({period})', logExpenseOf:'Expense ({period})',
     reportWalletSection:'👛 Wallet',
     reportPeriodSection:'🗂️ Report Period', reportPeriodLabel:'Duration',
     periodThisMonth:'This month', periodLastMonth:'Last month', periodLast3:'Last 3 months', periodLast6:'Last 6 months', periodThisYear:'This year', periodLastYear:'Last year', periodAll:'All time', periodCustom:'Custom range',
@@ -1618,16 +1620,25 @@ function dateGroupLabel(dateStr){
   const weekday=d.toLocaleDateString(locale(), {weekday:'long', numberingSystem:'latn'});
   return weekday+'، '+full;
 }
+function logPeriodDisplayLabel(monthF){
+  if(monthF==='all' || !monthF) return t('allMonths');
+  const [y,m]=monthF.split('-');
+  return months()[parseInt(m,10)-1]+' '+y;
+}
 function renderLog(){
   populateMonthFilter();
-  const ymNow=toLocalISO(new Date()).slice(0,7);
-  const monthTx=txByWalletFilter(transactions).filter(t=>t.date.slice(0,7)===ymNow);
-  const monthIncome=monthTx.reduce((s,t)=>s+(t.type==='income'?t.amount:0),0);
-  const monthExpense=monthTx.reduce((s,t)=>s+(t.type==='expense'?t.amount:0),0);
+  const monthF=document.getElementById('filterMonth').value;
+  const summaryTx = (monthF==='all' || !monthF)
+    ? txByWalletFilter(transactions)
+    : txByWalletFilter(transactions).filter(t=>t.date.slice(0,7)===monthF);
+  const monthIncome=summaryTx.reduce((s,t)=>s+(t.type==='income'?t.amount:0),0);
+  const monthExpense=summaryTx.reduce((s,t)=>s+(t.type==='expense'?t.amount:0),0);
   document.getElementById('logIncome').textContent=fmt(monthIncome);
   document.getElementById('logExpense').textContent=fmt(monthExpense);
+  const periodLabel=logPeriodDisplayLabel(monthF);
+  document.getElementById('logIncomeLabel').textContent=t('logIncomeOf').replace('{period}', periodLabel);
+  document.getElementById('logExpenseLabel').textContent=t('logExpenseOf').replace('{period}', periodLabel);
   const q=document.getElementById('searchInput').value.trim().toLowerCase();
-  const monthF=document.getElementById('filterMonth').value;
   const typeF=document.getElementById('filterType').value;
   let list=txByWalletFilter(transactions);
   if(monthF!=='all') list=list.filter(t=>t.date.slice(0,7)===monthF);
