@@ -969,7 +969,7 @@ const I18N={
     securitySection:'الأمان', pinRow:'قفل بالرمز (PIN)', pinSub:'يحمي فتح التطبيق برمز من 4 أرقام',
     pinInfo:'ℹ️ Face ID / Touch ID غير مدعوم بشكل موثوق لتطبيقات الويب مثل هذا. الرمز (PIN) يحمي الواجهة فقط، والبيانات نفسها غير مشفّرة داخل تخزين المتصفح.',
     categoriesSection:'الفئات', newCatPh:'اسم الفئة الجديدة',
-    clearAllSection:'حذف كل البيانات', clearAllBtn:'🗑️ مسح كل الحركات نهائيًا',
+    clearAllSection:'إعادة ضبط التطبيق', clearAllBtn:'🗑️ حذف كل شيء وإعادة الضبط',
     widgetInfo:'ℹ️ عن الـ Widget: تعذّر إضافة ودجت حقيقي على الشاشة الرئيسية لأن ذلك يتطلب تطبيق iOS أصلي (Swift/WidgetKit عبر Xcode) — تطبيقات الويب لا تدعم هذه الميزة على iOS إطلاقًا. لكن يمكنك إضافة اختصار أيقونة يفتح مباشرة على صفحة "تسجيل دفعة" (انظر أعلاه).',
     forgotPin:'نسيت الرمز؟', undoBtn:'تراجع', undoDeleteMsg:'تم حذف الحركة',
     lockUnlock:'🔒 أدخل رمز القفل', lockSetFirst:'🔒 أدخل رمزًا جديدًا (4 أرقام)', lockSetConfirm:'🔒 أعد إدخال الرمز للتأكيد', lockVerifyDisable:'🔒 أدخل الرمز الحالي لإيقاف القفل', pinErrWrong:'رمز غير صحيح', pinErrMismatch:'الرمزان غير متطابقين، ابدأ من جديد',
@@ -989,7 +989,7 @@ const I18N={
     confirmDeleteCat:'حذف هذه الفئة؟ العمليات المسجّلة بها ستبقى لكن ستظهر كـ"أخرى".',
     confirmStopRecur:'إيقاف هذه المعاملة المتكررة؟ الحركات السابقة التي أُنشئت منها ستبقى محفوظة.',
     confirmReplaceOrMerge:'اضغط "موافق" لاستبدال بياناتك الحالية بالكامل، أو "إلغاء" لدمجها مع بياناتك الحالية.',
-    confirmClearAll:'سيتم حذف كل الحركات والمعاملات المتكررة نهائيًا من هذا الجهاز. ننصح بأخذ نسخة احتياطية أولاً. متابعة؟',
+    confirmClearAll:'سيتم حذف كل شيء نهائيًا من هذا الجهاز: الحركات، الفئات، المحافظ، المدخرات، الديون، والإعدادات — وسيعود التطبيق كأنه مثبّت لأول مرة. إذا كنت مسجّلاً دخولك للمزامنة السحابية سيتم تسجيل خروجك أولاً (بيانات حسابك السحابي تبقى محفوظة على الخادم ولن تُحذف). ننصح بأخذ نسخة احتياطية أولاً. متابعة؟',
     confirmDeleteWallet:'حذف هذه المحفظة؟ ستُنقل عملياتها إلى المحفظة الرئيسية المتبقية.', confirmForgotPin:'لا توجد وسيلة لاستعادة الرمز المنسي. المتابعة ستوقف قفل الرمز فقط (بياناتك المالية تبقى محفوظة كما هي). هل تريد المتابعة؟',
     confirmDeleteSavings:'حذف هدف الادخار هذا؟ سيُفقد المبلغ المُدخر المسجّل ضمنه.',
 
@@ -1081,7 +1081,7 @@ const I18N={
     securitySection:'Security', pinRow:'PIN Lock', pinSub:'Protects app opening with a 4-digit code',
     pinInfo:'ℹ️ Face ID / Touch ID isn\'t reliably supported for web apps like this. The PIN protects the interface only; the data itself isn\'t encrypted inside browser storage.',
     categoriesSection:'Categories', newCatPh:'New category name',
-    clearAllSection:'Delete All Data', clearAllBtn:'🗑️ Erase all transactions permanently',
+    clearAllSection:'Reset App', clearAllBtn:'🗑️ Erase everything & reset',
     widgetInfo:'ℹ️ About the Widget: a real home screen widget isn\'t possible because that requires a native iOS app (Swift/WidgetKit via Xcode) — web apps don\'t support this on iOS at all. But you can add a shortcut icon that opens straight to the "Log Payment" page (see above).',
     forgotPin:'Forgot code?', undoBtn:'Undo', undoDeleteMsg:'Transaction deleted',
     lockUnlock:'🔒 Enter your PIN', lockSetFirst:'🔒 Enter a new 4-digit code', lockSetConfirm:'🔒 Re-enter the code to confirm', lockVerifyDisable:'🔒 Enter current code to disable lock', pinErrWrong:'Incorrect code', pinErrMismatch:'Codes don\'t match, start again',
@@ -1101,7 +1101,7 @@ const I18N={
     confirmDeleteCat:'Delete this category? Existing transactions will remain but show as "Other".',
     confirmStopRecur:'Stop this recurring transaction? Previously created transactions will stay saved.',
     confirmReplaceOrMerge:'Press "OK" to fully replace your current data, or "Cancel" to merge with your current data.',
-    confirmClearAll:'All transactions and recurring transactions on this device will be permanently deleted. We recommend taking a backup first. Continue?',
+    confirmClearAll:'This will permanently delete everything on this device: transactions, categories, wallets, savings, debts, and settings — the app will reset as if freshly installed. If you are signed in for cloud sync you will be signed out first (your cloud account data stays safe on the server and will not be deleted). We recommend taking a backup first. Continue?',
     confirmDeleteWallet:'Delete this wallet? Its transactions will move to the remaining main wallet.', confirmForgotPin:'There\'s no way to recover a forgotten code. Continuing will only disable the PIN lock (your financial data stays intact). Continue?',
     confirmDeleteSavings:'Delete this savings goal? Its recorded saved amount will be lost.',
 
@@ -2878,11 +2878,15 @@ if(restoreAutoBtn) restoreAutoBtn.addEventListener('click', ()=>{
     switchTab('tabHome');
   }catch(err){ showToast(t('toastBackupInvalid')); }
 });
-document.getElementById('clearAllBtn').addEventListener('click', ()=>{
-  if(transactions.length===0) return;
-  if(confirm(t('confirmClearAll'))){
-    transactions=[]; recurring=[]; saveTx(); saveRecurring(); switchTab('tabHome');
-  }
+document.getElementById('clearAllBtn').addEventListener('click', async ()=>{
+  if(!confirm(t('confirmClearAll'))) return;
+  try{
+    if(cloudUser && CloudAPI){ await CloudAPI.signOutUser(); }
+  }catch(e){}
+  [TX_KEY, CAT_KEY, SET_KEY, REC_KEY, WAL_KEY, SAV_KEY, AUTO_KEY, DEBT_KEY, CLOUD_TS_KEY].forEach(function(k){
+    try{ localStorage.removeItem(k); }catch(e){}
+  });
+  window.location.reload();
 });
 
 /* ---------- Home Screen shortcut (Add Payment) ---------- */
