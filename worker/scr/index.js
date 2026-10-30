@@ -81,6 +81,9 @@ async function daily(env) {
 }
 
 export default {
-  fetch: (req, env) => handle(req, env),
+  fetch: async (req, env) => {
+    try { return await handle(req, env); }
+    catch (e) { return new Response('worker error: ' + e.message, { status: 500, headers: cors(env) }); }
+  },
   scheduled: (_e, env, ctx) => ctx.waitUntil(daily(env))
 };
