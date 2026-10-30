@@ -415,6 +415,27 @@
   .lang-pill{display:flex; background:var(--card-2); border-radius:99px; padding:3px; gap:2px;}
   .lang-pill button{border:none; background:none; color:var(--muted); font-family:'Tajawal'; font-size:12px; font-weight:700; padding:6px 12px; border-radius:99px; cursor:pointer;}
   .lang-pill button.active{background:var(--gold); color:#191308;}
+
+.navbtn{min-width:0}
+.more-bd{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998;display:none}
+.more-sheet{position:fixed;left:0;right:0;bottom:0;z-index:999;background:var(--card);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:14px 14px calc(18px + env(safe-area-inset-bottom,0px));display:none}
+.more-bd.open,.more-sheet.open{display:block}
+.more-sheet button{display:flex;align-items:center;gap:12px;width:100%;padding:14px;margin:0 0 8px;background:var(--card-2);color:var(--ink);border:1px solid var(--line);border-radius:12px;font:inherit;font-size:15px}
+#tplBox,#catSuggest{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.tpl-chip,.sugg-chip{background:var(--card-2);color:var(--ink);border:1px dashed var(--gold-dim);border-radius:20px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.tpl-chip b{margin-inline-start:8px;color:var(--rust)}
+.empty-state{text-align:center;padding:26px 14px;color:var(--muted)}
+.empty-state .big{font-size:42px;margin-bottom:6px}
+.empty-state button,.ob-go{margin-top:12px;background:var(--gold);color:#12151b;border:0;border-radius:12px;padding:11px 22px;font:inherit;font-weight:700}
+#forecastBox{margin:10px 0;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:14px;font-size:13px;color:var(--muted)}
+#forecastBox b{color:var(--ink)}
+#onboard{position:fixed;inset:0;z-index:3000;background:var(--bg);display:none;align-items:center;justify-content:center;padding:24px}
+#onboard.open{display:flex}
+#onboard .box{max-width:380px;width:100%;text-align:center;color:var(--ink)}
+#onboard h2{margin:0 0 8px;font-size:24px}
+#onboard p{color:var(--muted);font-size:14px;line-height:1.8;margin:6px 0}
+#onboard .row{display:flex;gap:8px;justify-content:center;margin:12px 0}
+#onboard select{width:auto}
 </style>
 </head>
 <body>
@@ -698,7 +719,9 @@
           <button data-lang="en">English</button>
         </div>
       </div>
-    </div>
+    <div class="set-row"><div><div class="lab" id="numeralsLab">الأرقام</div></div>
+<select id="numeralsSelect" style="width:auto;"><option value="latn">123 (غربية)</option><option value="arab">١٢٣ (هندية)</option></select></div>
+</div>
 
     <div class="section-title" data-i18n="walletsSection">👛 المحافظ / الحسابات</div>
     <div class="card-box">
@@ -784,7 +807,13 @@
       <div class="info-note" data-i18n="notifInfo">ℹ️ إشعار محلي بالكامل ومجاني — لا خادم ولا حساب مطلوب. يعمل فقط عند فتح التطبيق (وليس وأنت خارجه تمامًا)، وهذا قيد تقني في كل تطبيقات الويب بدون خادم دفع (push server).</div>
     </div>
 
-    <div class="section-title" data-i18n="securitySection">الأمان</div>
+    <div class="section-title" id="pushTitle">📲 إشعارات الدفع (حتى والتطبيق مغلق)</div>
+<div class="card-box">
+<div class="set-row"><div><div class="lab" id="pushLab">تنبيهات الديون والمعاملات المستحقة</div><div class="sub" id="pushSub">تصلك يوميًا الساعة 9 صباحًا</div></div>
+<div class="switch" id="pushSwitch"><div class="knob"></div></div></div>
+<div class="info-note" id="pushInfo">يتطلب تسجيل الدخول في المزامنة السحابية. على iPhone يجب أولًا «إضافة إلى الشاشة الرئيسية». الإشعار لا يحتوي أسماء أو مبالغ حفاظًا على خصوصيتك.</div>
+</div>
+<div class="section-title" data-i18n="securitySection">الأمان</div>
     <div class="card-box">
       <div class="set-row">
         <div><div class="lab" data-i18n="pinRow">قفل بالرمز (PIN)</div><div class="sub" data-i18n="pinSub">يحمي فتح التطبيق برمز من 4 أرقام</div></div>
@@ -819,11 +848,9 @@
 <nav class="bottomnav">
   <button class="navbtn active" data-tab="tabHome"><span class="ic">🏠</span><span data-i18n="navHome">الرئيسية</span></button>
   <button class="navbtn" data-tab="tabAdd"><span class="ic">➕</span><span data-i18n="navAdd">إضافة</span></button>
-  <button class="navbtn" data-tab="tabSavings"><span class="ic">💰</span><span data-i18n="navSavings">المدخرات</span></button>
-  <button class="navbtn" data-tab="tabDebts"><span class="ic">🤝</span><span data-i18n="navDebts">الديون</span></button>
   <button class="navbtn" data-tab="tabLog"><span class="ic">📋</span><span data-i18n="navLog">السجل</span></button>
   <button class="navbtn" data-tab="tabReports"><span class="ic">📊</span><span data-i18n="navReports">التقارير</span></button>
-  <button class="navbtn" data-tab="tabSettings"><span class="ic">⚙️</span><span data-i18n="navSettings">الإعدادات</span></button>
+  <button class="navbtn" data-tab="__more" id="moreNavBtn"><span class="ic">☰</span><span id="moreLbl">المزيد</span></button>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -1160,7 +1187,7 @@ function catsByType(t){ return categories.filter(c=>c.type===t); }
 function findWallet(id){ return wallets.find(w=>w.id===id) || wallets[0] || {id:'default', label:'المحفظة الرئيسية', label_en:'Main Wallet', icon:'👛'}; }
 function fmt(n){
   const v=Math.round((n||0)*100)/100;
-  return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' ' + currencySymbol(settings.currency);
+  return numFmt(v) + ' ' + currencySymbol(settings.currency);
 }
 function showToast(msg){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
@@ -2622,7 +2649,7 @@ document.getElementById('addCatBtn').addEventListener('click', ()=>{
 
 /* ---------- backup ---------- */
 function buildBackupPayload(){
-  return {app:'daftari', version:4, exportedAt:new Date().toISOString(), transactions, categories, settings, recurring, wallets, debts};
+  return {app:'daftari', version:4, exportedAt:new Date().toISOString(), transactions, categories, settings, recurring, wallets, debts, savingsGoals};
 }
 
 /* ---------- cloud sync (Firebase) ---------- */
@@ -2826,7 +2853,7 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
         if(parsed.categories) categories=parsed.categories;
         if(Array.isArray(parsed.recurring)) recurring=parsed.recurring;
         if(Array.isArray(parsed.wallets) && parsed.wallets.length) wallets=parsed.wallets;
-        if(Array.isArray(parsed.debts)) debts=parsed.debts;
+        if(Array.isArray(parsed.debts)) debts=parsed.debts; if(Array.isArray(parsed.savingsGoals)) savingsGoals=parsed.savingsGoals;
       }else{
         const ids=new Set(transactions.map(t=>t.id));
         incoming.forEach(t=>{ if(!ids.has(t.id)) transactions.push(t); });
@@ -2842,11 +2869,12 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
           const dids=new Set(debts.map(d=>d.id));
           parsed.debts.forEach(d=>{ if(!dids.has(d.id)) debts.push(d); });
         }
+        if(Array.isArray(parsed.savingsGoals)){ const sids=new Set(savingsGoals.map(g=>g.id)); parsed.savingsGoals.forEach(g=>{ if(!sids.has(g.id)) savingsGoals.push(g); }); }
       }
       const defId=wallets[0].id;
       transactions.forEach(tx=>{ if(!tx.wallet) tx.wallet=defId; });
       recurring.forEach(r=>{ if(!r.wallet) r.wallet=defId; });
-      saveTx(); saveCats(); saveRecurring(); saveWallets(); saveDebts();
+      saveTx(); saveCats(); saveRecurring(); saveWallets(); saveDebts(); saveSavings();
       showToast(t('toastBackupImported'));
       switchTab('tabHome');
     }catch(err){ showToast(t('toastBackupInvalid')); }
@@ -2861,11 +2889,11 @@ function applyBackupPayload(parsed){
   if(parsed.categories) categories=parsed.categories;
   if(Array.isArray(parsed.recurring)) recurring=parsed.recurring;
   if(Array.isArray(parsed.wallets) && parsed.wallets.length) wallets=parsed.wallets;
-  if(Array.isArray(parsed.debts)) debts=parsed.debts;
+  if(Array.isArray(parsed.debts)) debts=parsed.debts; if(Array.isArray(parsed.savingsGoals)) savingsGoals=parsed.savingsGoals;
   const defId=wallets[0].id;
   transactions.forEach(tx=>{ if(!tx.wallet) tx.wallet=defId; });
   recurring.forEach(r=>{ if(!r.wallet) r.wallet=defId; });
-  saveTx(); saveCats(); saveRecurring(); saveWallets(); saveDebts();
+  saveTx(); saveCats(); saveRecurring(); saveWallets(); saveDebts(); saveSavings();
 }
 const restoreAutoBtn=document.getElementById('restoreAutoBackupBtn');
 if(restoreAutoBtn) restoreAutoBtn.addEventListener('click', ()=>{
@@ -2979,13 +3007,18 @@ async function onPinKey(k){
   pinBuffer+=k; renderPinDots();
   if(pinBuffer.length===4){
     if(pinMode==='unlock'){
+      const wait=_pinWait();
+      if(wait>0){ document.getElementById('pinErr').textContent=LX('محاولات كثيرة، انتظر '+wait+' ثانية','Too many attempts, wait '+wait+'s'); pinBuffer=''; renderPinDots(); return; }
       const h=await sha256(pinBuffer);
       if(h===settings.pinHash){
+        _pinReset();
+        if(!settings.pinSalt){ settings.pinSalt=_newSalt(); settings.pinHash=await sha256(pinBuffer); saveSettings(); }
         unlockedThisSession=true;
         document.getElementById('lockScreen').classList.remove('open');
         pinBuffer='';
       }else{
-        document.getElementById('pinErr').textContent=t('pinErrWrong');
+        const w=_pinFail();
+        document.getElementById('pinErr').textContent= w>0 ? LX('محاولات كثيرة، انتظر '+w+' ثانية','Too many attempts, wait '+w+'s') : t('pinErrWrong');
         pinBuffer=''; renderPinDots();
       }
     }else if(pinMode==='verify-disable'){
@@ -3004,7 +3037,7 @@ async function onPinKey(k){
       renderPinDots();
     }else if(pinMode==='set-confirm'){
       if(pinBuffer===pinFirstEntry){
-        settings.pinHash=await sha256(pinBuffer); settings.pinEnabled=true; saveSettings();
+        settings.pinSalt=_newSalt(); settings.pinHash=await sha256(pinBuffer); settings.pinEnabled=true; saveSettings();
         document.getElementById('lockScreen').classList.remove('open');
         pinBuffer=''; renderSettings(); showToast(t('toastPinOn'));
       }else{
@@ -3110,6 +3143,194 @@ if('serviceWorker' in navigator){
     window.location.reload();
   });
 }
+
+/* ================= Daftari extras ================= */
+const LX=(a,e)=>settings.lang==='en'?e:a;
+function numFmt(v){
+  const k=(settings.lang==='en'?'en':'ar')+'-u-nu-'+(settings.numerals==='arab'?'arab':'latn');
+  numFmt._c=numFmt._c||{};
+  return (numFmt._c[k]=numFmt._c[k]||new Intl.NumberFormat(k,{minimumFractionDigits:2,maximumFractionDigits:2})).format(v);
+}
+/* PIN: PBKDF2 + salt + lockout */
+function _b2h(b){return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+function _newSalt(){return _b2h(crypto.getRandomValues(new Uint8Array(16)));}
+sha256=async function(str){
+  const enc=new TextEncoder();
+  if(settings.pinSalt){
+    const key=await crypto.subtle.importKey('raw',enc.encode(str),'PBKDF2',false,['deriveBits']);
+    return _b2h(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:enc.encode(settings.pinSalt),iterations:210000},key,256));
+  }
+  return _b2h(await crypto.subtle.digest('SHA-256',enc.encode(str)));
+};
+const PF_KEY='daftari_pin_fail';
+function _pf(){try{return JSON.parse(localStorage.getItem(PF_KEY)||'{"n":0,"until":0}');}catch(e){return {n:0,until:0};}}
+function _pinWait(){return Math.max(0,Math.ceil((_pf().until-Date.now())/1000));}
+function _pinReset(){try{localStorage.removeItem(PF_KEY);}catch(e){}}
+function _pinFail(){const f=_pf();f.n++;if(f.n>=5)f.until=Date.now()+Math.min(3600,30*Math.pow(2,f.n-5))*1000;
+  try{localStorage.setItem(PF_KEY,JSON.stringify(f));}catch(e){} return _pinWait();}
+
+/* tab wrapper: "More" sheet */
+const MORE_TABS=['tabSavings','tabDebts','tabSettings'];
+const moreBd=document.createElement('div'); moreBd.className='more-bd';
+const moreSheet=document.createElement('div'); moreSheet.className='more-sheet';
+document.body.append(moreBd,moreSheet);
+function closeMore(){moreBd.classList.remove('open');moreSheet.classList.remove('open');}
+function openMore(){
+  moreSheet.innerHTML=[['tabSavings','💰',LX('المدخرات','Savings')],['tabDebts','🤝',LX('الديون','Debts')],['tabSettings','⚙️',LX('الإعدادات','Settings')]]
+    .map(x=>`<button data-go="${x[0]}"><span>${x[1]}</span>${x[2]}</button>`).join('');
+  moreSheet.querySelectorAll('button').forEach(b=>b.onclick=()=>{closeMore();switchTab(b.dataset.go);});
+  moreBd.classList.add('open');moreSheet.classList.add('open');
+}
+moreBd.onclick=closeMore;
+const _switchTab=switchTab;
+switchTab=function(name){
+  if(name==='__more'){openMore();return;}
+  _switchTab(name);
+  document.getElementById('moreNavBtn').classList.toggle('active',MORE_TABS.includes(name));
+  if(name==='tabAdd') renderTpl();
+};
+
+/* numerals setting */
+const numSel=document.getElementById('numeralsSelect');
+numSel.onchange=()=>{settings.numerals=numSel.value;saveSettings();switchTab(document.querySelector('main.active').id);};
+const _renderSettings=renderSettings;
+renderSettings=function(){_renderSettings();numSel.value=settings.numerals||'latn';
+  document.getElementById('numeralsLab').textContent=LX('الأرقام','Numerals');document.getElementById('moreLbl').textContent=LX('المزيد','More');paintPush();};
+
+/* category suggestion from note history */
+(function(){
+  const note=document.getElementById('noteInput');
+  const box=document.createElement('div'); box.id='catSuggest'; note.after(box);
+  window._hideSugg=()=>{box.innerHTML='';};
+  note.addEventListener('input',()=>{
+    box.innerHTML=''; const q=note.value.trim().toLowerCase(); if(q.length<2||editingId) return;
+    const toks=q.split(/\s+/).filter(w=>w.length>1), score={};
+    transactions.forEach(tx=>{ if(tx.type!==currentType||!tx.note||!tx.category) return;
+      const n=tx.note.toLowerCase(); toks.forEach(w=>{ if(n.includes(w)) score[tx.category]=(score[tx.category]||0)+1; }); });
+    const best=Object.keys(score).sort((a,b)=>score[b]-score[a])[0];
+    const c=best&&best!==selectedCategory&&categories.find(c=>c.id===best); if(!c) return;
+    box.innerHTML=`<button type="button" class="sugg-chip">💡 ${LX('اقتراح','Suggested')}: ${c.icon} ${escapeHtml(settings.lang==='en'&&c.label_en?c.label_en:c.label)}</button>`;
+    box.firstChild.onclick=()=>{selectedCategory=best;renderCatGrid();box.innerHTML='';};
+  });
+})();
+const _resetAddForm=resetAddForm;
+resetAddForm=function(){_resetAddForm();window._hideSugg&&window._hideSugg();};
+
+/* quick templates (stored on this device) */
+const TPL_KEY='daftari_templates_v1'; let templates=[];
+try{templates=JSON.parse(localStorage.getItem(TPL_KEY)||'[]');}catch(e){}
+const tplSave=()=>{try{localStorage.setItem(TPL_KEY,JSON.stringify(templates));}catch(e){}};
+const tplBox=document.createElement('div'); tplBox.id='tplBox';
+document.querySelector('#tabAdd .type-toggle').before(tplBox);
+function renderTpl(){
+  tplBox.innerHTML=templates.map((p,i)=>{const c=categories.find(c=>c.id===p.category);
+    return `<span class="tpl-chip" data-i="${i}">${c?c.icon:'🏷️'} ${escapeHtml(p.name)} · ${p.amount}<b data-del="${i}">×</b></span>`;}).join('')
+    +`<button type="button" class="tpl-chip" id="tplAdd">➕ ${LX('حفظ كقالب','Save as template')}</button>`;
+  tplBox.querySelectorAll('.tpl-chip[data-i]').forEach(el=>el.onclick=(e)=>{
+    if(e.target.dataset.del!==undefined){templates.splice(+e.target.dataset.del,1);tplSave();renderTpl();return;}
+    const p=templates[+el.dataset.i]; currentType=p.type; selectedCategory=p.category;
+    document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active',b.dataset.type===p.type));
+    renderCatGrid(); populateWalletSelect();
+    if(p.wallet) document.getElementById('walletSelect').value=p.wallet;
+    document.getElementById('amountInput').value=p.amount; document.getElementById('noteInput').value=p.note||'';
+  });
+  document.getElementById('tplAdd').onclick=()=>{
+    const amount=parseFloat(document.getElementById('amountInput').value), note=document.getElementById('noteInput').value.trim();
+    if(!(amount>0)||!selectedCategory){showToast(LX('أدخل المبلغ واختر الفئة أولًا','Enter amount and pick a category first'));return;}
+    const c=categories.find(c=>c.id===selectedCategory);
+    templates.push({type:currentType,category:selectedCategory,amount,note,wallet:document.getElementById('walletSelect').value,
+      name:note||(c?(settings.lang==='en'&&c.label_en?c.label_en:c.label):'')});
+    tplSave();renderTpl();showToast(LX('تم حفظ القالب','Template saved'));
+  };
+}
+
+/* home: empty state + month-end forecast */
+const fcBox=document.createElement('div'); fcBox.id='forecastBox'; document.getElementById('budgetAlerts').before(fcBox);
+const _renderHome=renderHome;
+renderHome=function(){
+  _renderHome();
+  const rec=document.getElementById('homeRecent');
+  if(!transactions.length){
+    rec.innerHTML=`<div class="empty-state"><div class="big">📒</div><div>${LX('لا توجد حركات بعد. سجّل أول مصروف أو دخل لتبدأ.','No transactions yet. Add your first one to get started.')}</div><button type="button" id="emptyAdd">${LX('➕ إضافة حركة','➕ Add transaction')}</button></div>`;
+    document.getElementById('emptyAdd').onclick=()=>switchTab('tabAdd');
+  }
+  const now=new Date(), ym=now.toISOString().slice(0,7), day=now.getDate();
+  const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const spent=txByWalletFilter(transactions).filter(x=>x.type==='expense'&&(x.date||'').startsWith(ym)).reduce((a,x)=>a+(+x.amount||0),0);
+  if(day<3||spent<=0){fcBox.style.display='none';return;}
+  fcBox.style.display='block';
+  fcBox.innerHTML=`📈 ${LX('توقّع مصروف نهاية الشهر','Month-end spending forecast')}: <b>${fmt(spent/day*dim)}</b><br>${LX('متوسطك اليومي','Daily average')}: ${fmt(spent/day)}`;
+};
+
+/* first-run onboarding */
+setTimeout(()=>{
+  let seen=false; try{seen=!!localStorage.getItem('daftari_onboarded');}catch(e){}
+  if(seen||transactions.length) return;
+  const ob=document.createElement('div'); ob.id='onboard';
+  ob.innerHTML=`<div class="box"><div style="font-size:54px">📒</div><h2>${LX('مرحبًا بك في دفتري','Welcome to Daftari')}</h2>
+  <p>${LX('1) سجّل مصاريفك ودخلك في ثوانٍ.<br>2) حدّد ميزانية لكل فئة وتابع التقارير.<br>3) تتبّع مدخراتك وديونك في مكان واحد.','1) Log expenses and income in seconds.<br>2) Set budgets and follow reports.<br>3) Track savings and debts in one place.')}</p>
+  <div class="row"><select id="obCur">${document.getElementById('currencySelect').innerHTML}</select>
+  <select id="obLang"><option value="ar">العربية</option><option value="en">English</option></select></div>
+  <button class="ob-go" id="obGo">${LX('ابدأ','Start')}</button></div>`;
+  document.body.appendChild(ob);
+  document.getElementById('obCur').value=settings.currency; document.getElementById('obLang').value=settings.lang;
+  ob.classList.add('open');
+  document.getElementById('obGo').onclick=()=>{
+    const lg=document.getElementById('obLang').value;
+    settings.currency=document.getElementById('obCur').value; saveSettings();
+    if(lg!==settings.lang){const b=document.querySelector('#langPill button[data-lang="'+lg+'"]'); if(b) b.click();}
+    try{localStorage.setItem('daftari_onboarded','1');}catch(e){}
+    ob.remove(); switchTab('tabHome');
+  };
+},900);
+
+/* ===== FCM push (client) ===== */
+const FCM_VAPID_KEY='';   // <-- الصق هنا مفتاح Web Push (VAPID) من Firebase Console > Cloud Messaging
+const PUSH_FLAG='daftari_push_token';
+const pushSw=document.getElementById('pushSwitch');
+const pushTok=()=>{try{return localStorage.getItem(PUSH_FLAG)||'';}catch(e){return '';}};
+function paintPush(){
+  pushSw.classList.toggle('on',!!pushTok());
+  document.getElementById('pushTitle').textContent=LX('📲 إشعارات الدفع (حتى والتطبيق مغلق)','📲 Push notifications (even when closed)');
+  document.getElementById('pushLab').textContent=LX('تنبيهات الديون والمعاملات المستحقة','Due debts & recurring reminders');
+  document.getElementById('pushSub').textContent=LX('تصلك يوميًا الساعة 9 صباحًا','Delivered daily at 9:00 AM');
+  document.getElementById('pushInfo').textContent=LX('يتطلب تسجيل الدخول في المزامنة السحابية. على iPhone يجب أولًا «إضافة إلى الشاشة الرئيسية». الإشعار لا يحتوي أسماء أو مبالغ حفاظًا على خصوصيتك.','Requires cloud sign-in. On iPhone, first use “Add to Home Screen”. Notifications never include names or amounts.');
+}
+async function enablePushFlow(silent){
+  const say=m=>{ if(!silent) showToast(m); };
+  if(!CloudAPI||!CloudAPI.enablePush) return say(LX('الخدمة السحابية غير جاهزة','Cloud service not ready'));
+  if(!cloudUser) return say(LX('سجّل الدخول في المزامنة السحابية أولًا','Sign in to cloud sync first'));
+  if(!FCM_VAPID_KEY) return say(LX('لم يُضبط مفتاح VAPID في الكود','VAPID key is not set'));
+  const ios=/iPad|iPhone|iPod/.test(navigator.userAgent), standalone=navigator.standalone||matchMedia('(display-mode: standalone)').matches;
+  if(ios&&!standalone) return say(LX('أضف التطبيق إلى الشاشة الرئيسية أولًا','Add the app to Home Screen first'));
+  if(!('Notification' in window)||!('serviceWorker' in navigator)||!(await CloudAPI.pushSupported())) return say(LX('المتصفح لا يدعم الإشعارات','Push not supported here'));
+  let perm=Notification.permission; if(perm==='default') perm=await Notification.requestPermission();
+  if(perm!=='granted') return say(LX('تم رفض إذن الإشعارات','Notification permission denied'));
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    const tok=await CloudAPI.enablePush(cloudUser.uid,FCM_VAPID_KEY,reg,{lang:settings.lang,platform:navigator.userAgent.slice(0,80)});
+    localStorage.setItem(PUSH_FLAG,tok); paintPush(); say(LX('تم تفعيل إشعارات الدفع','Push enabled'));
+  }catch(e){ console.error('push enable failed',e); say(LX('تعذر التفعيل: ','Failed: ')+(e.code||e.message||'')); }
+}
+pushSw.addEventListener('click',async()=>{
+  if(pushTok()){
+    if(CloudAPI&&cloudUser) await CloudAPI.disablePush(cloudUser.uid,pushTok());
+    try{localStorage.removeItem(PUSH_FLAG);}catch(e){}
+    paintPush(); showToast(LX('تم إيقاف إشعارات الدفع','Push disabled'));
+  }else await enablePushFlow(false);
+});
+// keep this device's token fresh (and refresh language) once signed in
+let _pp=0; const _pi=setInterval(()=>{
+  if(++_pp>40) return clearInterval(_pi);
+  if(pushTok()&&CloudAPI&&CloudAPI.enablePush&&cloudUser&&Notification.permission==='granted'){ clearInterval(_pi); enablePushFlow(true); }
+},1000);
+// open the tab requested by a notification tap
+if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='OPEN_TAB'&&/^tab\w+$/.test(e.data.tab||'')&&document.getElementById(e.data.tab)) switchTab(e.data.tab);
+});
+{ const qt=new URLSearchParams(location.search).get('tab');
+  if(qt&&/^tab\w+$/.test(qt)&&document.getElementById(qt)) setTimeout(()=>switchTab(qt),1200); }
+/* ================= end extras ================= */
 init();
 </script>
 
@@ -3120,8 +3341,9 @@ init();
     signOut, onAuthStateChanged, setPersistence, browserLocalPersistence
   } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
   import {
-    getFirestore, doc, getDoc, setDoc, onSnapshot
+    getFirestore, doc, getDoc, setDoc, onSnapshot, deleteDoc, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+  import { getMessaging, getToken, deleteToken, isSupported } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBPJoKSl28-dNCl1oHRlNT4ElN-WGmjcBY",
@@ -3154,6 +3376,21 @@ init();
       cb(snap.data(), snap.metadata.hasPendingWrites);
     }, (err) => console.error('cloud listener error:', err))
   };
+
+  Object.assign(CloudAPI, {
+    pushSupported: async () => { try { return await isSupported(); } catch (e) { return false; } },
+    // Registers this device for push: users/{uid}/devices/{token}
+    enablePush: async (uid, vapidKey, swReg, meta) => {
+      const token = await getToken(getMessaging(fbApp), { vapidKey, serviceWorkerRegistration: swReg });
+      if (!token) throw new Error('no-token');
+      await setDoc(doc(db, 'users', uid, 'devices', token), { token, ...meta, updatedAt: serverTimestamp() });
+      return token;
+    },
+    disablePush: async (uid, token) => {
+      try { await deleteDoc(doc(db, 'users', uid, 'devices', token)); } catch (e) {}
+      try { await deleteToken(getMessaging(fbApp)); } catch (e) {}
+    }
+  });
 
   window.dispatchEvent(new CustomEvent('daftari-cloud-ready', { detail: CloudAPI }));
 </script>
