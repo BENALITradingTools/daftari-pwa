@@ -3285,8 +3285,8 @@ setTimeout(()=>{
 },900);
 
 /* ===== Web Push (free: Cloudflare Worker, no Firebase needed) ===== */
-const PUSH_PUBLIC_KEY='';   // <-- المفتاح العام من gen-vapid.mjs
-const PUSH_API='';          // <-- رابط الـ Worker، مثل https://daftari-push.اسمك.workers.dev
+const PUSH_PUBLIC_KEY='{"crv":"P-256","d":"CJppIMhJ0nuNvjlhIz4VzXWUo_IVluAh8jyB1vZsZZg","ext":true,"key_ops":["sign"],"kty":"EC","x":"8yamOBpAmxM84VY34v-iDkqPjhpWY28UNxNIFwJlBow","y":"5LC6Dnyki085qRBfKQo810dzzMZl-pd__faxTGWQskM"}';   // <-- المفتاح العام من gen-vapid.mjs
+const PUSH_API='https://daftari-pwa.bentrade.workers.dev/';          // <-- رابط الـ Worker، مثل https://daftari-push.اسمك.workers.dev
 const PUSH_FLAG='daftari_push_on';
 const pushSw=document.getElementById('pushSwitch');
 const pushOn=()=>{try{return localStorage.getItem(PUSH_FLAG)==='1';}catch(e){return false;}};
