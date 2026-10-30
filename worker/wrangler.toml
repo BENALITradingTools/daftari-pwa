@@ -10,6 +10,6 @@ binding = "SUBS"
 id = "PASTE_KV_NAMESPACE_ID"   # from: npx wrangler kv namespace create SUBS
 
 [vars]
-ALLOWED_ORIGIN = "https://YOUR-USER.github.io"   # origin of your app (no path, no trailing slash)
+ALLOWED_ORIGIN = "https://BENALITradingTools.github.io"   # origin of your app (no path, no trailing slash)
 VAPID_PUBLIC   = "PASTE_PUBLIC_KEY"
-VAPID_SUBJECT  = "mailto:you@example.com"
+VAPID_SUBJECT  = "mailto:abooodi0712197107@gmail.com"
