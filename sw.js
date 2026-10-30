@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daftari-cache-v13';
+const CACHE_NAME = 'daftari-cache-v15';
 const APP_SHELL = [
   './',
   './index.html',
@@ -15,16 +15,24 @@ const APP_SHELL = [
 // cache only when there's no connection.
 const NETWORK_FIRST = ['./', './index.html', './manifest.json'];
 
+// Hosts whose requests must NEVER be cached or intercepted
+// (Firebase Auth / Firestore / FCM use long-lived GET streams; caching them breaks sync).
+const BYPASS_HOSTS = [
+  'firestore.googleapis.com',
+  'identitytoolkit.googleapis.com',
+  'securetoken.googleapis.com',
+  'fcmregistrations.googleapis.com',
+  'firebaseinstallations.googleapis.com'
+];
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
-      // { cache: 'reload' } forces a real network fetch during install
-      // instead of letting the browser's HTTP cache hand back a stale copy.
       Promise.all(
         APP_SHELL.map((url) =>
           fetch(url, { cache: 'reload' })
-            .then((res) => cache.put(url, res))
-            .catch(() => {}) // ignore individual failures (e.g. offline install)
+            .then((res) => { if (res.ok) return cache.put(url, res); })
+            .catch(() => {})
         )
       )
     )
@@ -35,14 +43,12 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k.startsWith('daftari-cache-') && k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
-// Allow the page to force this worker to activate immediately
-// (used together with the update-detection code in index.html).
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
@@ -53,19 +59,21 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
+  if (BYPASS_HOSTS.includes(url.hostname)) return; // let the network handle it
+
   const isAppDoc =
     event.request.mode === 'navigate' ||
     NETWORK_FIRST.some((p) => url.pathname.endsWith(p.replace('./', '/')) || url.pathname.endsWith(p));
 
   if (isAppDoc) {
-    // Network-first: always try to get the latest index.html/manifest when
-    // online, so a new version pushed to GitHub is picked up right away.
-    // Falls back to the cached copy when offline.
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          // Only cache good responses (avoid storing 404/500 pages as the offline copy)
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
           return response;
         })
         .catch(() => caches.match(event.request).then((r) => r || caches.match('./index.html')))
@@ -73,8 +81,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for everything else, including cross-origin (fonts, Chart.js CDN),
-  // so the app keeps working offline once each resource has loaded at least once.
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
@@ -87,6 +93,49 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => cached);
+    })
+  );
+});
+
+/* ======================= Web Push notifications ======================= */
+
+// Works with payload-less pushes (from the free Cloudflare Worker) and with JSON payloads.
+// The app language is read from the 'daftari-prefs' cache written by the page.
+self.addEventListener('push', (event) => {
+  event.waitUntil((async () => {
+    let d = {};
+    try { const p = event.data ? event.data.json() : {}; d = p.data || p.notification || p; } catch (e) {}
+    let lang = 'ar';
+    try { const r = await (await caches.open('daftari-prefs')).match('lang'); if (r) lang = await r.text(); } catch (e) {}
+    const en = lang === 'en';
+    await self.registration.showNotification(d.title || (en ? 'Daftari' : 'دفتري'), {
+      body: d.body || (en ? 'You have debts or recurring transactions due soon' : 'لديك ديون أو معاملات مستحقة قريبًا'),
+      icon: './icon-192.png',
+      badge: './icon-192.png',
+      tag: d.tag || 'daftari-due',
+      renotify: true,
+      dir: 'auto',
+      lang: en ? 'en' : 'ar',
+      data: { tab: d.tab || 'tabDebts' }
+    });
+  })());
+});
+
+// Focus the open app (and switch tab) or open it if closed.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const tab = (event.notification.data && event.notification.data.tab) || '';
+  const target = tab ? './?tab=' + encodeURIComponent(tab) : './';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ('focus' in client) {
+          client.postMessage({ type: 'OPEN_TAB', tab });
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(target);
     })
   );
 });

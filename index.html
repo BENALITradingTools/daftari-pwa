@@ -811,7 +811,7 @@
 <div class="card-box">
 <div class="set-row"><div><div class="lab" id="pushLab">تنبيهات الديون والمعاملات المستحقة</div><div class="sub" id="pushSub">تصلك يوميًا الساعة 9 صباحًا</div></div>
 <div class="switch" id="pushSwitch"><div class="knob"></div></div></div>
-<div class="info-note" id="pushInfo">يتطلب تسجيل الدخول في المزامنة السحابية. على iPhone يجب أولًا «إضافة إلى الشاشة الرئيسية». الإشعار لا يحتوي أسماء أو مبالغ حفاظًا على خصوصيتك.</div>
+<div class="info-note" id="pushInfo">على iPhone يجب أولًا «إضافة إلى الشاشة الرئيسية». يُرسَل للخادم تواريخ الاستحقاق فقط، دون أسماء أو مبالغ.</div>
 </div>
 <div class="section-title" data-i18n="securitySection">الأمان</div>
     <div class="card-box">
@@ -3284,46 +3284,58 @@ setTimeout(()=>{
   };
 },900);
 
-/* ===== FCM push (client) ===== */
-const FCM_VAPID_KEY='BBjrPc1JvxKorDfX4B6WFkWbfHHMv8y0eJv1Ex6Fdw9Hz94qdg-zM724bt11K2qgJluhxsxsNA_IOAOn8KVR-FA';   // <-- الصق هنا مفتاح Web Push (VAPID) من Firebase Console > Cloud Messaging
-const PUSH_FLAG='daftari_push_token';
+/* ===== Web Push (free: Cloudflare Worker, no Firebase needed) ===== */
+const PUSH_PUBLIC_KEY='';   // <-- المفتاح العام من gen-vapid.mjs
+const PUSH_API='';          // <-- رابط الـ Worker، مثل https://daftari-push.اسمك.workers.dev
+const PUSH_FLAG='daftari_push_on';
 const pushSw=document.getElementById('pushSwitch');
-const pushTok=()=>{try{return localStorage.getItem(PUSH_FLAG)||'';}catch(e){return '';}};
+const pushOn=()=>{try{return localStorage.getItem(PUSH_FLAG)==='1';}catch(e){return false;}};
 function paintPush(){
-  pushSw.classList.toggle('on',!!pushTok());
+  pushSw.classList.toggle('on',pushOn());
   document.getElementById('pushTitle').textContent=LX('📲 إشعارات الدفع (حتى والتطبيق مغلق)','📲 Push notifications (even when closed)');
   document.getElementById('pushLab').textContent=LX('تنبيهات الديون والمعاملات المستحقة','Due debts & recurring reminders');
   document.getElementById('pushSub').textContent=LX('تصلك يوميًا الساعة 9 صباحًا','Delivered daily at 9:00 AM');
-  document.getElementById('pushInfo').textContent=LX('يتطلب تسجيل الدخول في المزامنة السحابية. على iPhone يجب أولًا «إضافة إلى الشاشة الرئيسية». الإشعار لا يحتوي أسماء أو مبالغ حفاظًا على خصوصيتك.','Requires cloud sign-in. On iPhone, first use “Add to Home Screen”. Notifications never include names or amounts.');
+  document.getElementById('pushInfo').textContent=LX('على iPhone يجب أولًا «إضافة إلى الشاشة الرئيسية». يُرسَل للخادم تواريخ الاستحقاق فقط، دون أسماء أو مبالغ، والإشعار نفسه عام.','On iPhone, first use “Add to Home Screen”. Only due dates are sent to the server (no names or amounts) and the notification text is generic.');
 }
-async function enablePushFlow(silent){
-  const say=m=>{ if(!silent) showToast(m); };
-  if(!CloudAPI||!CloudAPI.enablePush) return say(LX('الخدمة السحابية غير جاهزة','Cloud service not ready'));
-  if(!cloudUser) return say(LX('سجّل الدخول في المزامنة السحابية أولًا','Sign in to cloud sync first'));
-  if(!FCM_VAPID_KEY) return say(LX('لم يُضبط مفتاح VAPID في الكود','VAPID key is not set'));
+const _u8=k=>{const p='='.repeat((4-k.length%4)%4),r=atob((k+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0));};
+function savePrefLang(){ try{ caches.open('daftari-prefs').then(c=>c.put('lang',new Response(settings.lang||'ar'))); }catch(e){} }
+async function pushSub(){ const reg=await navigator.serviceWorker.ready; return reg.pushManager.getSubscription(); }
+function reminderBody(sub){
+  return {endpoint:sub.endpoint,
+    debts:debts.filter(d=>d.dueDate&&(+d.paid||0)<(+d.amount||0)).map(d=>d.dueDate).slice(0,200),
+    rec:recurring.filter(r=>r.lastDate).map(r=>({l:r.lastDate,f:r.freq||'monthly'})).slice(0,200)};
+}
+async function syncReminders(){
+  if(!pushOn()||!PUSH_API) return;
+  try{ const sub=await pushSub(); if(!sub) return; savePrefLang();
+    await fetch(PUSH_API+'/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(reminderBody(sub))}); }catch(e){}
+}
+let _syncT; const scheduleSync=()=>{clearTimeout(_syncT);_syncT=setTimeout(syncReminders,4000);};
+['saveDebts','saveRecurring','saveSettings'].forEach(n=>{ const f=window[n]; if(typeof f==='function') window[n]=function(){ const r=f.apply(this,arguments); scheduleSync(); return r; }; });
+async function enablePush(){
+  if(!PUSH_PUBLIC_KEY||!PUSH_API) return showToast(LX('لم يُضبط مفتاح الإشعارات أو رابط الخادم في الكود','Push key / server URL not set'));
   const ios=/iPad|iPhone|iPod/.test(navigator.userAgent), standalone=navigator.standalone||matchMedia('(display-mode: standalone)').matches;
-  if(ios&&!standalone) return say(LX('أضف التطبيق إلى الشاشة الرئيسية أولًا','Add the app to Home Screen first'));
-  if(!('Notification' in window)||!('serviceWorker' in navigator)||!(await CloudAPI.pushSupported())) return say(LX('المتصفح لا يدعم الإشعارات','Push not supported here'));
+  if(ios&&!standalone) return showToast(LX('أضف التطبيق إلى الشاشة الرئيسية أولًا','Add the app to Home Screen first'));
+  if(!('Notification' in window)||!('serviceWorker' in navigator)||!('PushManager' in window)) return showToast(LX('المتصفح لا يدعم الإشعارات','Push not supported here'));
   let perm=Notification.permission; if(perm==='default') perm=await Notification.requestPermission();
-  if(perm!=='granted') return say(LX('تم رفض إذن الإشعارات','Notification permission denied'));
+  if(perm!=='granted') return showToast(LX('تم رفض إذن الإشعارات','Notification permission denied'));
   try{
     const reg=await navigator.serviceWorker.ready;
-    const tok=await CloudAPI.enablePush(cloudUser.uid,FCM_VAPID_KEY,reg,{lang:settings.lang,platform:navigator.userAgent.slice(0,80)});
-    localStorage.setItem(PUSH_FLAG,tok); paintPush(); say(LX('تم تفعيل إشعارات الدفع','Push enabled'));
-  }catch(e){ console.error('push enable failed',e); say(LX('تعذر التفعيل: ','Failed: ')+(e.code||e.message||'')); }
+    const sub=(await reg.pushManager.getSubscription())||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_u8(PUSH_PUBLIC_KEY)});
+    savePrefLang();
+    const r=await fetch(PUSH_API+'/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(reminderBody(sub))});
+    if(!r.ok) throw new Error('server '+r.status);
+    localStorage.setItem(PUSH_FLAG,'1'); paintPush(); showToast(LX('تم تفعيل إشعارات الدفع','Push enabled'));
+  }catch(e){ console.error('push enable failed',e); showToast(LX('تعذر التفعيل: ','Failed: ')+(e.message||'')); }
 }
 pushSw.addEventListener('click',async()=>{
-  if(pushTok()){
-    if(CloudAPI&&cloudUser) await CloudAPI.disablePush(cloudUser.uid,pushTok());
+  if(pushOn()){
+    try{ const sub=await pushSub(); if(sub){ if(PUSH_API) await fetch(PUSH_API+'/sync',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:sub.endpoint})}).catch(()=>{}); await sub.unsubscribe(); } }catch(e){}
     try{localStorage.removeItem(PUSH_FLAG);}catch(e){}
     paintPush(); showToast(LX('تم إيقاف إشعارات الدفع','Push disabled'));
-  }else await enablePushFlow(false);
+  }else await enablePush();
 });
-// keep this device's token fresh (and refresh language) once signed in
-let _pp=0; const _pi=setInterval(()=>{
-  if(++_pp>40) return clearInterval(_pi);
-  if(pushTok()&&CloudAPI&&CloudAPI.enablePush&&cloudUser&&Notification.permission==='granted'){ clearInterval(_pi); enablePushFlow(true); }
-},1000);
+if(pushOn()) setTimeout(syncReminders,3000);
 // open the tab requested by a notification tap
 if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message',e=>{
   if(e.data&&e.data.type==='OPEN_TAB'&&/^tab\w+$/.test(e.data.tab||'')&&document.getElementById(e.data.tab)) switchTab(e.data.tab);
@@ -3341,9 +3353,8 @@ init();
     signOut, onAuthStateChanged, setPersistence, browserLocalPersistence
   } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
   import {
-    getFirestore, doc, getDoc, setDoc, onSnapshot, deleteDoc, serverTimestamp
+    getFirestore, doc, getDoc, setDoc, onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-  import { getMessaging, getToken, deleteToken, isSupported } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBPJoKSl28-dNCl1oHRlNT4ElN-WGmjcBY",
@@ -3376,21 +3387,6 @@ init();
       cb(snap.data(), snap.metadata.hasPendingWrites);
     }, (err) => console.error('cloud listener error:', err))
   };
-
-  Object.assign(CloudAPI, {
-    pushSupported: async () => { try { return await isSupported(); } catch (e) { return false; } },
-    // Registers this device for push: users/{uid}/devices/{token}
-    enablePush: async (uid, vapidKey, swReg, meta) => {
-      const token = await getToken(getMessaging(fbApp), { vapidKey, serviceWorkerRegistration: swReg });
-      if (!token) throw new Error('no-token');
-      await setDoc(doc(db, 'users', uid, 'devices', token), { token, ...meta, updatedAt: serverTimestamp() });
-      return token;
-    },
-    disablePush: async (uid, token) => {
-      try { await deleteDoc(doc(db, 'users', uid, 'devices', token)); } catch (e) {}
-      try { await deleteToken(getMessaging(fbApp)); } catch (e) {}
-    }
-  });
 
   window.dispatchEvent(new CustomEvent('daftari-cloud-ready', { detail: CloudAPI }));
 </script>
