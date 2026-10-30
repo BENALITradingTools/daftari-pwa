@@ -1,0 +1,15 @@
+name = "daftari-push"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[triggers]
+crons = ["0 8 * * *"]          # 08:00 UTC = 09:00 Algeria (UTC+1)
+
+[[kv_namespaces]]
+binding = "SUBS"
+id = "PASTE_KV_NAMESPACE_ID"   # from: npx wrangler kv namespace create SUBS
+
+[vars]
+ALLOWED_ORIGIN = "https://YOUR-USER.github.io"   # origin of your app (no path, no trailing slash)
+VAPID_PUBLIC   = "PASTE_PUBLIC_KEY"
+VAPID_SUBJECT  = "mailto:you@example.com"
