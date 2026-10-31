@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daftari-cache-v16';
+const CACHE_NAME = 'daftari-cache-v17';
 const APP_SHELL = [
   './',
   './index.html',
@@ -14,6 +14,16 @@ const APP_SHELL = [
 // (so updates pushed to GitHub show up immediately), falling back to
 // cache only when there's no connection.
 const NETWORK_FIRST = ['./', './index.html', './manifest.json'];
+
+// Hosts whose requests must NEVER be cached or intercepted
+// (Firebase Auth / Firestore / FCM use long-lived GET streams; caching them breaks sync).
+const BYPASS_HOSTS = [
+  'firestore.googleapis.com',
+  'identitytoolkit.googleapis.com',
+  'securetoken.googleapis.com',
+  'fcmregistrations.googleapis.com',
+  'firebaseinstallations.googleapis.com'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -49,6 +59,7 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
+  if (BYPASS_HOSTS.includes(url.hostname)) return; // let the network handle it
 
   const isAppDoc =
     event.request.mode === 'navigate' ||
