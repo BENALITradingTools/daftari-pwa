@@ -755,23 +755,6 @@
       <div class="info-note" id="shortcutHowTo" style="display:none;"></div>
     </div>
 
-    <div class="section-title" data-i18n="cloudSection">☁️ المزامنة السحابية</div>
-    <div class="card-box">
-      <div class="info-note" style="margin-top:0; margin-bottom:10px;" data-i18n="cloudHint">سجّل حساباً لمزامنة بياناتك تلقائياً بين كل أجهزتك عبر الإنترنت.</div>
-      <div id="cloudLoggedOutBox">
-        <input type="email" id="cloudEmailInput" placeholder="البريد الإلكتروني" data-i18n-ph="cloudEmailPh" autocomplete="email" style="width:100%; margin-bottom:8px;">
-        <input type="password" id="cloudPasswordInput" placeholder="كلمة المرور (6 أحرف على الأقل)" data-i18n-ph="cloudPasswordPh" autocomplete="current-password" style="width:100%; margin-bottom:10px;">
-        <button class="save-btn" id="cloudSignInBtn" style="margin-top:0;" data-i18n="cloudSignIn">تسجيل الدخول</button>
-        <button class="save-btn" id="cloudSignUpBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="cloudSignUp">إنشاء حساب جديد</button>
-      </div>
-      <div id="cloudLoggedInBox" style="display:none;">
-        <div class="set-row">
-          <div><div class="lab"><span data-i18n="cloudLoggedInAs">مسجّل الدخول باسم:</span> <span id="cloudUserEmail" style="font-weight:600;"></span></div><div class="sub" id="cloudSyncStatus"></div></div>
-        </div>
-        <button class="save-btn" id="cloudSignOutBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="cloudSignOut">تسجيل الخروج</button>
-      </div>
-    </div>
-
     <div class="section-title" data-i18n="backupSection">النسخ الاحتياطي</div>
     <div class="card-box">
       <div class="set-row">
@@ -801,18 +784,12 @@
     <div class="section-title" data-i18n="notifSection">🔔 الإشعارات</div>
     <div class="card-box">
       <div class="set-row">
-        <div><div class="lab" data-i18n="notifRow">تنبيه المعاملات المستحقة</div><div class="sub" data-i18n="notifSub">إشعار من نظام التشغيل عند فتح التطبيق إن وُجدت معاملة متكررة مستحقة خلال يوم أو يومين</div></div>
+        <div><div class="lab" data-i18n="notifRow">تنبيه المعاملات المستحقة</div><div class="sub" data-i18n="notifSub">إشعار على جهازك عند فتح التطبيق أو العودة إليه إن وُجدت ديون أو معاملات متكررة مستحقة خلال يوم أو يومين</div></div>
         <div class="switch" id="notifSwitch"><div class="knob"></div></div>
       </div>
-      <div class="info-note" data-i18n="notifInfo">ℹ️ إشعار محلي بالكامل ومجاني — لا خادم ولا حساب مطلوب. يعمل فقط عند فتح التطبيق (وليس وأنت خارجه تمامًا)، وهذا قيد تقني في كل تطبيقات الويب بدون خادم دفع (push server).</div>
+      <div class="info-note" data-i18n="notifInfo">ℹ️ إشعار محلي بالكامل — لا خادم ولا حساب، ولا تغادر بياناتك جهازك. يظهر عند فتح التطبيق أو العودة إليه (وليس وهو مغلق تمامًا).</div>
     </div>
 
-    <div class="section-title" id="pushTitle">📲 إشعارات الدفع (حتى والتطبيق مغلق)</div>
-<div class="card-box">
-<div class="set-row"><div><div class="lab" id="pushLab">تنبيهات الديون والمعاملات المستحقة</div><div class="sub" id="pushSub">تصلك يوميًا الساعة 9 صباحًا</div></div>
-<div class="switch" id="pushSwitch"><div class="knob"></div></div></div>
-<div class="info-note" id="pushInfo">على iPhone يجب أولًا «إضافة إلى الشاشة الرئيسية». يُرسَل للخادم تواريخ الاستحقاق فقط، دون أسماء أو مبالغ.</div>
-</div>
 <div class="section-title" data-i18n="securitySection">الأمان</div>
     <div class="card-box">
       <div class="set-row">
@@ -977,22 +954,13 @@ const I18N={
     shortcutSection:'اختصار الشاشة الرئيسية', shortcutRow:'📲 اختصار "تسجيل دفعة"', shortcutSub:'أضف أيقونة ثانية على شاشتك الرئيسية تفتح التطبيق مباشرة على صفحة الإضافة',
     shortcutBannerText:'أضف اختصارًا على الشاشة الرئيسية يفتح هذه الصفحة مباشرة لتسجيل عملية دفع بضغطة واحدة. اضغط على ⋯ بالأسفل لمعرفة الطريقة.',
     howToShortcut:'كيف أضيف الاختصار؟',
-    cloudSection:'☁️ المزامنة السحابية', cloudHint:'سجّل حساباً لمزامنة بياناتك تلقائياً بين كل أجهزتك عبر الإنترنت.',
-    cloudEmailPh:'البريد الإلكتروني', cloudPasswordPh:'كلمة المرور (6 أحرف على الأقل)',
-    cloudSignIn:'تسجيل الدخول', cloudSignUp:'إنشاء حساب جديد', cloudSignOut:'تسجيل الخروج',
-    cloudLoggedInAs:'مسجّل الدخول باسم:', cloudSyncing:'⏳ جاري المزامنة...', cloudSynced:'✅ متزامن',
-    cloudErrGeneric:'حدث خطأ، حاول مرة أخرى', cloudErrInvalidEmail:'البريد الإلكتروني غير صحيح',
-    cloudErrWrongPassword:'كلمة المرور غير صحيحة', cloudErrUserNotFound:'لا يوجد حساب بهذا البريد',
-    cloudErrEmailInUse:'هذا البريد مسجّل مسبقاً، جرّب تسجيل الدخول', cloudErrWeakPassword:'كلمة المرور ضعيفة جداً (6 أحرف على الأقل)',
-    cloudErrNetwork:'تعذّر الاتصال بالخادم — تحقق من الإنترنت', cloudFillFields:'أدخل البريد وكلمة المرور',
-    cloudUpdateToast:'🔄 وصل تحديث من جهاز آخر...', cloudSignedOutToast:'تم تسجيل الخروج (بياناتك المحلية باقية على الجهاز)',
     backupSection:'النسخ الاحتياطي', exportBackup:'⬇️ تصدير نسخة احتياطية', downloadBackup:'تنزيل نسخة احتياطية', restoreBackup:'استعادة من نسخة احتياطية',
     autoBackupRow:'💾 نسخة احتياطية تلقائية', autoBackupSub:'يحفظ التطبيق نسخة احتياطية داخل ذاكرته الخاصة تلقائيًا بعد مرور المدة المحددة أدناه — دون أي نافذة "حفظ باسم" ودون أي تدخل منك. لإنشاء ملف يمكنك نقله لجهاز آخر، استخدم زر "تنزيل نسخة احتياطية" أدناه.',
     restoreAutoBackup:'↩️ استعادة النسخة التلقائية الأخيرة', confirmRestoreAuto:'سيتم استبدال بياناتك الحالية بآخر نسخة احتياطية تلقائية محفوظة على الجهاز. هل تريد المتابعة؟', toastNoAutoBackup:'لا توجد نسخة احتياطية تلقائية محفوظة بعد',
     autoBackupIntervalLabel:'التكرار', everyDay:'كل يوم', every3Days:'كل 3 أيام', every7Days:'كل أسبوع', every14Days:'كل أسبوعين', every30Days:'كل شهر',
     lastBackupNever:'لم يتم إنشاء أي نسخة احتياطية بعد', lastBackupLabel:'آخر نسخة احتياطية:',
-    notifSection:'🔔 الإشعارات', notifRow:'تنبيه المعاملات المستحقة', notifSub:'إشعار من نظام التشغيل عند فتح التطبيق إن وُجدت معاملة متكررة مستحقة خلال يوم أو يومين',
-    notifInfo:'ℹ️ إشعار محلي بالكامل ومجاني — لا خادم ولا حساب مطلوب. يعمل فقط عند فتح التطبيق (وليس وأنت خارجه تمامًا)، وهذا قيد تقني في كل تطبيقات الويب بدون خادم دفع (push server).',
+    notifSection:'🔔 الإشعارات', notifRow:'تنبيه المعاملات المستحقة', notifSub:'إشعار على جهازك عند فتح التطبيق أو العودة إليه إن وُجدت ديون أو معاملات متكررة مستحقة خلال يوم أو يومين',
+    notifInfo:'ℹ️ إشعار محلي بالكامل — لا خادم ولا حساب، ولا تغادر بياناتك جهازك. يظهر عند فتح التطبيق أو العودة إليه (وليس وهو مغلق تمامًا).',
     securitySection:'الأمان', pinRow:'قفل بالرمز (PIN)', pinSub:'يحمي فتح التطبيق برمز من 4 أرقام',
     pinInfo:'ℹ️ Face ID / Touch ID غير مدعوم بشكل موثوق لتطبيقات الويب مثل هذا. الرمز (PIN) يحمي الواجهة فقط، والبيانات نفسها غير مشفّرة داخل تخزين المتصفح.',
     categoriesSection:'الفئات', newCatPh:'اسم الفئة الجديدة',
@@ -1016,7 +984,7 @@ const I18N={
     confirmDeleteCat:'حذف هذه الفئة؟ العمليات المسجّلة بها ستبقى لكن ستظهر كـ"أخرى".',
     confirmStopRecur:'إيقاف هذه المعاملة المتكررة؟ الحركات السابقة التي أُنشئت منها ستبقى محفوظة.',
     confirmReplaceOrMerge:'اضغط "موافق" لاستبدال بياناتك الحالية بالكامل، أو "إلغاء" لدمجها مع بياناتك الحالية.',
-    confirmClearAll:'سيتم حذف كل شيء نهائيًا من هذا الجهاز: الحركات، الفئات، المحافظ، المدخرات، الديون، والإعدادات — وسيعود التطبيق كأنه مثبّت لأول مرة. إذا كنت مسجّلاً دخولك للمزامنة السحابية سيتم تسجيل خروجك أولاً (بيانات حسابك السحابي تبقى محفوظة على الخادم ولن تُحذف). ننصح بأخذ نسخة احتياطية أولاً. متابعة؟',
+    confirmClearAll:'سيتم حذف كل شيء نهائيًا من هذا الجهاز: الحركات، الفئات، المحافظ، المدخرات، الديون، والإعدادات — وسيعود التطبيق كأنه مثبّت لأول مرة. ننصح بأخذ نسخة احتياطية أولاً. متابعة؟',
     confirmDeleteWallet:'حذف هذه المحفظة؟ ستُنقل عملياتها إلى المحفظة الرئيسية المتبقية.', confirmForgotPin:'لا توجد وسيلة لاستعادة الرمز المنسي. المتابعة ستوقف قفل الرمز فقط (بياناتك المالية تبقى محفوظة كما هي). هل تريد المتابعة؟',
     confirmDeleteSavings:'حذف هدف الادخار هذا؟ سيُفقد المبلغ المُدخر المسجّل ضمنه.',
 
@@ -1089,22 +1057,13 @@ const I18N={
     shortcutSection:'Home Screen Shortcut', shortcutRow:'📲 "Log Payment" Shortcut', shortcutSub:'Add a second icon to your home screen that opens the app straight to the add screen',
     shortcutBannerText:'Add a home screen shortcut that opens this page directly to log a payment in one tap. Tap ⋯ below to learn how.',
     howToShortcut:'How do I add the shortcut?',
-    cloudSection:'☁️ Cloud Sync', cloudHint:'Sign in to automatically sync your data across all your devices over the internet.',
-    cloudEmailPh:'Email', cloudPasswordPh:'Password (6+ characters)',
-    cloudSignIn:'Sign In', cloudSignUp:'Create Account', cloudSignOut:'Sign Out',
-    cloudLoggedInAs:'Signed in as:', cloudSyncing:'⏳ Syncing...', cloudSynced:'✅ Synced',
-    cloudErrGeneric:'Something went wrong, try again', cloudErrInvalidEmail:'Invalid email address',
-    cloudErrWrongPassword:'Incorrect password', cloudErrUserNotFound:'No account found with this email',
-    cloudErrEmailInUse:'This email is already registered, try signing in', cloudErrWeakPassword:'Password too weak (6+ characters)',
-    cloudErrNetwork:'Could not reach the server — check your internet', cloudFillFields:'Enter email and password',
-    cloudUpdateToast:'🔄 Update received from another device...', cloudSignedOutToast:'Signed out (your local data stays on this device)',
     backupSection:'Backup', exportBackup:'⬇️ Export Backup', downloadBackup:'Download Backup', restoreBackup:'Restore from Backup',
     autoBackupRow:'💾 Automatic backup', autoBackupSub:'The app saves a backup inside its own local storage automatically once the interval below has passed — no "Save As" dialog and no action needed from you. To create a portable file you can move to another device, use "Download Backup" below.',
     restoreAutoBackup:'↩️ Restore Last Automatic Backup', confirmRestoreAuto:'This will replace your current data with the last automatic backup saved on this device. Continue?', toastNoAutoBackup:'No automatic backup has been saved yet',
     autoBackupIntervalLabel:'Frequency', everyDay:'Every day', every3Days:'Every 3 days', every7Days:'Every week', every14Days:'Every 2 weeks', every30Days:'Every month',
     lastBackupNever:'No automatic backup created yet', lastBackupLabel:'Last automatic backup:',
-    notifSection:'🔔 Notifications', notifRow:'Due Transaction Alerts', notifSub:'OS notification when opening the app if a recurring transaction is due within a day or two',
-    notifInfo:'ℹ️ Fully local and free notification — no server or account required. Only works while opening the app (not while fully closed), a technical limit of all server-less web apps.',
+    notifSection:'🔔 Notifications', notifRow:'Due Transaction Alerts', notifSub:'Notification on your device when you open or return to the app if a debt or recurring transaction is due within a day or two',
+    notifInfo:'ℹ️ Fully local — no server, no account, and your data never leaves this device. Shown when you open or return to the app (not while it is fully closed).',
     securitySection:'Security', pinRow:'PIN Lock', pinSub:'Protects app opening with a 4-digit code',
     pinInfo:'ℹ️ Face ID / Touch ID isn\'t reliably supported for web apps like this. The PIN protects the interface only; the data itself isn\'t encrypted inside browser storage.',
     categoriesSection:'Categories', newCatPh:'New category name',
@@ -1128,7 +1087,7 @@ const I18N={
     confirmDeleteCat:'Delete this category? Existing transactions will remain but show as "Other".',
     confirmStopRecur:'Stop this recurring transaction? Previously created transactions will stay saved.',
     confirmReplaceOrMerge:'Press "OK" to fully replace your current data, or "Cancel" to merge with your current data.',
-    confirmClearAll:'This will permanently delete everything on this device: transactions, categories, wallets, savings, debts, and settings — the app will reset as if freshly installed. If you are signed in for cloud sync you will be signed out first (your cloud account data stays safe on the server and will not be deleted). We recommend taking a backup first. Continue?',
+    confirmClearAll:'This will permanently delete everything on this device: transactions, categories, wallets, savings, debts, and settings — the app will reset as if freshly installed. We recommend taking a backup first. Continue?',
     confirmDeleteWallet:'Delete this wallet? Its transactions will move to the remaining main wallet.', confirmForgotPin:'There\'s no way to recover a forgotten code. Continuing will only disable the PIN lock (your financial data stays intact). Continue?',
     confirmDeleteSavings:'Delete this savings goal? Its recorded saved amount will be lost.',
 
@@ -1221,13 +1180,13 @@ async function load(){
   recurring.forEach(r=>{ if(!r.wallet){ r.wallet=defId; migrated=true; } });
   if(migrated){ saveTx(); saveRecurring(); }
 }
-async function saveTx(){ try{ localStorage.setItem(TX_KEY, JSON.stringify(transactions)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
-async function saveCats(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(categories)); }catch(e){} scheduleCloudPush(); }
-async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){} scheduleCloudPush(); }
-async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){} scheduleCloudPush(); }
-async function saveWallets(){ try{ localStorage.setItem(WAL_KEY, JSON.stringify(wallets)); }catch(e){} scheduleCloudPush(); }
-async function saveSavings(){ try{ localStorage.setItem(SAV_KEY, JSON.stringify(savingsGoals)); }catch(e){} scheduleCloudPush(); }
-async function saveDebts(){ try{ localStorage.setItem(DEBT_KEY, JSON.stringify(debts)); }catch(e){} scheduleCloudPush(); }
+async function saveTx(){ try{ localStorage.setItem(TX_KEY, JSON.stringify(transactions)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } }
+async function saveCats(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(categories)); }catch(e){} }
+async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){} }
+async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){} }
+async function saveWallets(){ try{ localStorage.setItem(WAL_KEY, JSON.stringify(wallets)); }catch(e){} }
+async function saveSavings(){ try{ localStorage.setItem(SAV_KEY, JSON.stringify(savingsGoals)); }catch(e){} }
+async function saveDebts(){ try{ localStorage.setItem(DEBT_KEY, JSON.stringify(debts)); }catch(e){} }
 
 /* ---------- theme ---------- */
 function applyTheme(){
@@ -1939,20 +1898,24 @@ function renderLastBackupInfo(){
 function maybeNotifyDueRecurring(){
   if(!settings.notifEnabled) return;
   if(typeof Notification==='undefined' || Notification.permission!=='granted') return;
-  const today=new Date().toISOString().slice(0,10);
+  const now=new Date(); now.setHours(0,0,0,0);
+  const today=toLocalISO(now);
   let lastNotified=null;
   try{ lastNotified=localStorage.getItem('daftari_last_notif_date'); }catch(e){}
   if(lastNotified===today) return;
-  const now=new Date(); now.setHours(0,0,0,0);
-  const dueSoon=recurring.map(r=>({r,next:nextDate(r.lastDate,r.freq)})).filter(x=>{
-    const d=new Date(x.next+'T00:00:00');
-    const diff=Math.round((d-now)/86400000);
-    return diff>=0 && diff<=1;
+  const dayDiff=s=>Math.round((new Date(s+'T00:00:00')-now)/86400000);
+  const dueRec=recurring.filter(r=>r.lastDate).map(r=>({r,k:dayDiff(nextDate(r.lastDate,r.freq))})).filter(x=>x.k>=0 && x.k<=1);
+  const dueDebts=debts.filter(d=>d.dueDate && (+d.paid||0)<(+d.amount||0)).map(d=>({d,k:dayDiff(d.dueDate)})).filter(x=>x.k<=1 && x.k>=-30);
+  if(!dueRec.length && !dueDebts.length) return;
+  const parts=[];
+  dueRec.forEach(x=>parts.push(`${findCat(x.r.category).icon} ${trLabel(findCat(x.r.category))}: ${fmt(x.r.amount)}`));
+  dueDebts.forEach(x=>{
+    const left=(+x.d.amount||0)-(+x.d.paid||0);
+    const dir=x.d.direction==='owed_to_me' ? LX('لك عند','Owed by') : LX('عليك لـ','You owe');
+    parts.push(`${x.d.icon||'👤'} ${dir} ${x.d.person}: ${fmt(left)}`);
   });
-  if(dueSoon.length===0) return;
-  const body=dueSoon.map(x=>`${findCat(x.r.category).icon} ${trLabel(findCat(x.r.category))}: ${fmt(x.r.amount)}`).join(' · ');
-  const title='دفتري — معاملات مستحقة قريبًا';
-  const opts={body, icon:'./icon-192.png', badge:'./icon-192.png', tag:'daftari-due'};
+  const title=LX('دفتري — مستحقات قريبة','Daftari — upcoming dues');
+  const opts={body:parts.join(' · '), icon:'./icon-192.png', badge:'./icon-192.png', tag:'daftari-due', dir:'auto', lang:settings.lang==='en'?'en':'ar', data:{tab:dueDebts.length?'tabDebts':'tabSettings'}};
   const fire=()=>{
     if('serviceWorker' in navigator){
       navigator.serviceWorker.getRegistration().then(reg=>{
@@ -1966,6 +1929,7 @@ function maybeNotifyDueRecurring(){
   fire();
   try{ localStorage.setItem('daftari_last_notif_date', today); }catch(e){}
 }
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible'){ try{ maybeNotifyDueRecurring(); }catch(e){} } });
 
 /* ---------- Wallets management ---------- */
 function walletBalance(id){
@@ -2652,149 +2616,6 @@ function buildBackupPayload(){
   return {app:'daftari', version:4, exportedAt:new Date().toISOString(), transactions, categories, settings, recurring, wallets, debts, savingsGoals};
 }
 
-/* ---------- cloud sync (Firebase) ---------- */
-const CLOUD_TS_KEY='daftari_cloud_ts_v1';
-let CloudAPI=null;           // filled in once the firebase module script is ready
-let cloudUser=null;          // {uid, email} or null
-let unsubscribeCloud=null;   // active Firestore listener unsubscribe fn
-let cloudPushTimer=null;
-let applyingRemote=false;    // guard so we don't push right after applying a remote update
-
-function buildCloudPayload(){
-  // Same as buildBackupPayload() but also includes savingsGoals (the local
-  // export/import feature is missing this field — cloud sync includes it).
-  return {app:'daftari', version:4, transactions, categories, settings, recurring, wallets, debts, savingsGoals, updatedAt:Date.now()};
-}
-
-function cloudErrorMessage(err){
-  const code = (err && err.code) || '';
-  if(code.includes('invalid-email')) return t('cloudErrInvalidEmail');
-  if(code.includes('wrong-password') || code.includes('invalid-credential')) return t('cloudErrWrongPassword');
-  if(code.includes('user-not-found')) return t('cloudErrUserNotFound');
-  if(code.includes('email-already-in-use')) return t('cloudErrEmailInUse');
-  if(code.includes('weak-password')) return t('cloudErrWeakPassword');
-  if(code.includes('network-request-failed')) return t('cloudErrNetwork');
-  return t('cloudErrGeneric');
-}
-
-function updateCloudUI(){
-  const loggedOutBox=document.getElementById('cloudLoggedOutBox');
-  const loggedInBox=document.getElementById('cloudLoggedInBox');
-  if(!loggedOutBox || !loggedInBox) return;
-  if(cloudUser){
-    loggedOutBox.style.display='none';
-    loggedInBox.style.display='';
-    document.getElementById('cloudUserEmail').textContent=cloudUser.email||'';
-  } else {
-    loggedOutBox.style.display='';
-    loggedInBox.style.display='none';
-  }
-}
-
-function setCloudStatus(text){
-  const el=document.getElementById('cloudSyncStatus');
-  if(el) el.textContent=text;
-}
-
-async function pushCloudNow(){
-  if(!cloudUser || !CloudAPI) return;
-  try{
-    setCloudStatus(t('cloudSyncing'));
-    const payload=buildCloudPayload();
-    await CloudAPI.pushData(cloudUser.uid, payload);
-    localStorage.setItem(CLOUD_TS_KEY, String(payload.updatedAt));
-    setCloudStatus(t('cloudSynced'));
-  }catch(e){
-    console.error('cloud push failed:', e);
-    setCloudStatus(cloudErrorMessage(e));
-  }
-}
-
-function scheduleCloudPush(){
-  if(!cloudUser || !CloudAPI || applyingRemote) return;
-  clearTimeout(cloudPushTimer);
-  cloudPushTimer=setTimeout(pushCloudNow, 1500);
-}
-
-function applyCloudPayload(data){
-  try{
-    applyingRemote=true;
-    localStorage.setItem(TX_KEY, JSON.stringify(data.transactions||[]));
-    localStorage.setItem(CAT_KEY, JSON.stringify(data.categories||[]));
-    localStorage.setItem(SET_KEY, JSON.stringify(data.settings||settings));
-    localStorage.setItem(REC_KEY, JSON.stringify(data.recurring||[]));
-    localStorage.setItem(WAL_KEY, JSON.stringify(data.wallets||[]));
-    localStorage.setItem(SAV_KEY, JSON.stringify(data.savingsGoals||[]));
-    localStorage.setItem(DEBT_KEY, JSON.stringify(data.debts||[]));
-    localStorage.setItem(CLOUD_TS_KEY, String(data.updatedAt||Date.now()));
-    showToast(t('cloudUpdateToast'));
-    setTimeout(()=>window.location.reload(), 900);
-  }catch(e){ console.error('apply cloud payload failed:', e); }
-}
-
-function startCloudListener(uid){
-  if(unsubscribeCloud){ unsubscribeCloud(); unsubscribeCloud=null; }
-  unsubscribeCloud=CloudAPI.listenData(uid, function(data, hasPendingWrites){
-    if(hasPendingWrites) return; // this is the echo of our own write, ignore
-    if(!data || !data.updatedAt) return;
-    const localTs=parseInt(localStorage.getItem(CLOUD_TS_KEY)||'0',10);
-    if(data.updatedAt > localTs){ applyCloudPayload(data); }
-  });
-}
-
-async function handleSignedIn(user){
-  cloudUser=user;
-  updateCloudUI();
-  setCloudStatus(t('cloudSyncing'));
-  try{
-    const remote=await CloudAPI.pullData(user.uid);
-    const localTs=parseInt(localStorage.getItem(CLOUD_TS_KEY)||'0',10);
-    if(remote && remote.updatedAt && remote.updatedAt > localTs){
-      applyCloudPayload(remote); // page will reload; listener starts after reload via onAuthChange
-      return;
-    }
-    await pushCloudNow();
-    startCloudListener(user.uid);
-  }catch(e){
-    console.error('initial cloud sync failed:', e);
-    setCloudStatus(cloudErrorMessage(e));
-  }
-}
-
-function handleSignedOut(){
-  cloudUser=null;
-  if(unsubscribeCloud){ unsubscribeCloud(); unsubscribeCloud=null; }
-  updateCloudUI();
-}
-
-window.addEventListener('daftari-cloud-ready', function(e){
-  CloudAPI=e.detail;
-  CloudAPI.onAuthChange(function(user){
-    if(user) handleSignedIn(user); else handleSignedOut();
-  });
-});
-
-document.getElementById('cloudSignInBtn').addEventListener('click', async ()=>{
-  const email=document.getElementById('cloudEmailInput').value.trim();
-  const password=document.getElementById('cloudPasswordInput').value;
-  if(!email || !password){ showToast(t('cloudFillFields')); return; }
-  if(!CloudAPI){ showToast(t('cloudErrNetwork')); return; }
-  try{ await CloudAPI.signIn(email, password); }
-  catch(e){ showToast(cloudErrorMessage(e)); }
-});
-document.getElementById('cloudSignUpBtn').addEventListener('click', async ()=>{
-  const email=document.getElementById('cloudEmailInput').value.trim();
-  const password=document.getElementById('cloudPasswordInput').value;
-  if(!email || !password){ showToast(t('cloudFillFields')); return; }
-  if(!CloudAPI){ showToast(t('cloudErrNetwork')); return; }
-  try{ await CloudAPI.signUp(email, password); }
-  catch(e){ showToast(cloudErrorMessage(e)); }
-});
-document.getElementById('cloudSignOutBtn').addEventListener('click', async ()=>{
-  if(!CloudAPI) return;
-  try{ await CloudAPI.signOutUser(); showToast(t('cloudSignedOutToast')); }
-  catch(e){ showToast(cloudErrorMessage(e)); }
-});
 function downloadBackupFile(){
   const payload=buildBackupPayload();
   const blob=new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
@@ -2908,10 +2729,7 @@ if(restoreAutoBtn) restoreAutoBtn.addEventListener('click', ()=>{
 });
 document.getElementById('clearAllBtn').addEventListener('click', async ()=>{
   if(!confirm(t('confirmClearAll'))) return;
-  try{
-    if(cloudUser && CloudAPI){ await CloudAPI.signOutUser(); }
-  }catch(e){}
-  [TX_KEY, CAT_KEY, SET_KEY, REC_KEY, WAL_KEY, SAV_KEY, AUTO_KEY, DEBT_KEY, CLOUD_TS_KEY].forEach(function(k){
+  [TX_KEY, CAT_KEY, SET_KEY, REC_KEY, WAL_KEY, SAV_KEY, AUTO_KEY, DEBT_KEY].forEach(function(k){
     try{ localStorage.removeItem(k); }catch(e){}
   });
   window.location.reload();
@@ -3195,7 +3013,7 @@ const numSel=document.getElementById('numeralsSelect');
 numSel.onchange=()=>{settings.numerals=numSel.value;saveSettings();switchTab(document.querySelector('main.active').id);};
 const _renderSettings=renderSettings;
 renderSettings=function(){_renderSettings();numSel.value=settings.numerals||'latn';
-  document.getElementById('numeralsLab').textContent=LX('الأرقام','Numerals');document.getElementById('moreLbl').textContent=LX('المزيد','More');paintPush();};
+  document.getElementById('numeralsLab').textContent=LX('الأرقام','Numerals');document.getElementById('moreLbl').textContent=LX('المزيد','More');};
 
 /* category suggestion from note history */
 (function(){
@@ -3284,58 +3102,16 @@ setTimeout(()=>{
   };
 },900);
 
-/* ===== Web Push (free: Cloudflare Worker, no Firebase needed) ===== */
-const PUSH_PUBLIC_KEY='{"crv":"P-256","d":"CJppIMhJ0nuNvjlhIz4VzXWUo_IVluAh8jyB1vZsZZg","ext":true,"key_ops":["sign"],"kty":"EC","x":"8yamOBpAmxM84VY34v-iDkqPjhpWY28UNxNIFwJlBow","y":"5LC6Dnyki085qRBfKQo810dzzMZl-pd__faxTGWQskM"}';   // <-- المفتاح العام من gen-vapid.mjs
-const PUSH_API='https://daftari-pwa.bentrade.workers.dev/';          // <-- رابط الـ Worker، مثل https://daftari-push.اسمك.workers.dev
-const PUSH_FLAG='daftari_push_on';
-const pushSw=document.getElementById('pushSwitch');
-const pushOn=()=>{try{return localStorage.getItem(PUSH_FLAG)==='1';}catch(e){return false;}};
-function paintPush(){
-  pushSw.classList.toggle('on',pushOn());
-  document.getElementById('pushTitle').textContent=LX('📲 إشعارات الدفع (حتى والتطبيق مغلق)','📲 Push notifications (even when closed)');
-  document.getElementById('pushLab').textContent=LX('تنبيهات الديون والمعاملات المستحقة','Due debts & recurring reminders');
-  document.getElementById('pushSub').textContent=LX('تصلك يوميًا الساعة 9 صباحًا','Delivered daily at 9:00 AM');
-  document.getElementById('pushInfo').textContent=LX('على iPhone يجب أولًا «إضافة إلى الشاشة الرئيسية». يُرسَل للخادم تواريخ الاستحقاق فقط، دون أسماء أو مبالغ، والإشعار نفسه عام.','On iPhone, first use “Add to Home Screen”. Only due dates are sent to the server (no names or amounts) and the notification text is generic.');
-}
-const _u8=k=>{const p='='.repeat((4-k.length%4)%4),r=atob((k+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0));};
-function savePrefLang(){ try{ caches.open('daftari-prefs').then(c=>c.put('lang',new Response(settings.lang||'ar'))); }catch(e){} }
-async function pushSub(){ const reg=await navigator.serviceWorker.ready; return reg.pushManager.getSubscription(); }
-function reminderBody(sub){
-  return {endpoint:sub.endpoint,
-    debts:debts.filter(d=>d.dueDate&&(+d.paid||0)<(+d.amount||0)).map(d=>d.dueDate).slice(0,200),
-    rec:recurring.filter(r=>r.lastDate).map(r=>({l:r.lastDate,f:r.freq||'monthly'})).slice(0,200)};
-}
-async function syncReminders(){
-  if(!pushOn()||!PUSH_API) return;
-  try{ const sub=await pushSub(); if(!sub) return; savePrefLang();
-    await fetch(PUSH_API+'/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(reminderBody(sub))}); }catch(e){}
-}
-let _syncT; const scheduleSync=()=>{clearTimeout(_syncT);_syncT=setTimeout(syncReminders,4000);};
-['saveDebts','saveRecurring','saveSettings'].forEach(n=>{ const f=window[n]; if(typeof f==='function') window[n]=function(){ const r=f.apply(this,arguments); scheduleSync(); return r; }; });
-async function enablePush(){
-  if(!PUSH_PUBLIC_KEY||!PUSH_API) return showToast(LX('لم يُضبط مفتاح الإشعارات أو رابط الخادم في الكود','Push key / server URL not set'));
-  const ios=/iPad|iPhone|iPod/.test(navigator.userAgent), standalone=navigator.standalone||matchMedia('(display-mode: standalone)').matches;
-  if(ios&&!standalone) return showToast(LX('أضف التطبيق إلى الشاشة الرئيسية أولًا','Add the app to Home Screen first'));
-  if(!('Notification' in window)||!('serviceWorker' in navigator)||!('PushManager' in window)) return showToast(LX('المتصفح لا يدعم الإشعارات','Push not supported here'));
-  let perm=Notification.permission; if(perm==='default') perm=await Notification.requestPermission();
-  if(perm!=='granted') return showToast(LX('تم رفض إذن الإشعارات','Notification permission denied'));
+/* ===== one-time cleanup of the removed server push + cloud sync ===== */
+(function(){
+  try{ localStorage.removeItem('daftari_push_on'); localStorage.removeItem('daftari_cloud_ts_v1'); }catch(e){}
+  try{ if('caches' in window) caches.delete('daftari-prefs'); }catch(e){}
   try{
-    const reg=await navigator.serviceWorker.ready;
-    const sub=(await reg.pushManager.getSubscription())||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_u8(PUSH_PUBLIC_KEY)});
-    savePrefLang();
-    const r=await fetch(PUSH_API+'/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(reminderBody(sub))});
-    if(!r.ok) throw new Error('server '+r.status);
-    localStorage.setItem(PUSH_FLAG,'1'); paintPush(); showToast(LX('تم تفعيل إشعارات الدفع','Push enabled'));
-  }catch(e){ console.error('push enable failed',e); showToast(LX('تعذر التفعيل: ','Failed: ')+(e.message||'')); }
-}
-pushSw.addEventListener('click',async()=>{
-  if(pushOn()){
-    try{ const sub=await pushSub(); if(sub){ if(PUSH_API) await fetch(PUSH_API+'/sync',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:sub.endpoint})}).catch(()=>{}); await sub.unsubscribe(); } }catch(e){}
-    try{localStorage.removeItem(PUSH_FLAG);}catch(e){}
-    paintPush(); showToast(LX('تم إيقاف إشعارات الدفع','Push disabled'));
-  }else await enablePush();
-});
-if(pushOn()) setTimeout(syncReminders,3000);
+    if('serviceWorker' in navigator && 'PushManager' in window){
+      navigator.serviceWorker.ready.then(r=>r.pushManager.getSubscription()).then(sub=>{ if(sub) sub.unsubscribe(); }).catch(()=>{});
+    }
+  }catch(e){}
+})();
 // open the tab requested by a notification tap
 if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message',e=>{
   if(e.data&&e.data.type==='OPEN_TAB'&&/^tab\w+$/.test(e.data.tab||'')&&document.getElementById(e.data.tab)) switchTab(e.data.tab);
@@ -3346,49 +3122,6 @@ if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('messa
 init();
 </script>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-  import {
-    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    signOut, onAuthStateChanged, setPersistence, browserLocalPersistence
-  } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-  import {
-    getFirestore, doc, getDoc, setDoc, onSnapshot
-  } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBPJoKSl28-dNCl1oHRlNT4ElN-WGmjcBY",
-    authDomain: "daftari-app-e4e8d.firebaseapp.com",
-    projectId: "daftari-app-e4e8d",
-    storageBucket: "daftari-app-e4e8d.firebasestorage.app",
-    messagingSenderId: "517104212192",
-    appId: "1:517104212192:web:e3a18d040e3d533fd01885"
-  };
-
-  const fbApp = initializeApp(firebaseConfig);
-  const auth = getAuth(fbApp);
-  const db = getFirestore(fbApp);
-  setPersistence(auth, browserLocalPersistence).catch(()=>{});
-
-  const CloudAPI = {
-    signUp: (email, password) => createUserWithEmailAndPassword(auth, email, password),
-    signIn: (email, password) => signInWithEmailAndPassword(auth, email, password),
-    signOutUser: () => signOut(auth),
-    onAuthChange: (cb) => onAuthStateChanged(auth, (user) => {
-      cb(user ? { uid: user.uid, email: user.email } : null);
-    }),
-    pullData: async (uid) => {
-      const snap = await getDoc(doc(db, 'users', uid));
-      return snap.exists() ? snap.data() : null;
-    },
-    pushData: (uid, payload) => setDoc(doc(db, 'users', uid), payload),
-    listenData: (uid, cb) => onSnapshot(doc(db, 'users', uid), (snap) => {
-      if (!snap.exists()) return;
-      cb(snap.data(), snap.metadata.hasPendingWrites);
-    }, (err) => console.error('cloud listener error:', err))
-  };
-
-  window.dispatchEvent(new CustomEvent('daftari-cloud-ready', { detail: CloudAPI }));
 </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daftari-cache-v15';
+const CACHE_NAME = 'daftari-cache-v16';
 const APP_SHELL = [
   './',
   './index.html',
@@ -14,16 +14,6 @@ const APP_SHELL = [
 // (so updates pushed to GitHub show up immediately), falling back to
 // cache only when there's no connection.
 const NETWORK_FIRST = ['./', './index.html', './manifest.json'];
-
-// Hosts whose requests must NEVER be cached or intercepted
-// (Firebase Auth / Firestore / FCM use long-lived GET streams; caching them breaks sync).
-const BYPASS_HOSTS = [
-  'firestore.googleapis.com',
-  'identitytoolkit.googleapis.com',
-  'securetoken.googleapis.com',
-  'fcmregistrations.googleapis.com',
-  'firebaseinstallations.googleapis.com'
-];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -59,7 +49,6 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
-  if (BYPASS_HOSTS.includes(url.hostname)) return; // let the network handle it
 
   const isAppDoc =
     event.request.mode === 'navigate' ||
@@ -97,29 +86,9 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-/* ======================= Web Push notifications ======================= */
-
-// Works with payload-less pushes (from the free Cloudflare Worker) and with JSON payloads.
-// The app language is read from the 'daftari-prefs' cache written by the page.
-self.addEventListener('push', (event) => {
-  event.waitUntil((async () => {
-    let d = {};
-    try { const p = event.data ? event.data.json() : {}; d = p.data || p.notification || p; } catch (e) {}
-    let lang = 'ar';
-    try { const r = await (await caches.open('daftari-prefs')).match('lang'); if (r) lang = await r.text(); } catch (e) {}
-    const en = lang === 'en';
-    await self.registration.showNotification(d.title || (en ? 'Daftari' : 'دفتري'), {
-      body: d.body || (en ? 'You have debts or recurring transactions due soon' : 'لديك ديون أو معاملات مستحقة قريبًا'),
-      icon: './icon-192.png',
-      badge: './icon-192.png',
-      tag: d.tag || 'daftari-due',
-      renotify: true,
-      dir: 'auto',
-      lang: en ? 'en' : 'ar',
-      data: { tab: d.tab || 'tabDebts' }
-    });
-  })());
-});
+/* ======================= Local notifications ======================= */
+// Notifications are created by the page itself (registration.showNotification) when the app is opened.
+// There is no server push: nothing is received while the app is closed.
 
 // Focus the open app (and switch tab) or open it if closed.
 self.addEventListener('notificationclick', (event) => {
