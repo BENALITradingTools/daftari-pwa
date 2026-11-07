@@ -764,10 +764,16 @@
         <button class="save-btn" id="cloudSignInBtn" style="margin-top:0;" data-i18n="cloudSignIn">تسجيل الدخول</button>
         <button class="save-btn" id="cloudSignUpBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="cloudSignUp">إنشاء حساب جديد</button>
         <button type="button" id="cloudResetBtn" style="margin-top:10px; background:none; border:none; color:var(--muted); font-family:'Tajawal'; font-size:13px; text-decoration:underline; cursor:pointer; width:100%;">نسيت كلمة المرور؟</button>
+        <button type="button" id="cloudResetBtn2" style="margin-top:4px; background:none; border:none; color:var(--muted); font-family:'Tajawal'; font-size:12px; text-decoration:underline; cursor:pointer; width:100%;">إرسال رابط إعادة تعيين كلمة المرور (الطريقة القديمة)</button>
       </div>
       <div id="cloudLoggedInBox" style="display:none;">
         <div class="set-row">
           <div><div class="lab"><span data-i18n="cloudLoggedInAs">مسجّل الدخول باسم:</span> <span id="cloudUserEmail" style="font-weight:600;"></span></div><div class="sub" id="cloudSyncStatus"></div></div>
+        </div>
+        <div style="margin-top:12px;">
+          <input type="password" id="cloudCurPwInput" autocomplete="current-password" style="width:100%; margin-bottom:8px;">
+          <input type="password" id="cloudNewPwInput" autocomplete="new-password" style="width:100%; margin-bottom:8px;">
+          <button class="save-btn" id="cloudChangePwBtn" style="margin-top:0;"></button>
         </div>
         <button class="save-btn" id="cloudSignOutBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="cloudSignOut">تسجيل الخروج</button>
       </div>
@@ -2675,6 +2681,11 @@ function cloudErrorMessage(err){
   if(code.includes('email-already-in-use')) return t('cloudErrEmailInUse');
   if(code.includes('weak-password')) return t('cloudErrWeakPassword');
   if(code.includes('network-request-failed')) return t('cloudErrNetwork');
+  if(code.includes('requires-recent-login')) return LX('أدخل كلمة المرور الحالية، أو ادخل برابط جديد ثم أعد المحاولة','Enter your current password, or sign in with a new link, then retry');
+  if(code.includes('operation-not-allowed')) return LX('الدخول برابط البريد غير مفعّل في Firebase','Email-link sign-in is not enabled in Firebase');
+  if(code.includes('expired-action-code') || code.includes('invalid-action-code')) return LX('الرابط منتهٍ أو مستخدم — اطلب رابطًا جديدًا','Link expired or already used — request a new one');
+  if(code.includes('unauthorized-continue-uri') || code.includes('invalid-continue-uri')) return LX('نطاق الموقع غير مصرّح به في Firebase (Authorized domains)','Site domain is not in Firebase Authorized domains');
+  if(code.includes('too-many-requests')) return LX('محاولات كثيرة، انتظر قليلًا','Too many attempts, wait a bit');
   return t('cloudErrGeneric');
 }
 
@@ -2806,6 +2817,20 @@ window.addEventListener('daftari-cloud-ready', function(e){
   CloudAPI.onAuthChange(function(user){
     if(user) handleSignedIn(user); else handleSignedOut();
   });
+  try{
+    if(CloudAPI.isLoginLink && CloudAPI.isLoginLink()){
+      let em=null; try{ em=localStorage.getItem('daftari_emailForSignIn'); }catch(_){}
+      if(!em) em=(prompt(LX('أدخل بريدك الإلكتروني لإكمال الدخول','Enter your email to complete sign-in'))||'').trim();
+      if(em){
+        CloudAPI.completeLoginLink(em).then(()=>{
+          try{ localStorage.removeItem('daftari_emailForSignIn'); }catch(_){}
+          history.replaceState(null,'',location.pathname);
+          showToast(LX('تم الدخول ✓ عيّن كلمة مرور جديدة من الإعدادات','Signed in ✓ set a new password in Settings'));
+          setTimeout(()=>{ switchTab('tabSettings'); const f=document.getElementById('cloudNewPwInput'); if(f) f.focus(); },1500);
+        }).catch(err=>{ history.replaceState(null,'',location.pathname); showToast(cloudErrorMessage(err)); });
+      }
+    }
+  }catch(err){ console.error('email-link sign-in failed:', err); }
 });
 
 document.getElementById('cloudSignInBtn').addEventListener('click', async ()=>{
@@ -2828,7 +2853,24 @@ document.getElementById('cloudResetBtn').addEventListener('click', async ()=>{
   const email=document.getElementById('cloudEmailInput').value.trim();
   if(!email){ showToast(LX('أدخل بريدك الإلكتروني أولًا','Enter your email first')); return; }
   if(!CloudAPI){ showToast(t('cloudErrNetwork')); return; }
+  try{ await CloudAPI.sendLoginLink(email); try{ localStorage.setItem('daftari_emailForSignIn',email); }catch(_){}
+    showToast(LX('أُرسل رابط الدخول إلى بريدك. افتحه ثم عيّن كلمة مرور جديدة من الإعدادات','A sign-in link was sent. Open it, then set a new password in Settings')); }
+  catch(e){ showToast(cloudErrorMessage(e)); }
+});
+document.getElementById('cloudResetBtn2').addEventListener('click', async ()=>{
+  const email=document.getElementById('cloudEmailInput').value.trim();
+  if(!email){ showToast(LX('أدخل بريدك الإلكتروني أولًا','Enter your email first')); return; }
+  if(!CloudAPI){ showToast(t('cloudErrNetwork')); return; }
   try{ await CloudAPI.resetPassword(email); showToast(LX('إن كان البريد مسجّلًا فسيصلك رابط إعادة التعيين','If the email is registered, a reset link was sent')); }
+  catch(e){ showToast(cloudErrorMessage(e)); }
+});
+document.getElementById('cloudChangePwBtn').addEventListener('click', async ()=>{
+  const cur=document.getElementById('cloudCurPwInput').value, nw=document.getElementById('cloudNewPwInput').value;
+  if(nw.length<6){ showToast(t('cloudErrWeakPassword')); return; }
+  if(!CloudAPI || !cloudUser){ showToast(t('cloudErrNetwork')); return; }
+  try{ await CloudAPI.changePassword(cur,nw);
+    document.getElementById('cloudCurPwInput').value=''; document.getElementById('cloudNewPwInput').value='';
+    showToast(LX('تم تغيير كلمة المرور ✓','Password changed ✓')); }
   catch(e){ showToast(cloudErrorMessage(e)); }
 });
 document.getElementById('cloudSignOutBtn').addEventListener('click', async ()=>{
@@ -3347,7 +3389,11 @@ if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('messa
 });
 { const qt=new URLSearchParams(location.search).get('tab');
   if(qt&&/^tab\w+$/.test(qt)&&document.getElementById(qt)) setTimeout(()=>switchTab(qt),1200); }
-(function(){ const b=document.getElementById('cloudResetBtn'); if(b) b.textContent=LX('نسيت كلمة المرور؟','Forgot password?'); })();
+(function(){ const b=document.getElementById('cloudResetBtn'); if(b) b.textContent=LX('نسيت كلمة المرور؟ (دخول برابط البريد)','Forgot password? (sign in by email link)');
+  const b2=document.getElementById('cloudResetBtn2'); if(b2) b2.textContent=LX('إرسال رابط إعادة تعيين كلمة المرور (الطريقة القديمة)','Send classic password-reset link');
+  const c=document.getElementById('cloudCurPwInput'); if(c) c.placeholder=LX('كلمة المرور الحالية (اتركها فارغة بعد الدخول برابط)','Current password (leave empty after email-link sign-in)');
+  const n=document.getElementById('cloudNewPwInput'); if(n) n.placeholder=LX('كلمة المرور الجديدة (6 أحرف على الأقل)','New password (min 6 characters)');
+  const cb=document.getElementById('cloudChangePwBtn'); if(cb) cb.textContent=LX('تغيير كلمة المرور','Change password'); })();
 /* ================= end extras ================= */
 init();
 </script>
@@ -3355,7 +3401,9 @@ init();
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
   import {
     getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendPasswordResetEmail
+    signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendPasswordResetEmail,
+    EmailAuthProvider, reauthenticateWithCredential, updatePassword,
+    sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink
   } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
   import {
     getFirestore, doc, getDoc, setDoc, onSnapshot
@@ -3380,6 +3428,14 @@ init();
     signIn: (email, password) => signInWithEmailAndPassword(auth, email, password),
     signOutUser: () => signOut(auth),
     resetPassword: (email) => sendPasswordResetEmail(auth, email),
+    changePassword: async (current, next) => {
+      const u = auth.currentUser; if(!u) throw { code: 'auth/no-user' };
+      if(current){ await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, current)); }
+      await updatePassword(u, next);
+    },
+    sendLoginLink: (email) => sendSignInLinkToEmail(auth, email, { url: location.origin + location.pathname, handleCodeInApp: true }),
+    isLoginLink: () => isSignInWithEmailLink(auth, location.href),
+    completeLoginLink: (email) => signInWithEmailLink(auth, email, location.href),
     onAuthChange: (cb) => onAuthStateChanged(auth, (user) => {
       cb(user ? { uid: user.uid, email: user.email } : null);
     }),
