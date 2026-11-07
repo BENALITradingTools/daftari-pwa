@@ -763,6 +763,7 @@
         <input type="password" id="cloudPasswordInput" placeholder="كلمة المرور (6 أحرف على الأقل)" data-i18n-ph="cloudPasswordPh" autocomplete="current-password" style="width:100%; margin-bottom:10px;">
         <button class="save-btn" id="cloudSignInBtn" style="margin-top:0;" data-i18n="cloudSignIn">تسجيل الدخول</button>
         <button class="save-btn" id="cloudSignUpBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="cloudSignUp">إنشاء حساب جديد</button>
+        <button type="button" id="cloudResetBtn" style="margin-top:10px; background:none; border:none; color:var(--muted); font-family:'Tajawal'; font-size:13px; text-decoration:underline; cursor:pointer; width:100%;">نسيت كلمة المرور؟</button>
       </div>
       <div id="cloudLoggedInBox" style="display:none;">
         <div class="set-row">
@@ -1187,7 +1188,8 @@ function showToast(msg){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2000);
 }
-function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function escapeHtml(s){ return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function safeImg(u){ return (typeof u==='string' && /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(u)) ? u : ''; }
 
 /* ---------- storage (device-local, works offline once cached by the service worker) ---------- */
 async function load(){
@@ -1216,12 +1218,12 @@ async function load(){
   if(migrated){ saveTx(); saveRecurring(); }
 }
 async function saveTx(){ try{ localStorage.setItem(TX_KEY, JSON.stringify(transactions)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
-async function saveCats(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(categories)); }catch(e){} scheduleCloudPush(); }
-async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){} scheduleCloudPush(); }
-async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){} scheduleCloudPush(); }
-async function saveWallets(){ try{ localStorage.setItem(WAL_KEY, JSON.stringify(wallets)); }catch(e){} scheduleCloudPush(); }
-async function saveSavings(){ try{ localStorage.setItem(SAV_KEY, JSON.stringify(savingsGoals)); }catch(e){} scheduleCloudPush(); }
-async function saveDebts(){ try{ localStorage.setItem(DEBT_KEY, JSON.stringify(debts)); }catch(e){} scheduleCloudPush(); }
+async function saveCats(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(categories)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
+async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
+async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
+async function saveWallets(){ try{ localStorage.setItem(WAL_KEY, JSON.stringify(wallets)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
+async function saveSavings(){ try{ localStorage.setItem(SAV_KEY, JSON.stringify(savingsGoals)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
+async function saveDebts(){ try{ localStorage.setItem(DEBT_KEY, JSON.stringify(debts)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
 
 /* ---------- theme ---------- */
 function applyTheme(){
@@ -1246,7 +1248,7 @@ function renderWalletChips(){
     }
     if(target.elId==='reportWalletChips' && titleEl) titleEl.style.display='';
     let html=`<div class="wallet-chip ${walletFilter==='all'?'sel':''}" data-id="all">🗂️ ${escapeHtml(t('allWallets'))}</div>`;
-    html+=wallets.map(w=>`<div class="wallet-chip ${walletFilter===w.id?'sel':''}" data-id="${w.id}">${w.icon||'👛'} ${escapeHtml(trLabel(w))}</div>`).join('');
+    html+=wallets.map(w=>`<div class="wallet-chip ${walletFilter===w.id?'sel':''}" data-id="${escapeHtml(w.id)}">${w.icon||'👛'} ${escapeHtml(trLabel(w))}</div>`).join('');
     el.innerHTML=html;
     el.querySelectorAll('.wallet-chip').forEach(c=>{
       c.addEventListener('click', ()=>{ walletFilter=c.dataset.id; renderWalletChips(); target.onSelect(); });
@@ -1257,7 +1259,7 @@ function populateWalletSelect(){
   const sel=document.getElementById('walletSelect');
   if(!sel) return;
   const cur=sel.value;
-  sel.innerHTML=wallets.map(w=>`<option value="${w.id}">${w.icon||'👛'} ${escapeHtml(trLabel(w))}</option>`).join('');
+  sel.innerHTML=wallets.map(w=>`<option value="${escapeHtml(w.id)}">${w.icon||'👛'} ${escapeHtml(trLabel(w))}</option>`).join('');
   if(wallets.find(w=>w.id===cur)) sel.value=cur;
   else if(walletFilter!=='all' && wallets.find(w=>w.id===walletFilter)) sel.value=walletFilter;
 }
@@ -1298,7 +1300,7 @@ function renderCatGrid(){
   if(selIdx>=CAT_GRID_LIMIT) catGridExpanded=true;
   const showToggle=cats.length>CAT_GRID_LIMIT;
   const visibleCats=(catGridExpanded || !showToggle) ? cats : cats.slice(0,CAT_GRID_LIMIT);
-  grid.innerHTML=visibleCats.map(c=>`<div class="cat-chip ${c.id===selectedCategory?'sel':''}" data-id="${c.id}">
+  grid.innerHTML=visibleCats.map(c=>`<div class="cat-chip ${c.id===selectedCategory?'sel':''}" data-id="${escapeHtml(c.id)}">
     <span class="ic">${c.icon}</span><span class="lbl">${escapeHtml(trLabel(c))}</span></div>`).join('');
   grid.querySelectorAll('.cat-chip').forEach(el=>{
     el.addEventListener('click', ()=>{ selectedCategory=el.dataset.id; renderCatGrid(); });
@@ -1324,7 +1326,7 @@ function renderBillTypeRow(){
   }
   row.style.display='block';
   if(!selectedBillType) selectedBillType=BILL_TYPES[0].id;
-  grid.innerHTML=BILL_TYPES.map(b=>`<div class="cat-chip ${b.id===selectedBillType?'sel':''}" data-id="${b.id}">
+  grid.innerHTML=BILL_TYPES.map(b=>`<div class="cat-chip ${b.id===selectedBillType?'sel':''}" data-id="${escapeHtml(b.id)}">
     <span class="ic">${b.icon}</span><span class="lbl">${escapeHtml(trLabel(b))}</span></div>`).join('');
   grid.querySelectorAll('.cat-chip').forEach(el=>{
     el.addEventListener('click', ()=>{ selectedBillType=el.dataset.id; renderBillTypeRow(); });
@@ -1346,7 +1348,7 @@ function clearReceiptPreview(){
 function showReceiptPreview(dataUrl){
   pendingReceipt=dataUrl;
   const row=document.getElementById('receiptRow');
-  row.innerHTML=`<div class="receipt-preview"><img src="${dataUrl}" id="receiptPreviewImg"><button type="button" class="rm" id="receiptRemoveBtn">✕</button></div>
+  row.innerHTML=`<div class="receipt-preview"><img src="${safeImg(dataUrl)}" id="receiptPreviewImg"><button type="button" class="rm" id="receiptRemoveBtn">✕</button></div>
     <button type="button" class="receipt-btn" id="receiptAddBtn" style="flex:1;">${t('receiptHint')}</button><input type="file" id="receiptFile" accept="image/*" style="display:none;">`;
   document.getElementById('receiptPreviewImg').addEventListener('click', ()=>openLightbox(dataUrl));
   document.getElementById('receiptRemoveBtn').addEventListener('click', clearReceiptPreview);
@@ -1560,7 +1562,7 @@ function txRowHtml(t){
   const walBadge = showWalBadge ? `<span class="wal-badge">${findWallet(t.wallet).icon||'👛'} ${escapeHtml(trLabel(findWallet(t.wallet)))}</span>` : '';
   const bt = t.billType ? findBillType(t.billType) : null;
   const billBadge = bt ? `<span class="wal-badge">${bt.icon} ${escapeHtml(trLabel(bt))}</span>` : '';
-  const receiptThumb = t.receipt ? `<img class="receipt-thumb rc-view" data-id="${t.id}" src="${t.receipt}" alt="receipt">` : '';
+  const receiptThumb = t.receipt ? `<img class="receipt-thumb rc-view" data-id="${escapeHtml(t.id)}" src="${safeImg(t.receipt)}" alt="receipt">` : '';
   return `<div class="tx">
     <div class="ic">${c.icon}</div>
     <div class="info">
@@ -1571,8 +1573,8 @@ function txRowHtml(t){
     </div>
     <div class="amt ${t.type==='income'?'in':'out'}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</div>
     <div class="actions">
-      <button class="edit-b" data-id="${t.id}">✏️</button>
-      <button class="del-b" data-id="${t.id}">🗑️</button>
+      <button class="edit-b" data-id="${escapeHtml(t.id)}">✏️</button>
+      <button class="del-b" data-id="${escapeHtml(t.id)}">🗑️</button>
     </div>
   </div>`;
 }
@@ -1977,8 +1979,8 @@ function renderWalletManage(){
       <span class="ic">${w.icon||'👛'}</span>
       <span class="lbl">${escapeHtml(trLabel(w))}</span>
       <span class="bal">${fmt(walletBalance(w.id))}</span>
-      <button class="wm-edit" data-id="${w.id}">✏️</button>
-      <button class="wm-del" data-id="${w.id}">🗑️</button>
+      <button class="wm-edit" data-id="${escapeHtml(w.id)}">✏️</button>
+      <button class="wm-del" data-id="${escapeHtml(w.id)}">🗑️</button>
     </div>`).join('');
   el.querySelectorAll('.wm-edit').forEach(b=>b.addEventListener('click', ()=>{
     const w=wallets.find(x=>x.id===b.dataset.id); if(!w) return;
@@ -2035,17 +2037,17 @@ function renderSavingsCards(){
       <div class="sav-card-top">
         <span class="ic">${g.icon||'🎯'}</span>
         <span class="name">${escapeHtml(trLabel(g))}</span>
-        <button class="icbtn sv-up" data-id="${g.id}" ${idx===0?'style="opacity:.3;"':''} title="${escapeHtml(t('moveUp'))}">⬆️</button>
-        <button class="icbtn sv-down" data-id="${g.id}" ${idx===savingsGoals.length-1?'style="opacity:.3;"':''} title="${escapeHtml(t('moveDown'))}">⬇️</button>
-        <button class="icbtn sv-edit" data-id="${g.id}">✏️</button>
-        <button class="icbtn sv-del" data-id="${g.id}">🗑️</button>
+        <button class="icbtn sv-up" data-id="${escapeHtml(g.id)}" ${idx===0?'style="opacity:.3;"':''} title="${escapeHtml(t('moveUp'))}">⬆️</button>
+        <button class="icbtn sv-down" data-id="${escapeHtml(g.id)}" ${idx===savingsGoals.length-1?'style="opacity:.3;"':''} title="${escapeHtml(t('moveDown'))}">⬇️</button>
+        <button class="icbtn sv-edit" data-id="${escapeHtml(g.id)}">✏️</button>
+        <button class="icbtn sv-del" data-id="${escapeHtml(g.id)}">🗑️</button>
       </div>
       <div class="sav-card-amt"><span class="saved">${fmt(saved)}</span><span> / ${fmt(target)}</span></div>
       <div class="bud-prog-track"><div class="bud-prog-fill ${cls}" style="width:${Math.min(100,pct)}%"></div></div>
       ${remainHtml}
       <div class="sav-card-actions">
-        <button class="sav-btn-add sv-add" data-id="${g.id}">${escapeHtml(t('savingsAddFundsBtn'))}</button>
-        <button class="sav-btn-withdraw sv-withdraw" data-id="${g.id}">${escapeHtml(t('savingsWithdrawBtn'))}</button>
+        <button class="sav-btn-add sv-add" data-id="${escapeHtml(g.id)}">${escapeHtml(t('savingsAddFundsBtn'))}</button>
+        <button class="sav-btn-withdraw sv-withdraw" data-id="${escapeHtml(g.id)}">${escapeHtml(t('savingsWithdrawBtn'))}</button>
       </div>
     </div>`;
   }).join('');
@@ -2206,13 +2208,13 @@ function debtCardHtml(d){
   const noteHtml = d.note ? `<div class="debt-card-note">${escapeHtml(d.note)}</div>` : '';
   const statusHtml = settled ? `<div class="debt-card-done">${escapeHtml(t('debtSettledBadge'))}</div>` : '';
   const pct = (d.amount||0)>0 ? Math.max(0, Math.min(100, ((d.paid||0)/d.amount)*100)) : 0;
-  return `<div class="debt-card ${settled?'is-settled':''}" data-id="${d.id}">
+  return `<div class="debt-card ${settled?'is-settled':''}" data-id="${escapeHtml(d.id)}">
     <div class="debt-card-top">
       <div class="ic">${d.icon||'🤝'}</div>
       <div class="name">${escapeHtml(d.person)}</div>
       <span class="debt-badge ${badgeClass}">${escapeHtml(badgeLabel)}</span>
-      <button class="icbtn dt-edit" data-id="${d.id}" title="${escapeHtml(t('debtEditBtn'))}">✏️</button>
-      <button class="icbtn dt-del" data-id="${d.id}" title="${escapeHtml(t('debtDeleteBtn'))}">🗑️</button>
+      <button class="icbtn dt-edit" data-id="${escapeHtml(d.id)}" title="${escapeHtml(t('debtEditBtn'))}">✏️</button>
+      <button class="icbtn dt-del" data-id="${escapeHtml(d.id)}" title="${escapeHtml(t('debtDeleteBtn'))}">🗑️</button>
     </div>
     <div class="debt-card-amt-row">
       <div class="debt-card-amt-main"><span class="rem">${fmt(remain)}</span><span class="of">${t('debtOfLabel')} ${fmt(d.amount||0)}</span></div>
@@ -2221,7 +2223,7 @@ function debtCardHtml(d){
     <div class="debt-progress"><div class="debt-progress-fill ${settled?'settled':''}" style="width:${pct}%"></div></div>
     ${dueHtml}${noteHtml}${statusHtml}
     <div class="debt-card-actions">
-      ${settled ? '' : `<button class="debt-btn-settle dt-settle" data-id="${d.id}">${escapeHtml(t('debtSettleBtn'))}</button>`}
+      ${settled ? '' : `<button class="debt-btn-settle dt-settle" data-id="${escapeHtml(d.id)}">${escapeHtml(t('debtSettleBtn'))}</button>`}
     </div>
   </div>`;
 }
@@ -2420,7 +2422,7 @@ function renderBudgetSettings(){
     <div class="budget-row">
       <span class="ic">${c.icon}</span>
       <span class="lbl">${escapeHtml(trLabel(c))}</span>
-      <input type="number" inputmode="decimal" min="0" step="1" class="budget-input" data-id="${c.id}"
+      <input type="number" inputmode="decimal" min="0" step="1" class="budget-input" data-id="${escapeHtml(c.id)}"
         value="${settings.budgets && settings.budgets[c.id] ? settings.budgets[c.id] : ''}">
     </div>`).join('');
   el.querySelectorAll('.budget-input').forEach(inp=>{
@@ -2522,7 +2524,7 @@ function renderRecurringSettings(){
     return `<div class="recur-manage-row">
       <span class="ic">${c.icon}</span>
       <div class="info"><div>${escapeHtml(trLabel(c))} — ${fmt(r.amount)}</div><div class="sub">${freqLabel(r.freq)} · ${nextDate(r.lastDate,r.freq)}</div></div>
-      <button class="rec-del" data-id="${r.id}">🗑️</button>
+      <button class="rec-del" data-id="${escapeHtml(r.id)}">🗑️</button>
     </div>`;
   }).join('');
   el.querySelectorAll('.rec-del').forEach(b=>b.addEventListener('click', ()=>{
@@ -2594,7 +2596,7 @@ function buildPrintReport(){
     const bt = t2.billType ? findBillType(t2.billType) : null;
     const catCell = bt ? `${c.icon} ${escapeHtml(trLabel(c))} — ${bt.icon} ${escapeHtml(trLabel(bt))}` : `${c.icon} ${escapeHtml(trLabel(c))}`;
     const walCell = showWalCol ? `<td>${escapeHtml(trLabel(findWallet(t2.wallet)))}</td>` : '';
-    const rcCell = t2.receipt ? `<td class="rc-col"><img src="${t2.receipt}" alt=""></td>` : `<td class="rc-col"></td>`;
+    const rcCell = t2.receipt ? `<td class="rc-col"><img src="${safeImg(t2.receipt)}" alt=""></td>` : `<td class="rc-col"></td>`;
     html+=`<tr><td>${t2.date}</td><td>${catCell}</td>${walCell}<td>${escapeHtml(t2.note||'')}</td>${rcCell}<td class="${t2.type==='income'?'amt-in':'amt-out'}">${t2.type==='income'?'+':'-'}${fmt(t2.amount)}</td></tr>`;
   });
   html+=`</table>`;
@@ -2613,8 +2615,8 @@ function renderCatManage(){
     <div class="cat-manage-row">
       <span class="ic">${c.icon}</span>
       <span class="lbl">${escapeHtml(trLabel(c))} <span style="color:var(--muted); font-size:10.5px;">(${c.type==='income'?t('income'):t('expense')})</span></span>
-      <button class="cm-edit" data-id="${c.id}">✏️</button>
-      <button class="cm-del" data-id="${c.id}">🗑️</button>
+      <button class="cm-edit" data-id="${escapeHtml(c.id)}">✏️</button>
+      <button class="cm-del" data-id="${escapeHtml(c.id)}">🗑️</button>
     </div>`).join('');
   el.querySelectorAll('.cm-edit').forEach(b=>b.addEventListener('click', ()=>{
     const c=categories.find(x=>x.id===b.dataset.id); if(!c) return;
@@ -2700,6 +2702,10 @@ async function pushCloudNow(){
   try{
     setCloudStatus(t('cloudSyncing'));
     const payload=buildCloudPayload();
+    if(new Blob([JSON.stringify(payload)]).size>1000000){
+      setCloudStatus(LX('⚠️ حجم البيانات (مع الإيصالات) يتجاوز حد المزامنة 1MB — لم تُرفع. احذف بعض الإيصالات القديمة.','⚠️ Data (incl. receipts) exceeds the 1MB sync limit — not uploaded. Remove some old receipts.'));
+      return;
+    }
     await CloudAPI.pushData(cloudUser.uid, payload);
     localStorage.setItem(CLOUD_TS_KEY, String(payload.updatedAt));
     setCloudStatus(t('cloudSynced'));
@@ -2715,6 +2721,19 @@ function scheduleCloudPush(){
   cloudPushTimer=setTimeout(pushCloudNow, 1500);
 }
 
+function _formBusy(){
+  const a=document.activeElement, amt=document.getElementById('amountInput'), nt=document.getElementById('noteInput');
+  return !!((a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) || (amt && amt.value) || (nt && nt.value));
+}
+async function _applyRemoteSoft(){
+  try{
+    await load(); applyingRemote=false;
+    applyTheme(); applyLangDirection(); applyI18n();
+    renderCatGrid(); populateWalletSelect();
+    const m=document.querySelector('main.active');
+    if(m && m.id!=='tabAdd') switchTab(m.id);   // never re-render the add form (it would clear it)
+  }catch(e){ console.error('soft apply failed, reloading', e); window.location.reload(); }
+}
 function applyCloudPayload(data){
   try{
     applyingRemote=true;
@@ -2727,7 +2746,7 @@ function applyCloudPayload(data){
     localStorage.setItem(DEBT_KEY, JSON.stringify(data.debts||[]));
     localStorage.setItem(CLOUD_TS_KEY, String(data.updatedAt||Date.now()));
     showToast(t('cloudUpdateToast'));
-    setTimeout(()=>window.location.reload(), 900);
+    if(_formBusy()){ _applyRemoteSoft(); } else { setTimeout(()=>window.location.reload(), 900); }
   }catch(e){ console.error('apply cloud payload failed:', e); }
 }
 
@@ -2741,17 +2760,33 @@ function startCloudListener(uid){
   });
 }
 
+const CLOUD_UID_KEY='daftari_cloud_uid';
+function hasLocalData(){
+  try{ return [TX_KEY,DEBT_KEY,SAV_KEY,REC_KEY].some(k=>{ const v=JSON.parse(localStorage.getItem(k)||'[]'); return Array.isArray(v)&&v.length>0; }); }
+  catch(e){ return false; }
+}
 async function handleSignedIn(user){
   cloudUser=user;
   updateCloudUI();
   setCloudStatus(t('cloudSyncing'));
   try{
     const remote=await CloudAPI.pullData(user.uid);
-    const localTs=parseInt(localStorage.getItem(CLOUD_TS_KEY)||'0',10);
+    let lastUid=null; try{ lastUid=localStorage.getItem(CLOUD_UID_KEY); }catch(e){}
+    const foreign=!!lastUid && lastUid!==user.uid;   // device data belongs to another account
+    const localTs=foreign ? 0 : parseInt(localStorage.getItem(CLOUD_TS_KEY)||'0',10);
+    const localHas=hasLocalData();
     if(remote && remote.updatedAt && remote.updatedAt > localTs){
+      if(localHas && localTs===0 && !confirm(LX('سيتم استبدال بيانات هذا الجهاز ببيانات حسابك السحابي. تنبيه: لن تُدمج. متابعة؟','This device\'s data will be REPLACED by your cloud account data (not merged). Continue?'))){
+        await CloudAPI.signOutUser(); return;
+      }
+      try{ localStorage.setItem(CLOUD_UID_KEY,user.uid); }catch(e){}
       applyCloudPayload(remote); // page will reload; listener starts after reload via onAuthChange
       return;
     }
+    if(foreign && localHas && !confirm(LX('بيانات هذا الجهاز تخص حسابًا آخر. هل ترفعها إلى هذا الحساب؟','This device\'s data belongs to another account. Upload it to this account?'))){
+      await CloudAPI.signOutUser(); return;
+    }
+    try{ localStorage.setItem(CLOUD_UID_KEY,user.uid); }catch(e){}
     await pushCloudNow();
     startCloudListener(user.uid);
   }catch(e){
@@ -2789,6 +2824,13 @@ document.getElementById('cloudSignUpBtn').addEventListener('click', async ()=>{
   try{ await CloudAPI.signUp(email, password); }
   catch(e){ showToast(cloudErrorMessage(e)); }
 });
+document.getElementById('cloudResetBtn').addEventListener('click', async ()=>{
+  const email=document.getElementById('cloudEmailInput').value.trim();
+  if(!email){ showToast(LX('أدخل بريدك الإلكتروني أولًا','Enter your email first')); return; }
+  if(!CloudAPI){ showToast(t('cloudErrNetwork')); return; }
+  try{ await CloudAPI.resetPassword(email); showToast(LX('إن كان البريد مسجّلًا فسيصلك رابط إعادة التعيين','If the email is registered, a reset link was sent')); }
+  catch(e){ showToast(cloudErrorMessage(e)); }
+});
 document.getElementById('cloudSignOutBtn').addEventListener('click', async ()=>{
   if(!CloudAPI) return;
   try{ await CloudAPI.signOutUser(); showToast(t('cloudSignedOutToast')); }
@@ -2811,7 +2853,10 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
 // saves every transaction automatically) and can be restored from Settings.
 function saveAutoBackupSnapshot(){
   try{
-    localStorage.setItem(AUTO_KEY, JSON.stringify(buildBackupPayload()));
+    let p=buildBackupPayload(), str=JSON.stringify(p);
+    // heavy data (many receipts): keep the snapshot lean so it can't exhaust the shared ~5MB quota
+    if(str.length>1500000){ p.transactions=p.transactions.map(x=>Object.assign({},x,{receipt:null})); str=JSON.stringify(p); }
+    localStorage.setItem(AUTO_KEY, str);
     return true;
   }catch(e){ return false; }
 }
@@ -2844,8 +2889,10 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
   reader.onload=(ev)=>{
     try{
       const parsed=JSON.parse(ev.target.result);
-      const incoming=Array.isArray(parsed)?parsed:parsed.transactions;
+      let incoming=Array.isArray(parsed)?parsed:parsed.transactions;
       if(!Array.isArray(incoming)) throw new Error('bad');
+      incoming=incoming.filter(x=>x && typeof x==='object' && (typeof x.id==='string'||typeof x.id==='number') && Number.isFinite(Number(x.amount)))
+        .map(x=>x.receipt ? Object.assign({},x,{receipt:safeImg(x.receipt)||null}) : x);
       const replace=confirm(t('confirmReplaceOrMerge'));
       if(replace){
         transactions=incoming;
@@ -2870,6 +2917,7 @@ document.getElementById('importFile').addEventListener('change', (e)=>{
         }
         if(Array.isArray(parsed.savingsGoals)){ const sids=new Set(savingsGoals.map(g=>g.id)); parsed.savingsGoals.forEach(g=>{ if(!sids.has(g.id)) savingsGoals.push(g); }); }
       }
+      if(!wallets.length) wallets=JSON.parse(JSON.stringify(DEFAULT_WALLETS));
       const defId=wallets[0].id;
       transactions.forEach(tx=>{ if(!tx.wallet) tx.wallet=defId; });
       recurring.forEach(r=>{ if(!r.wallet) r.wallet=defId; });
@@ -3299,16 +3347,15 @@ if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('messa
 });
 { const qt=new URLSearchParams(location.search).get('tab');
   if(qt&&/^tab\w+$/.test(qt)&&document.getElementById(qt)) setTimeout(()=>switchTab(qt),1200); }
+(function(){ const b=document.getElementById('cloudResetBtn'); if(b) b.textContent=LX('نسيت كلمة المرور؟','Forgot password?'); })();
 /* ================= end extras ================= */
 init();
-</script>
-
 </script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
   import {
     getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    signOut, onAuthStateChanged, setPersistence, browserLocalPersistence
+    signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendPasswordResetEmail
   } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
   import {
     getFirestore, doc, getDoc, setDoc, onSnapshot
@@ -3332,6 +3379,7 @@ init();
     signUp: (email, password) => createUserWithEmailAndPassword(auth, email, password),
     signIn: (email, password) => signInWithEmailAndPassword(auth, email, password),
     signOutUser: () => signOut(auth),
+    resetPassword: (email) => sendPasswordResetEmail(auth, email),
     onAuthChange: (cb) => onAuthStateChanged(auth, (user) => {
       cb(user ? { uid: user.uid, email: user.email } : null);
     }),
