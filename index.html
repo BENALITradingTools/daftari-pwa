@@ -764,7 +764,6 @@
         <button class="save-btn" id="cloudSignInBtn" style="margin-top:0;" data-i18n="cloudSignIn">تسجيل الدخول</button>
         <button class="save-btn" id="cloudSignUpBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="cloudSignUp">إنشاء حساب جديد</button>
         <button type="button" id="cloudResetBtn" style="margin-top:10px; background:none; border:none; color:var(--muted); font-family:'Tajawal'; font-size:13px; text-decoration:underline; cursor:pointer; width:100%;">نسيت كلمة المرور؟</button>
-        <button type="button" id="cloudResetBtn2" style="margin-top:4px; background:none; border:none; color:var(--muted); font-family:'Tajawal'; font-size:12px; text-decoration:underline; cursor:pointer; width:100%;">إرسال رابط إعادة تعيين كلمة المرور (الطريقة القديمة)</button>
       </div>
       <div id="cloudLoggedInBox" style="display:none;">
         <div class="set-row">
@@ -2857,13 +2856,6 @@ document.getElementById('cloudResetBtn').addEventListener('click', async ()=>{
     showToast(LX('أُرسل رابط الدخول إلى بريدك. افتحه ثم عيّن كلمة مرور جديدة من الإعدادات','A sign-in link was sent. Open it, then set a new password in Settings')); }
   catch(e){ showToast(cloudErrorMessage(e)); }
 });
-document.getElementById('cloudResetBtn2').addEventListener('click', async ()=>{
-  const email=document.getElementById('cloudEmailInput').value.trim();
-  if(!email){ showToast(LX('أدخل بريدك الإلكتروني أولًا','Enter your email first')); return; }
-  if(!CloudAPI){ showToast(t('cloudErrNetwork')); return; }
-  try{ await CloudAPI.resetPassword(email); showToast(LX('إن كان البريد مسجّلًا فسيصلك رابط إعادة التعيين','If the email is registered, a reset link was sent')); }
-  catch(e){ showToast(cloudErrorMessage(e)); }
-});
 document.getElementById('cloudChangePwBtn').addEventListener('click', async ()=>{
   const cur=document.getElementById('cloudCurPwInput').value, nw=document.getElementById('cloudNewPwInput').value;
   if(nw.length<6){ showToast(t('cloudErrWeakPassword')); return; }
@@ -3390,7 +3382,6 @@ if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('messa
 { const qt=new URLSearchParams(location.search).get('tab');
   if(qt&&/^tab\w+$/.test(qt)&&document.getElementById(qt)) setTimeout(()=>switchTab(qt),1200); }
 (function(){ const b=document.getElementById('cloudResetBtn'); if(b) b.textContent=LX('نسيت كلمة المرور؟ (دخول برابط البريد)','Forgot password? (sign in by email link)');
-  const b2=document.getElementById('cloudResetBtn2'); if(b2) b2.textContent=LX('إرسال رابط إعادة تعيين كلمة المرور (الطريقة القديمة)','Send classic password-reset link');
   const c=document.getElementById('cloudCurPwInput'); if(c) c.placeholder=LX('كلمة المرور الحالية (اتركها فارغة بعد الدخول برابط)','Current password (leave empty after email-link sign-in)');
   const n=document.getElementById('cloudNewPwInput'); if(n) n.placeholder=LX('كلمة المرور الجديدة (6 أحرف على الأقل)','New password (min 6 characters)');
   const cb=document.getElementById('cloudChangePwBtn'); if(cb) cb.textContent=LX('تغيير كلمة المرور','Change password'); })();
@@ -3401,7 +3392,7 @@ init();
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
   import {
     getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendPasswordResetEmail,
+    signOut, onAuthStateChanged, setPersistence, browserLocalPersistence,
     EmailAuthProvider, reauthenticateWithCredential, updatePassword,
     sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink
   } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
@@ -3427,7 +3418,6 @@ init();
     signUp: (email, password) => createUserWithEmailAndPassword(auth, email, password),
     signIn: (email, password) => signInWithEmailAndPassword(auth, email, password),
     signOutUser: () => signOut(auth),
-    resetPassword: (email) => sendPasswordResetEmail(auth, email),
     changePassword: async (current, next) => {
       const u = auth.currentUser; if(!u) throw { code: 'auth/no-user' };
       if(current){ await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, current)); }
