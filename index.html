@@ -494,6 +494,8 @@
     </div>
     <label data-i18n="amountLabel">المبلغ</label>
     <input type="number" id="amountInput" placeholder="0.00" inputmode="decimal">
+    <button type="button" class="cancel-link" id="voiceBtn" style="display:none; margin:8px auto 0; text-align:center;"></button>
+    <div class="info-note" id="voiceStatus" style="display:none; text-align:center; margin-top:6px; font-size:12px;"></div>
 
     <label data-i18n="categoryLabel">الفئة</label>
     <div class="cat-grid" id="catGrid"></div>
@@ -507,6 +509,7 @@
     <button class="save-btn" id="saveBtn" style="display:block; width:70%; max-width:320px; margin:18px auto 0;" data-i18n="saveBtn">حفظ الحركة</button>
     <button class="cancel-link" id="cancelEditBtn" style="display:none; margin:8px auto 0; text-align:center;" data-i18n="cancelEdit">إلغاء التعديل</button>
 
+    <div class="info-note" style="text-align:center; margin-top:14px; font-size:12px;" data-i18n="moreOptionsHint">⬇ خيارات إضافية: المحفظة، التاريخ، ملاحظة، إيصال، تكرار</div>
     <div id="addMoreSection">
       <label data-i18n="walletLabel">المحفظة</label>
       <select id="walletSelect"></select>
@@ -948,7 +951,7 @@ const I18N={
     allWallets:'كل المحافظ',
     expense:'مصروف', income:'دخل',
     amountLabel:'المبلغ', categoryLabel:'الفئة', billTypeLabel:'نوع الفاتورة', dateLabel:'التاريخ', noteLabel:'ملاحظة (اختياري)', notePh:'مثال: غداء مع الأصدقاء',
-    walletLabel:'المحفظة', receiptLabel:'إيصال (اختياري)', receiptHint:'📎 أرفق صورة الإيصال',
+    moreOptionsHint:'⬇ خيارات إضافية: المحفظة، التاريخ، ملاحظة، إيصال، تكرار', walletLabel:'المحفظة', receiptLabel:'إيصال (اختياري)', receiptHint:'📎 أرفق صورة الإيصال',
     showMore:'عرض المزيد ▾', showLess:'عرض أقل ▴',
     recurTitle:'🔁 تكرار هذه الحركة تلقائيًا', recurSub:'مفيد للإيجار، الاشتراكات، الراتب...',
     monthly:'كل شهر', weekly:'كل أسبوع', yearly:'كل سنة',
@@ -1060,7 +1063,7 @@ const I18N={
     allWallets:'All Wallets',
     expense:'Expense', income:'Income',
     amountLabel:'Amount', categoryLabel:'Category', billTypeLabel:'Bill Type', dateLabel:'Date', noteLabel:'Note (optional)', notePh:'e.g. Lunch with friends',
-    walletLabel:'Wallet', receiptLabel:'Receipt (optional)', receiptHint:'📎 Attach receipt photo',
+    moreOptionsHint:'⬇ More options: wallet, date, note, receipt, repeat', walletLabel:'Wallet', receiptLabel:'Receipt (optional)', receiptHint:'📎 Attach receipt photo',
     showMore:'Show more ▾', showLess:'Show less ▴',
     recurTitle:'🔁 Repeat this transaction automatically', recurSub:'Useful for rent, subscriptions, salary...',
     monthly:'Every month', weekly:'Every week', yearly:'Every year',
@@ -3400,10 +3403,14 @@ if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('messa
 });
 { const qt=new URLSearchParams(location.search).get('tab');
   if(qt&&/^tab\w+$/.test(qt)&&document.getElementById(qt)) setTimeout(()=>switchTab(qt),1200); }
-(function(){ const b=document.getElementById('cloudResetBtn'); if(b) b.textContent=LX('نسيت كلمة المرور؟ (دخول برابط البريد)','Forgot password? (sign in by email link)');
+function _extraLabels(){ try{ const b=document.getElementById('cloudResetBtn'); if(b) b.textContent=LX('نسيت كلمة المرور؟ (دخول برابط البريد)','Forgot password? (sign in by email link)');
   const c=document.getElementById('cloudCurPwInput'); if(c) c.placeholder=LX('كلمة المرور الحالية (اتركها فارغة بعد الدخول برابط)','Current password (leave empty after email-link sign-in)');
   const n=document.getElementById('cloudNewPwInput'); if(n) n.placeholder=LX('كلمة المرور الجديدة (6 أحرف على الأقل)','New password (min 6 characters)');
-  const cb=document.getElementById('cloudChangePwBtn'); if(cb) cb.textContent=LX('تغيير كلمة المرور','Change password'); })();
+  const cb=document.getElementById('cloudChangePwBtn'); if(cb) cb.textContent=LX('تغيير كلمة المرور','Change password');
+  const vb=document.getElementById('voiceBtn'); if(vb && !vb.dataset.listening) vb.textContent=LX('🎤 تسجيل بالصوت','🎤 Voice entry');
+  }catch(e){} }
+{ const _ai=applyI18n; applyI18n=function(){ const r=_ai.apply(this,arguments); _extraLabels(); return r; }; }
+_extraLabels();
 /* ===== quick-add page support (quick.html writes straight into localStorage) ===== */
 try{ if(!localStorage.getItem(CAT_KEY)) localStorage.setItem(CAT_KEY, JSON.stringify(DEFAULT_CATS));
      if(!localStorage.getItem(WAL_KEY)) localStorage.setItem(WAL_KEY, JSON.stringify(DEFAULT_WALLETS)); }catch(e){}
@@ -3423,6 +3430,91 @@ async function _syncQuick(){
 window.addEventListener('storage', e=>{ if(e.key===TX_KEY) _syncQuick(); });
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') _syncQuick(); });
 window.addEventListener('load', ()=>{ try{ fetch('./quick.html').catch(()=>{}); }catch(e){} });
+
+/* ================= voice entry ================= */
+function parseVoiceEntry(raw){
+  let txt=String(raw||'').trim();
+  txt=txt.replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/٫/g,'.').replace(/٬/g,',');
+  const MUL={'ألف':1e3,'الف':1e3,'آلاف':1e3,'مليون':1e6};
+  const CUR=/^(دينار|دنانير|دينارا|دج|دا|da|dzd|dinar|dinars)$/i;
+  const clean=n=>{ const v=Math.round(n*100)/100; return (isFinite(v)&&v>0&&v<1e9)?v:null; };
+  // 1) digits
+  const m=txt.match(/(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:[.,]\d+)?)(?:\s*(ألف|الف|آلاف|مليون))?/);
+  if(m){
+    let n=parseFloat(m[1].replace(/,(?=\d{3}(\D|$))/g,'').replace(',','.'));
+    if(m[2]) n*=MUL[m[2]];
+    const note=txt.replace(m[0],' ').split(/\s+/).filter(w=>w&&!CUR.test(w)).join(' ');
+    return {amount:clean(n), note};
+  }
+  // 2) Arabic number words
+  const norm=w=>w.replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u0652]/g,'');
+  const orig=txt.split(/\s+/).filter(Boolean), tok=orig.map(norm);
+  const U={صفر:0,واحد:1,واحده:1,احد:1,اثنين:2,اثنان:2,اثنا:2,اتنين:2,ثلاثه:3,ثلاث:3,تلاته:3,اربعه:4,اربع:4,خمسه:5,خمس:5,سته:6,ست:6,سبعه:7,سبع:7,ثمانيه:8,ثماني:8,ثمان:8,تمانيه:8,تسعه:9,تسع:9,عشره:10,عشر:10,
+    عشرين:20,عشرون:20,ثلاثين:30,ثلاثون:30,اربعين:40,اربعون:40,خمسين:50,خمسون:50,ستين:60,ستون:60,سبعين:70,سبعون:70,ثمانين:80,ثمانون:80,تسعين:90,تسعون:90,
+    مئتين:200,مائتين:200,ميتين:200};
+  const H=new Set(['مئه','مائه','ميه','مايه','مئة']);
+  const COMB=/^(ثلاث|اربع|خمس|ست|سبع|ثمان|تسع)(مائه|مئه|ميه|مايه)$/;
+  const CN={ثلاث:3,اربع:4,خمس:5,ست:6,سبع:7,ثمان:8,تسع:9};
+  const isNum=w=>(w in U)||H.has(w)||COMB.test(w)||w==='الف'||w==='الفين'||w==='الاف'||w==='مليون';
+  const strip=w=>(!isNum(w)&&w.length>2&&w[0]==='و'&&isNum(w.slice(1)))?w.slice(1):w;
+  let total=0,cur=0,found=false; const used=new Set();
+  tok.forEach((raw,i)=>{
+    const w=strip(raw); let hit=true;
+    if(w in U){ cur+=U[w]; }
+    else if(H.has(w)){ if(cur>=1&&cur<=9) cur*=100; else cur+=100; }
+    else if(COMB.test(w)){ cur+=CN[w.match(COMB)[1]]*100; }
+    else if(w==='الف'||w==='الاف'){ total+=(cur||1)*1000; cur=0; }
+    else if(w==='الفين'){ total+=2000; }
+    else if(w==='مليون'){ total+=(cur||1)*1e6; cur=0; }
+    else hit=false;
+    if(hit){ used.add(i); found=true; }
+  });
+  orig.forEach((w,i)=>{ if(w==='و'&&used.has(i-1)&&i+1<tok.length&&used.has(i+1)) used.add(i); });
+  const amount=found?clean(total+cur):null;
+  const note=(amount==null?orig:orig.filter((w,i)=>!used.has(i))).filter(w=>!CUR.test(w)).join(' ');
+  return {amount, note};
+}
+(function(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const btn=document.getElementById('voiceBtn'), st=document.getElementById('voiceStatus');
+  if(!SR||!btn) return;
+  btn.style.display='block';
+  let rec=null, retried=false;
+  const idle=()=>{ delete btn.dataset.listening; btn.textContent=LX('🎤 تسجيل بالصوت','🎤 Voice entry'); };
+  function apply(text){
+    const p=parseVoiceEntry(text);
+    st.style.display='block'; st.textContent=LX('سمعت: ','Heard: ')+text;
+    const am=document.getElementById('amountInput'), nt=document.getElementById('noteInput');
+    if(p.amount!=null){ am.value=p.amount; am.dispatchEvent(new Event('input',{bubbles:true})); }
+    else showToast(LX('لم أتعرّف على مبلغ — راجع النص وأدخله يدويًا','No amount recognized — check the text and enter it manually'));
+    nt.value=p.note; nt.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  function start(lang){
+    const r=new SR(); rec=r; r.lang=lang; r.interimResults=false; r.maxAlternatives=1; r.continuous=false;
+    r.onstart=()=>{ if(rec!==r) return; btn.dataset.listening='1'; btn.textContent=LX('🎙️ أستمع… اضغط للإيقاف','🎙️ Listening… tap to stop'); };
+    r.onresult=(ev)=>{ if(rec!==r) return; try{ apply(ev.results[0][0].transcript); }catch(e){ console.error(e); } };
+    r.onerror=(e)=>{
+      if(rec!==r) return; const c=e&&e.error;
+      if(c==='language-not-supported' && lang!=='ar-SA' && settings.lang!=='en' && !retried){ retried=true; start('ar-SA'); return; }
+      idle();
+      showToast(c==='not-allowed'||c==='service-not-allowed' ? LX('مُنع الوصول إلى الميكروفون — فعّله من إعدادات المتصفح','Microphone access blocked — enable it in browser settings')
+        : c==='no-speech' ? LX('لم أسمع شيئًا، حاول مجددًا','Did not hear anything, try again')
+        : c==='network' ? LX('التعرف الصوتي يتطلب اتصالًا بالإنترنت','Speech recognition needs an internet connection')
+        : LX('تعذّر التعرف على الصوت','Could not recognize speech'));
+    };
+    r.onend=()=>{ if(rec===r) idle(); };
+    try{ r.start(); }catch(e){ idle(); }
+  }
+  btn.addEventListener('click', ()=>{
+    if(btn.dataset.listening){ try{ rec.stop(); }catch(e){} return; }
+    let ok=false; try{ ok=localStorage.getItem('daftari_voice_ok')==='1'; }catch(e){}
+    if(!ok){
+      if(!confirm(LX('سيُرسَل الصوت إلى خوادم المتصفح (مثل Google في Chrome) لتحويله إلى نص. هل توافق؟','Your voice will be sent to the browser\'s speech servers (e.g. Google in Chrome) to convert it to text. Continue?'))) return;
+      try{ localStorage.setItem('daftari_voice_ok','1'); }catch(e){}
+    }
+    retried=false; start(settings.lang==='en'?'en-US':'ar-DZ');
+  });
+})();
 /* ================= end extras ================= */
 init();
 </script>
