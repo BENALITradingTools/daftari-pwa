@@ -504,6 +504,9 @@
       <div class="cat-grid" id="billTypeGrid"></div>
     </div>
 
+    <button class="save-btn" id="saveBtn" style="display:block; width:70%; max-width:320px; margin:18px auto 0;" data-i18n="saveBtn">حفظ الحركة</button>
+    <button class="cancel-link" id="cancelEditBtn" style="display:none; margin:8px auto 0; text-align:center;" data-i18n="cancelEdit">إلغاء التعديل</button>
+
     <div id="addMoreSection">
       <label data-i18n="walletLabel">المحفظة</label>
       <select id="walletSelect"></select>
@@ -535,8 +538,6 @@
       </div>
     </div>
 
-    <button class="save-btn" id="saveBtn" data-i18n="saveBtn">حفظ الحركة</button>
-    <button class="cancel-link" id="cancelEditBtn" style="display:none;" data-i18n="cancelEdit">إلغاء التعديل</button>
   </main>
 
   <main id="tabSavings">
@@ -2718,6 +2719,7 @@ async function pushCloudNow(){
     }
     await CloudAPI.pushData(cloudUser.uid, payload);
     localStorage.setItem(CLOUD_TS_KEY, String(payload.updatedAt));
+    try{ localStorage.removeItem('daftari_quick_pending'); }catch(e){}
     setCloudStatus(t('cloudSynced'));
   }catch(e){
     console.error('cloud push failed:', e);
@@ -2790,6 +2792,15 @@ async function handleSignedIn(user){
         await CloudAPI.signOutUser(); return;
       }
       try{ localStorage.setItem(CLOUD_UID_KEY,user.uid); }catch(e){}
+      try{
+        const pend=JSON.parse(localStorage.getItem('daftari_quick_pending')||'[]');
+        if(Array.isArray(pend) && pend.length){
+          const have=new Set((remote.transactions||[]).map(x=>x.id));
+          const loc=JSON.parse(localStorage.getItem(TX_KEY)||'[]');
+          const extra=loc.filter(x=>x && pend.includes(x.id) && !have.has(x.id));
+          if(extra.length) remote.transactions=(remote.transactions||[]).concat(extra);   // uploaded on next sync
+        }
+      }catch(e){}
       applyCloudPayload(remote); // page will reload; listener starts after reload via onAuthChange
       return;
     }
@@ -3011,7 +3022,15 @@ function shortcutURL(){
   url.searchParams.set('action','add');
   return url.toString();
 }
+function quickURL(){ const u=new URL('quick.html', window.location.href); u.search=''; u.hash=''; return u.toString(); }
 function shortcutHowToHtml(){
+  const q=escapeHtml(quickURL());
+  const extra = settings.lang==='en'
+    ? `<br><br><b>Quick add (without opening the full app):</b> a small page with only amount + category. On Android it appears in the icon's long-press menu as \"Quick add\". On iOS open this link in Safari → Share → Add to Home Screen: <span style=\"direction:ltr; display:inline-block; word-break:break-all;\">${q}</span>`
+    : `<br><br><b>التسجيل السريع (دون فتح التطبيق كاملًا):</b> صفحة صغيرة فيها المبلغ والفئة فقط. على أندرويد تظهر في قائمة الضغط المطوّل على الأيقونة باسم \"تسجيل سريع\". على iOS افتح هذا الرابط في Safari ← مشاركة ← إضافة إلى الشاشة الرئيسية: <span style=\"direction:ltr; display:inline-block; word-break:break-all;\">${q}</span>`;
+  return _shortcutHowToBase() + extra;
+}
+function _shortcutHowToBase(){
   const url=escapeHtml(shortcutURL());
   if(settings.lang==='en'){
     if(isIOS()){
@@ -3385,6 +3404,25 @@ if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('messa
   const c=document.getElementById('cloudCurPwInput'); if(c) c.placeholder=LX('كلمة المرور الحالية (اتركها فارغة بعد الدخول برابط)','Current password (leave empty after email-link sign-in)');
   const n=document.getElementById('cloudNewPwInput'); if(n) n.placeholder=LX('كلمة المرور الجديدة (6 أحرف على الأقل)','New password (min 6 characters)');
   const cb=document.getElementById('cloudChangePwBtn'); if(cb) cb.textContent=LX('تغيير كلمة المرور','Change password'); })();
+/* ===== quick-add page support (quick.html writes straight into localStorage) ===== */
+try{ if(!localStorage.getItem(CAT_KEY)) localStorage.setItem(CAT_KEY, JSON.stringify(DEFAULT_CATS));
+     if(!localStorage.getItem(WAL_KEY)) localStorage.setItem(WAL_KEY, JSON.stringify(DEFAULT_WALLETS)); }catch(e){}
+async function _syncQuick(){
+  try{
+    const raw=localStorage.getItem(TX_KEY); if(!raw) return;
+    const stored=JSON.parse(raw); if(!Array.isArray(stored)) return;
+    const ids=new Set(transactions.map(x=>x.id));
+    const add=stored.filter(x=>x && x.id!=null && !ids.has(x.id));   // only ADD unknown entries, never replace/delete
+    if(!add.length) return;
+    add.forEach(x=>transactions.push(x));
+    await saveTx();
+    const m=document.querySelector('main.active'); if(m && m.id!=='tabAdd') switchTab(m.id);
+    showToast(LX('أُضيفت عمليات سُجّلت من الاختصار السريع','Added entries recorded from the quick shortcut'));
+  }catch(e){ console.error('quick sync failed', e); }
+}
+window.addEventListener('storage', e=>{ if(e.key===TX_KEY) _syncQuick(); });
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') _syncQuick(); });
+window.addEventListener('load', ()=>{ try{ fetch('./quick.html').catch(()=>{}); }catch(e){} });
 /* ================= end extras ================= */
 init();
 </script>
