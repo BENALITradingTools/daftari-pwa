@@ -3614,6 +3614,70 @@ function parseVoiceEntry(raw){
   const note=(amount==null?orig:orig.filter((w,i)=>!used.has(i))).filter(w=>!CUR.test(w)).join(' ');
   return {amount, note};
 }
+/* ---------- voice: pick the category from what was said ---------- */
+const _vNorm=w=>String(w||'').toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u0652\u0640]/g,'');
+const _vVariants=w=>{ const v=new Set([w]);
+  if(/^(وال|بال|فال|كال)/.test(w)) v.add(w.slice(3));
+  if(/^(ال|لل)/.test(w)) v.add(w.slice(2));
+  if(/^[وبلفك]/.test(w)) v.add(w.slice(1));
+  return v; };
+const VOICE_KW={
+  food:'اكل طعام غداء عشاء فطور فطار سحور مطعم قهوه شاي خبز حليب لحم دجاج سمك خضر خضره فواكه فاكهه بيتزا برغر ساندويتش ساندوتش عصير مشروب حلويات كافي كافيه مقهي سوبرماركت بقاله ماركت مخبزه وجبه وجبات غدا food lunch dinner breakfast restaurant coffee grocery groceries pizza burger snack drink meal',
+  transport:'بنزين وقود مازوت سياره سيارات تاكسي طاكسي حافله ترام مترو قطار طيارات طياره تذكره تذاكر مواصلات موقف زيت محرك تصليح غسيل كابل gas fuel petrol taxi uber bus train metro ticket parking car',
+  home:'ايجار كراء كرا منزل بيت اثاث ديكور صيانه سباك كهربائي مفروشات منظفات تنظيف rent home house furniture repair cleaning',
+  bills:'فاتوره فواتير كهرباء ماء مياه غاز انترنت نت هاتف تلفون رصيد تعبئه اشتراك سونلغاز موبيليس جازي اوريدو bill bills electricity water internet phone subscription topup',
+  shopping:'تسوق ملابس لباس حذاء قميص سروال جاكيت هديه هدايا عطر مكياج شراء shopping clothes shoes gift shirt',
+  fun:'ترفيه سينما لعبه العاب بلايستيشن رحله سفر نزهه حفله فيلم نتفلكس رياضه نادي مسبح fun cinema movie game trip travel concert netflix gym',
+  health:'دواء دوا ادويه صيدليه طبيب دكتور مستشفي عياده تحاليل فحص علاج اسنان نظارات medicine pharmacy doctor hospital clinic dentist',
+  edu:'مدرسه جامعه كتاب كتب دروس دوره كورس تعليم قرطاسيه دفتر تسجيل school university book course tuition class',
+  salary:'راتب مرتب معاش salary wage paycheck',
+  invest:'استثمار ارباح ربح اسهم عائد فوائد investment profit dividend'
+};
+const VOICE_BILL_KW={
+  electricity:'كهرباء سونلغاز electricity',
+  water:'ماء مياه water',
+  internet:'انترنت نت wifi internet',
+  phone:'هاتف تلفون رصيد تعبئه موبيليس جازي اوريدو phone topup'
+};
+const _vSets=(obj)=>{ const o={}; for(const k in obj) o[k]=new Set(obj[k].split(/\s+/).map(_vNorm)); return o; };
+const _VKW=_vSets(VOICE_KW), _VBILL=_vSets(VOICE_BILL_KW);
+const _V_STOP=new Set(['مع','من','في','على','الي','عن','for','the','and','with','to','of','in','on','at','a']);
+function guessVoiceCategory(note){
+  const toks=String(note||'').split(/\s+/).map(_vNorm).filter(Boolean);
+  if(!toks.length) return null;
+  const hit=(set)=>toks.some(w=>[..._vVariants(w)].some(v=>set.has(v)));
+  const count=(set)=>toks.filter(w=>[..._vVariants(w)].some(v=>set.has(v))).length;
+  const ok=(id)=>categories.find(c=>c.id===id);
+  const result=(c)=>{
+    let billType=null;
+    if(c.id==='bills' && c.type==='expense'){
+      billType='bill_other';
+      for(const k in _VBILL){ if(hit(_VBILL[k])){ billType=k; break; } }
+    }
+    return {id:c.id, type:c.type, billType};
+  };
+  // 1) the category's own name was said (skip the generic "Other" ones)
+  for(const c of categories){
+    if(c.id==='other_exp'||c.id==='other_inc') continue;
+    const names=[c.label,c.label_en].filter(Boolean).map(_vNorm);
+    if(toks.some(w=>[..._vVariants(w)].some(v=>names.includes(v)))) return result(c);
+  }
+  // 2) keyword dictionary (Arabic / English / common Algerian words)
+  let best=null, bestN=0;
+  for(const id in _VKW){ const c=ok(id); if(!c) continue; const n=count(_VKW[id]); if(n>bestN){ best=c; bestN=n; } }
+  if(best) return result(best);
+  // 3) your own history: same words used in earlier notes
+  const words=toks.filter(w=>w.length>2 && !_V_STOP.has(w)), score={};
+  if(words.length){
+    transactions.forEach(tx=>{
+      if(tx.type!==currentType||!tx.note||!tx.category) return;
+      const n=_vNorm(tx.note); words.forEach(w=>{ if(n.includes(w)) score[tx.category]=(score[tx.category]||0)+1; });
+    });
+    const id=Object.keys(score).sort((a,b)=>score[b]-score[a])[0];
+    const c=id&&ok(id); if(c) return result(c);
+  }
+  return null;
+}
 (function(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   const btn=document.getElementById('voiceBtn'), st=document.getElementById('voiceStatus');
@@ -3627,7 +3691,22 @@ function parseVoiceEntry(raw){
     const am=document.getElementById('amountInput'), nt=document.getElementById('noteInput');
     if(p.amount!=null){ am.value=p.amount; am.dispatchEvent(new Event('input',{bubbles:true})); }
     else showToast(LX('لم أتعرّف على مبلغ — راجع النص وأدخله يدويًا','No amount recognized — check the text and enter it manually'));
-    nt.value=p.note; nt.dispatchEvent(new Event('input',{bubbles:true}));
+    nt.value=p.note;
+    // choose the category from the spoken note
+    const g=guessVoiceCategory(p.note||text);
+    if(g){
+      if(g.type!==currentType){
+        currentType=g.type;
+        document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.type===g.type));
+        catGridExpanded=false;
+      }
+      selectedCategory=g.id;
+      selectedBillType=g.billType||null;
+      renderCatGrid();
+      const gc=categories.find(c=>c.id===g.id);
+      if(gc) st.textContent += LX('  ·  الفئة: ','  ·  Category: ')+gc.icon+' '+trLabel(gc);
+    }
+    nt.dispatchEvent(new Event('input',{bubbles:true}));
   }
   function start(lang){
     const r=new SR(); rec=r; r.lang=lang; r.interimResults=false; r.maxAlternatives=1; r.continuous=false;
