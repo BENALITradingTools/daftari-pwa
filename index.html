@@ -713,8 +713,12 @@
         <select id="currencySelect" style="width:auto;"></select>
       </div>
       <div class="set-row">
-        <div><div class="lab" data-i18n="darkMode">الوضع الداكن</div></div>
-        <div class="switch" id="darkSwitch"><div class="knob"></div></div>
+        <div><div class="lab" data-i18n="darkMode">المظهر</div></div>
+        <select id="themeSelect" style="width:auto;">
+          <option value="auto" data-i18n="themeAuto">تلقائي (حسب الهاتف)</option>
+          <option value="dark" data-i18n="themeDark">داكن</option>
+          <option value="light" data-i18n="themeLight">فاتح</option>
+        </select>
       </div>
       <div class="set-row">
         <div><div class="lab" data-i18n="language">اللغة</div></div>
@@ -736,6 +740,24 @@
         <input type="text" id="newWalletName" placeholder="اسم المحفظة الجديدة" data-i18n-ph="newWalletName">
         <button id="addWalletBtn">+</button>
       </div>
+    </div>
+
+    <div class="section-title" data-i18n="salarySection">💼 راتبي</div>
+    <div class="card-box" id="salaryBox">
+      <div class="info-note" style="margin-top:0; margin-bottom:6px;" data-i18n="salaryHint">أدخل راتبك مرة واحدة، أو اجعله شهريًا ليُضاف تلقائيًا كدخل في اليوم الذي تحدده.</div>
+      <label data-i18n="salaryAmount">مبلغ الراتب</label>
+      <input type="number" id="salaryAmountInput" placeholder="0.00" inputmode="decimal" min="0">
+      <div class="set-row" style="margin-top:6px;">
+        <div><div class="lab" data-i18n="salaryMonthly">راتب شهري</div><div class="sub" data-i18n="salaryMonthlySub">يُضاف تلقائيًا كل شهر</div></div>
+        <div class="switch" id="salaryMonthlySwitch"><div class="knob"></div></div>
+      </div>
+      <div id="salaryDayRow" style="display:none;">
+        <label data-i18n="salaryDay">يوم نزول الراتب من الشهر</label>
+        <select id="salaryDaySelect"></select>
+      </div>
+      <button class="save-btn" id="salarySaveBtn" style="margin-top:14px;" data-i18n="salarySave">حفظ الراتب</button>
+      <div class="info-note" id="salaryStatus" style="display:none; margin-top:10px;"></div>
+      <button class="cancel-link" id="salaryStopBtn" style="display:none; margin:8px auto 0; text-align:center;" data-i18n="salaryStop">إيقاف الراتب الشهري</button>
     </div>
 
     <div class="section-title" data-i18n="budgetSection">🎯 الميزانية الشهرية</div>
@@ -870,7 +892,7 @@
 
 <script>
 const TX_KEY='daftari_transactions_v1', CAT_KEY='daftari_categories_v1', SET_KEY='daftari_settings_v1', REC_KEY='daftari_recurring_v1', WAL_KEY='daftari_wallets_v1', SAV_KEY='daftari_savings_v1', AUTO_KEY='daftari_auto_backup_v1', DEBT_KEY='daftari_debts_v1';
-let transactions=[], categories=[], settings={currency:'DZD', theme:'dark', lang:'ar', pinEnabled:false, pinHash:'', budgets:{}, notifEnabled:false, autoBackupEnabled:true, autoBackupDays:7, lastAutoBackup:null, balanceHidden:false};
+let transactions=[], categories=[], settings={currency:'DZD', theme:'auto', lang:'ar', pinEnabled:false, pinHash:'', budgets:{}, notifEnabled:false, autoBackupEnabled:true, autoBackupDays:7, lastAutoBackup:null, balanceHidden:false};
 let recurring=[];
 let wallets=[];
 let savingsGoals=[];
@@ -966,7 +988,8 @@ const I18N={
     trendChart:'📈 الاتجاه خلال الفترة ({period})',
     catByMonth:'الإنفاق حسب الفئة ({period})', incomeVsExpense:'الدخل مقابل المصروف (الإجمالي)', monthlyCompare:'مقارنة شهرية (آخر 6 أشهر)', yearlyCompare:'مقارنة سنوية',
     exportPDF:'🖨️ تصدير التقرير كملف PDF',
-    general:'عام', currency:'العملة', darkMode:'الوضع الداكن', language:'اللغة',
+    general:'عام', darkMode:'المظهر', themeAuto:'تلقائي (حسب الهاتف)', themeDark:'داكن', themeLight:'فاتح',
+    salarySection:'💼 راتبي', salaryHint:'أدخل راتبك مرة واحدة، أو اجعله شهريًا ليُضاف تلقائيًا كدخل في اليوم الذي تحدده.', salaryAmount:'مبلغ الراتب', salaryMonthly:'راتب شهري', salaryMonthlySub:'يُضاف تلقائيًا كل شهر', salaryDay:'يوم نزول الراتب من الشهر', salarySave:'حفظ الراتب', salaryStop:'إيقاف الراتب الشهري', salaryDayOpt:'يوم', salaryStatusMonthly:'راتب شهري: {amt} — يوم {day} من كل شهر', salaryToastOnce:'تمت إضافة الراتب', salaryToastMonthly:'تم حفظ الراتب الشهري', salaryToastStopped:'تم إيقاف الراتب الشهري', salaryInvalid:'أدخل مبلغ الراتب', currency:'العملة', language:'اللغة',
     walletsSection:'👛 المحافظ / الحسابات', walletsHint:'أضف محافظ أو حسابات متعددة (نقدي، بنك، توفير...) وتتبع رصيد كل واحدة على حدة.', newWalletName:'اسم المحفظة الجديدة',
     budgetSection:'🎯 الميزانية الشهرية', budgetHint:'حدّد سقفًا شهريًا لأي فئة مصروف تريد مراقبتها. اترك الحقل فارغًا أو صفرًا لإلغاء الميزانية عن تلك الفئة.',
     savingsSection:'💰 المدخرات', savingsHint:'أنشئ أهدافًا للادخار (سيارة، منزل...) بمبلغ مستهدف. الأموال المضافة هنا منفصلة تمامًا عن رصيدك الحالي ولا تُحتسب ضمنه.',
@@ -1078,7 +1101,8 @@ const I18N={
     trendChart:'📈 Trend Over the Period ({period})',
     catByMonth:'Spending by Category ({period})', incomeVsExpense:'Income vs Expense (total)', monthlyCompare:'Monthly Comparison (last 6 months)', yearlyCompare:'Yearly Comparison',
     exportPDF:'🖨️ Export report as PDF',
-    general:'General', currency:'Currency', darkMode:'Dark Mode', language:'Language',
+    general:'General', darkMode:'Appearance', themeAuto:'Auto (follow phone)', themeDark:'Dark', themeLight:'Light',
+    salarySection:'💼 My Salary', salaryHint:'Enter your salary once, or make it monthly so it is added automatically as income on the day you choose.', salaryAmount:'Salary amount', salaryMonthly:'Monthly salary', salaryMonthlySub:'Added automatically every month', salaryDay:'Day of the month the salary arrives', salarySave:'Save salary', salaryStop:'Stop monthly salary', salaryDayOpt:'Day', salaryStatusMonthly:'Monthly salary: {amt} — day {day} of each month', salaryToastOnce:'Salary added', salaryToastMonthly:'Monthly salary saved', salaryToastStopped:'Monthly salary stopped', salaryInvalid:'Enter the salary amount', currency:'Currency', language:'Language',
     walletsSection:'👛 Wallets / Accounts', walletsHint:'Add multiple wallets or accounts (cash, bank, savings...) and track each balance separately.', newWalletName:'New wallet name',
     budgetSection:'🎯 Monthly Budget', budgetHint:'Set a monthly cap for any expense category you want to track. Leave empty or 0 to remove the budget for that category.',
     savingsSection:'💰 Savings', savingsHint:'Create savings goals (car, house...) with a target amount. Funds added here are kept fully separate from your current balance and are not counted in it.',
@@ -1235,9 +1259,17 @@ async function saveSavings(){ try{ localStorage.setItem(SAV_KEY, JSON.stringify(
 async function saveDebts(){ try{ localStorage.setItem(DEBT_KEY, JSON.stringify(debts)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
 
 /* ---------- theme ---------- */
+const _darkMQ = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 function applyTheme(){
-  document.body.classList.toggle('light', settings.theme==='light');
-  document.getElementById('darkSwitch').classList.toggle('on', settings.theme==='dark');
+  const th = settings.theme || 'auto';
+  const isLight = th==='light' || (th==='auto' && _darkMQ && !_darkMQ.matches);
+  document.body.classList.toggle('light', isLight);
+  const sel=document.getElementById('themeSelect'); if(sel) sel.value = (th==='dark'||th==='light') ? th : 'auto';
+  const meta=document.querySelector('meta[name="theme-color"]'); if(meta) meta.setAttribute('content', isLight ? '#f5f1e8' : '#12151b');
+}
+if(_darkMQ){
+  const _onMQ=()=>{ if((settings.theme||'auto')==='auto') applyTheme(); };
+  if(_darkMQ.addEventListener) _darkMQ.addEventListener('change', _onMQ); else if(_darkMQ.addListener) _darkMQ.addListener(_onMQ);
 }
 
 /* ---------- wallets (chips + selects) ---------- */
@@ -1299,7 +1331,7 @@ document.querySelectorAll('.navbtn').forEach(b=>b.addEventListener('click', ()=>
 /* ---------- Add / Edit form ---------- */
 let catGridExpanded=false;
 let selectedBillType=null;
-const CAT_GRID_LIMIT=8;
+const CAT_GRID_LIMIT=4;   // first row only (4 columns)
 function renderCatGrid(){
   const grid=document.getElementById('catGrid');
   const toggleBtn=document.getElementById('catGridToggle');
@@ -1890,13 +1922,14 @@ function renderSettings(){
   renderCatManage();
   renderBudgetSettings();
   renderRecurringSettings();
+  renderSalarySettings();
   renderWalletManage();
 }
 document.getElementById('currencySelect').addEventListener('change', (e)=>{
   settings.currency=e.target.value; saveSettings(); showToast(t('toastCurrencyChanged'));
 });
-document.getElementById('darkSwitch').addEventListener('click', ()=>{
-  settings.theme = settings.theme==='dark' ? 'light' : 'dark';
+document.getElementById('themeSelect').addEventListener('change', (e)=>{
+  settings.theme = e.target.value;
   saveSettings(); applyTheme();
 });
 document.querySelectorAll('#langPill button').forEach(b=>{
@@ -2559,6 +2592,85 @@ function renderUpcomingRecurring(){
   }).join('');
 }
 
+
+/* ---------- Salary (one-time or monthly on a chosen day) ---------- */
+function _localISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function _ym(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function _salaryPayDate(y,m,day){ const last=new Date(y,m+1,0).getDate(); return new Date(y,m,Math.min(day,last)); }
+function _salaryWalletId(){ return (walletFilter && walletFilter!=='all' && wallets.find(w=>w.id===walletFilter)) ? walletFilter : wallets[0].id; }
+function processSalary(){
+  const sal=settings.salary;
+  if(!sal || !sal.monthly || !sal.amount) return;
+  const now=new Date(); now.setHours(0,0,0,0);
+  let [y,m]=(sal.nextMonth||_ym(now)).split('-').map(Number); m-=1;
+  let guard=0, changed=false;
+  while(guard<36){
+    const pay=_salaryPayDate(y,m,sal.day);
+    if(pay>now) break;
+    const id='sal_'+y+'-'+String(m+1).padStart(2,'0');
+    if(!transactions.find(t=>t.id===id)){
+      transactions.push({id, type:'income', category:'salary', amount:sal.amount, note:t('salarySection').replace('💼','').trim(), date:_localISO(pay), wallet:sal.wallet||wallets[0].id, billType:null});
+    }
+    changed=true; m++; if(m>11){ m=0; y++; } guard++;
+  }
+  const nm=y+'-'+String(m+1).padStart(2,'0');
+  if(changed || sal.nextMonth!==nm){ sal.nextMonth=nm; saveTx(); saveSettings(); }
+}
+function renderSalarySettings(){
+  const sel=document.getElementById('salaryDaySelect');
+  if(!sel) return;
+  if(!sel.options.length){
+    for(let d=1; d<=31; d++){ const o=document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o); }
+  }
+  const sal=settings.salary;
+  const sw=document.getElementById('salaryMonthlySwitch');
+  const active=!!(sal && sal.monthly);
+  if(document.activeElement!==document.getElementById('salaryAmountInput')){
+    document.getElementById('salaryAmountInput').value = sal && sal.amount ? sal.amount : '';
+  }
+  sw.classList.toggle('on', salaryDraftMonthly===null ? active : salaryDraftMonthly);
+  if(sal && sal.day && salaryDraftMonthly===null) sel.value=sal.day; else if(!sel.value) sel.value=String(new Date().getDate());
+  document.getElementById('salaryDayRow').style.display = sw.classList.contains('on') ? 'block' : 'none';
+  const st=document.getElementById('salaryStatus'), stop=document.getElementById('salaryStopBtn');
+  if(active){
+    st.style.display='block';
+    st.textContent=t('salaryStatusMonthly').replace('{amt}', fmt(sal.amount)).replace('{day}', sal.day);
+    stop.style.display='block';
+  }else{ st.style.display='none'; stop.style.display='none'; }
+}
+let salaryDraftMonthly=null;
+document.getElementById('salaryMonthlySwitch').addEventListener('click', ()=>{
+  const sw=document.getElementById('salaryMonthlySwitch');
+  salaryDraftMonthly=!sw.classList.contains('on');
+  sw.classList.toggle('on', salaryDraftMonthly);
+  document.getElementById('salaryDayRow').style.display = salaryDraftMonthly ? 'block' : 'none';
+});
+document.getElementById('salarySaveBtn').addEventListener('click', ()=>{
+  const amount=parseFloat(document.getElementById('salaryAmountInput').value);
+  if(!amount || amount<=0){ showToast(t('salaryInvalid')); return; }
+  const monthly=document.getElementById('salaryMonthlySwitch').classList.contains('on');
+  const wallet=_salaryWalletId();
+  const now=new Date();
+  if(monthly){
+    const day=parseInt(document.getElementById('salaryDaySelect').value,10)||1;
+    settings.salary={amount, monthly:true, day, wallet, nextMonth:_ym(now)};
+    saveSettings();
+    processSalary();           // adds this month's salary right away if its day has already passed
+    showToast(t('salaryToastMonthly'));
+  }else{
+    transactions.push({id:Date.now().toString()+Math.random().toString(36).slice(2,6), type:'income', category:'salary', amount, note:'', date:_localISO(now), wallet, receipt:null, billType:null});
+    settings.salary=null;
+    saveTx(); saveSettings();
+    showToast(t('salaryToastOnce'));
+  }
+  salaryDraftMonthly=null;
+  renderSalarySettings();
+});
+document.getElementById('salaryStopBtn').addEventListener('click', ()=>{
+  settings.salary=null; salaryDraftMonthly=null; saveSettings();
+  renderSalarySettings(); showToast(t('salaryToastStopped'));
+});
+
 /* ---------- PDF report export (uses the browser's built-in print-to-PDF — no library, fully offline) ---------- */
 function buildPrintReport(){
   const filtered=txByWalletFilter(transactions);
@@ -3179,6 +3291,7 @@ async function init(){
   try{
     await load();
     processRecurring();
+    processSalary();
     maybeNotifyDueRecurring();
     maybeAutoBackup();
     applyTheme();
