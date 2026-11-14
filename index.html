@@ -441,6 +441,33 @@
 .empty-state button,.ob-go{margin-top:12px;background:var(--gold);color:#12151b;border:0;border-radius:12px;padding:11px 22px;font:inherit;font-weight:700}
 #forecastBox{margin:10px 0;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:14px;font-size:13px;color:var(--muted)}
 #forecastBox b{color:var(--ink)}
+#forecastBox{padding:0;background:none;border:0}
+.ins-head{font-size:13px;font-weight:700;color:var(--ink);margin:2px 2px 8px}
+.ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ins-tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 12px;min-width:0}
+.ins-tile.wide{grid-column:1/-1}
+.ins-tile .k{font-size:11.5px;color:var(--muted)}
+.ins-tile .v{font-size:16px;font-weight:700;color:var(--ink);margin-top:3px;overflow-wrap:anywhere}
+.ins-tile .s{font-size:11.5px;margin-top:2px;color:var(--muted)}
+.ins-tile .v.up{color:#c1594a}.ins-tile .v.down{color:#6fa287}
+#budgetBanner{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:12px;right:12px;z-index:3500;background:var(--card-2);border:1px solid var(--gold);color:var(--ink);padding:12px 14px;border-radius:14px;font-size:13.5px;line-height:1.6;box-shadow:0 8px 24px rgba(0,0,0,.35);transform:translateY(-160%);transition:transform .3s;cursor:pointer}
+#budgetBanner.show{transform:none}
+#budgetBanner.over{border-color:#c1594a}
+#onboard .box{max-height:100%;overflow:auto}
+.ob-dots{display:flex;gap:6px;justify-content:center;margin:0 0 18px}
+.ob-dots i{width:8px;height:8px;border-radius:99px;background:var(--line);display:block;transition:.2s}
+.ob-dots i.on{background:var(--gold);width:22px}
+#onboard input[type=number]{text-align:center;font-size:18px}
+.ob-chips{display:flex;gap:8px;margin:12px 0}
+.ob-chip{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;font:inherit;cursor:pointer}
+.ob-chip.on{border-color:var(--gold);background:var(--card-2);font-weight:700}
+.ob-btns{display:flex;gap:8px;margin-top:20px}
+.ob-btns button{flex:1;margin:0}
+.ob-ghost{background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:12px;padding:11px 12px;font:inherit;cursor:pointer}
+.ob-bud{display:flex;align-items:center;gap:10px;margin:8px 0;text-align:start;color:var(--ink)}
+.ob-bud .lbl{flex:1}
+.ob-bud input{width:130px}
+.ob-ok{color:#6fa287;font-weight:700;margin-top:10px}
 #onboard{position:fixed;inset:0;z-index:3000;background:var(--bg);display:none;align-items:center;justify-content:center;padding:24px}
 #onboard.open{display:flex}
 #onboard .box{max-width:380px;width:100%;text-align:center;color:var(--ink)}
@@ -775,6 +802,10 @@
     <div class="section-title" data-i18n="budgetSection">🎯 الميزانية الشهرية</div>
     <div class="card-box">
       <div class="info-note" style="margin-top:0; margin-bottom:10px;" data-i18n="budgetHint">حدّد سقفًا شهريًا لأي فئة مصروف تريد مراقبتها. اترك الحقل فارغًا أو صفرًا لإلغاء الميزانية عن تلك الفئة.</div>
+      <div class="set-row" style="margin-bottom:8px;">
+        <div><div class="lab" data-i18n="budgetAlertLab">تنبيه عند اقتراب الميزانية</div><div class="sub" data-i18n="budgetAlertSub">عند بلوغ 80% وعند التجاوز</div></div>
+        <div class="switch" id="budgetAlertSwitch"><div class="knob"></div></div>
+      </div>
       <div id="budgetSettingsList"></div>
     </div>
 
@@ -914,7 +945,7 @@ let editingId=null, currentType='expense', selectedCategory=null;
 let charts={};
 let pinMode='unlock', pinBuffer='', pinFirstEntry='';
 let unlockedThisSession=false;
-let lastDeleted=null, lastDeletedIndex=-1, undoTimer=null;
+let lastDeleted=null, lastDeletedIndex=-1, undoTimer=null, pendingUndo=null;
 let walletFilter='all';
 let pendingReceipt=null;
 let reportPeriod='thisMonth';
@@ -1001,7 +1032,7 @@ const I18N={
     catByMonth:'الإنفاق حسب الفئة ({period})', incomeVsExpense:'الدخل مقابل المصروف (الإجمالي)', monthlyCompare:'مقارنة شهرية (آخر 6 أشهر)', yearlyCompare:'مقارنة سنوية',
     exportPDF:'🖨️ تصدير التقرير كملف PDF',
     general:'عام', darkMode:'المظهر', themeAuto:'تلقائي (حسب الهاتف)', themeDark:'داكن', themeLight:'فاتح',
-    salarySection:'💼 راتبي', salaryHint:'أدخل راتبك مرة واحدة، أو اجعله شهريًا ليُضاف تلقائيًا كدخل في اليوم الذي تحدده.', salaryAmount:'مبلغ الراتب', salaryMonthly:'راتب شهري', salaryMonthlySub:'يُضاف تلقائيًا كل شهر', salaryDay:'يوم نزول الراتب من الشهر', salarySave:'حفظ الراتب', salaryStop:'إيقاف الراتب الشهري', salaryDayOpt:'يوم', salaryStatusMonthly:'راتب شهري: {amt} — يوم {day} من كل شهر', salaryToastOnce:'تمت إضافة الراتب', salaryToastMonthly:'تم حفظ الراتب الشهري', salaryToastStopped:'تم إيقاف الراتب الشهري', salaryInvalid:'أدخل مبلغ الراتب', currency:'العملة', language:'اللغة',
+    salarySection:'💼 راتبي', salaryHint:'أدخل راتبك مرة واحدة، أو اجعله شهريًا ليُضاف تلقائيًا كدخل في اليوم الذي تحدده.', salaryAmount:'مبلغ الراتب', salaryMonthly:'راتب شهري', salaryMonthlySub:'يُضاف تلقائيًا كل شهر', salaryDay:'يوم نزول الراتب من الشهر', salarySave:'حفظ الراتب', salaryStop:'إيقاف الراتب الشهري', salaryDayOpt:'يوم', salaryStatusMonthly:'راتب شهري: {amt} — يوم {day} من كل شهر', salaryToastOnce:'تمت إضافة الراتب', salaryToastMonthly:'تم حفظ الراتب الشهري', salaryToastStopped:'تم إيقاف الراتب الشهري', salaryInvalid:'أدخل مبلغ الراتب', budgetAlertLab:'تنبيه عند اقتراب الميزانية', budgetAlertSub:'عند بلوغ 80% وعند التجاوز', currency:'العملة', language:'اللغة',
     walletsSection:'👛 المحافظ / الحسابات', walletsHint:'أضف محافظ أو حسابات متعددة (نقدي، بنك، توفير...) وتتبع رصيد كل واحدة على حدة.', newWalletName:'اسم المحفظة الجديدة',
     budgetSection:'🎯 الميزانية الشهرية', budgetHint:'حدّد سقفًا شهريًا لأي فئة مصروف تريد مراقبتها. اترك الحقل فارغًا أو صفرًا لإلغاء الميزانية عن تلك الفئة.',
     savingsSection:'💰 المدخرات', savingsHint:'أنشئ أهدافًا للادخار (سيارة، منزل...) بمبلغ مستهدف. الأموال المضافة هنا منفصلة تمامًا عن رصيدك الحالي ولا تُحتسب ضمنه.',
@@ -1114,7 +1145,7 @@ const I18N={
     catByMonth:'Spending by Category ({period})', incomeVsExpense:'Income vs Expense (total)', monthlyCompare:'Monthly Comparison (last 6 months)', yearlyCompare:'Yearly Comparison',
     exportPDF:'🖨️ Export report as PDF',
     general:'General', darkMode:'Appearance', themeAuto:'Auto (follow phone)', themeDark:'Dark', themeLight:'Light',
-    salarySection:'💼 My Salary', salaryHint:'Enter your salary once, or make it monthly so it is added automatically as income on the day you choose.', salaryAmount:'Salary amount', salaryMonthly:'Monthly salary', salaryMonthlySub:'Added automatically every month', salaryDay:'Day of the month the salary arrives', salarySave:'Save salary', salaryStop:'Stop monthly salary', salaryDayOpt:'Day', salaryStatusMonthly:'Monthly salary: {amt} — day {day} of each month', salaryToastOnce:'Salary added', salaryToastMonthly:'Monthly salary saved', salaryToastStopped:'Monthly salary stopped', salaryInvalid:'Enter the salary amount', currency:'Currency', language:'Language',
+    salarySection:'💼 My Salary', salaryHint:'Enter your salary once, or make it monthly so it is added automatically as income on the day you choose.', salaryAmount:'Salary amount', salaryMonthly:'Monthly salary', salaryMonthlySub:'Added automatically every month', salaryDay:'Day of the month the salary arrives', salarySave:'Save salary', salaryStop:'Stop monthly salary', salaryDayOpt:'Day', salaryStatusMonthly:'Monthly salary: {amt} — day {day} of each month', salaryToastOnce:'Salary added', salaryToastMonthly:'Monthly salary saved', salaryToastStopped:'Monthly salary stopped', salaryInvalid:'Enter the salary amount', budgetAlertLab:'Budget alerts', budgetAlertSub:'At 80% and when exceeded', currency:'Currency', language:'Language',
     walletsSection:'👛 Wallets / Accounts', walletsHint:'Add multiple wallets or accounts (cash, bank, savings...) and track each balance separately.', newWalletName:'New wallet name',
     budgetSection:'🎯 Monthly Budget', budgetHint:'Set a monthly cap for any expense category you want to track. Leave empty or 0 to remove the budget for that category.',
     savingsSection:'💰 Savings', savingsHint:'Create savings goals (car, house...) with a target amount. Funds added here are kept fully separate from your current balance and are not counted in it.',
@@ -1501,12 +1532,14 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
   if(!selectedCategory){ showToast(t('toastChooseCat')); return; }
   const receipt=pendingReceipt || null;
   const billType = (currentType==='expense' && selectedCategory==='bills') ? selectedBillType : null;
+  let savedTx=null;
   if(editingId){
     const idx=transactions.findIndex(t=>t.id===editingId);
-    if(idx>-1) transactions[idx]={...transactions[idx], type:currentType, category:selectedCategory, amount, note, date, wallet, receipt, billType};
+    if(idx>-1){ transactions[idx]={...transactions[idx], type:currentType, category:selectedCategory, amount, note, date, wallet, receipt, billType}; savedTx=transactions[idx]; }
     showToast(t('toastUpdated'));
   }else{
-    transactions.push({id:Date.now().toString()+Math.random().toString(36).slice(2,6), type:currentType, category:selectedCategory, amount, note, date, wallet, receipt, billType});
+    savedTx={id:Date.now().toString()+Math.random().toString(36).slice(2,6), type:currentType, category:selectedCategory, amount, note, date, wallet, receipt, billType};
+    transactions.push(savedTx);
     const recurOn = document.getElementById('recurSwitch').classList.contains('on');
     if(recurOn){
       const freq = document.getElementById('recurFreqSelect').value;
@@ -1520,11 +1553,12 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
   saveTx();
   resetAddForm();
   switchTab('tabHome');
+  if(savedTx) checkBudgetAlert(savedTx);
 });
 function deleteTx(id){
   const idx=transactions.findIndex(t=>t.id===id);
   if(idx===-1) return;
-  lastDeleted=transactions[idx]; lastDeletedIndex=idx;
+  lastDeleted=transactions[idx]; lastDeletedIndex=idx; pendingUndo=null;
   transactions.splice(idx,1);
   saveTx();
   switchTab(document.querySelector('main.active').id);
@@ -1535,9 +1569,22 @@ function showUndoToast(msg){
   document.getElementById('undoMsg').textContent=msg;
   el.classList.add('show');
   if(undoTimer) clearTimeout(undoTimer);
-  undoTimer=setTimeout(()=>{ el.classList.remove('show'); lastDeleted=null; lastDeletedIndex=-1; }, 5000);
+  undoTimer=setTimeout(()=>{ el.classList.remove('show'); lastDeleted=null; lastDeletedIndex=-1; pendingUndo=null; }, 6000);
+}
+/* generic undo: offerUndo(message, restoreFn) */
+function offerUndo(msg, restore){
+  lastDeleted=null; lastDeletedIndex=-1; pendingUndo=restore;
+  showUndoToast(msg);
 }
 document.getElementById('undoBtn').addEventListener('click', ()=>{
+  if(pendingUndo){
+    const f=pendingUndo; pendingUndo=null;
+    if(undoTimer) clearTimeout(undoTimer);
+    document.getElementById('undoToast').classList.remove('show');
+    try{ f(); }catch(e){ console.error(e); }
+    showToast(t('toastUndoDone'));
+    return;
+  }
   if(!lastDeleted) return;
   const idx=Math.min(lastDeletedIndex, transactions.length);
   transactions.splice(idx,0,lastDeleted);
@@ -1935,6 +1982,7 @@ function renderSettings(){
   renderBudgetSettings();
   renderRecurringSettings();
   renderSalarySettings();
+  renderBudgetAlertSwitch();
   renderWalletManage();
 }
 document.getElementById('currencySelect').addEventListener('change', (e)=>{
@@ -2048,16 +2096,25 @@ function renderWalletManage(){
   }));
   el.querySelectorAll('.wm-del').forEach(b=>b.addEventListener('click', ()=>{
     if(wallets.length<=1){ showToast(t('toastCantDeleteLastWallet')); return; }
-    if(!confirm(t('confirmDeleteWallet'))) return;
-    const delId=b.dataset.id;
+    const delId=b.dataset.id, widx=wallets.findIndex(w=>w.id===delId); if(widx<0) return;
+    const removedW=wallets[widx];
+    const movedTx=transactions.filter(tx=>tx.wallet===delId).map(tx=>tx.id);
+    const movedRec=recurring.filter(r=>r.wallet===delId).map(r=>r.id);
+    const wasFilter=(walletFilter===delId);
     wallets=wallets.filter(w=>w.id!==delId);
     const fallback=wallets[0].id;
     transactions.forEach(tx=>{ if(tx.wallet===delId) tx.wallet=fallback; });
     recurring.forEach(r=>{ if(r.wallet===delId) r.wallet=fallback; });
-    if(walletFilter===delId) walletFilter='all';
+    if(wasFilter) walletFilter='all';
     saveWallets(); saveTx(); saveRecurring();
     renderWalletManage(); renderWalletChips(); populateWalletSelect();
-    showToast(t('toastWalletDeleted'));
+    offerUndo(t('toastWalletDeleted'), ()=>{
+      wallets.splice(Math.min(widx,wallets.length),0,removedW);
+      transactions.forEach(tx=>{ if(movedTx.includes(tx.id)) tx.wallet=delId; });
+      recurring.forEach(r=>{ if(movedRec.includes(r.id)) r.wallet=delId; });
+      saveWallets(); saveTx(); saveRecurring();
+      renderWalletManage(); renderWalletChips(); populateWalletSelect();
+    });
   }));
 }
 document.getElementById('addWalletBtn').addEventListener('click', ()=>{
@@ -2124,10 +2181,11 @@ function renderSavingsCards(){
     showToast(t('toastSavingsUpdated'));
   }));
   el.querySelectorAll('.sv-del').forEach(b=>b.addEventListener('click', ()=>{
-    if(!confirm(t('confirmDeleteSavings'))) return;
+    const idx=savingsGoals.findIndex(g=>g.id===b.dataset.id); if(idx<0) return;
+    const removed=savingsGoals[idx];
     savingsGoals=savingsGoals.filter(g=>g.id!==b.dataset.id);
     saveSavings(); renderSavingsCards();
-    showToast(t('toastSavingsDeleted'));
+    offerUndo(t('toastSavingsDeleted'), ()=>{ savingsGoals.splice(Math.min(idx,savingsGoals.length),0,removed); saveSavings(); renderSavingsCards(); });
   }));
 }
 function moveSavingsGoal(id, dir){
@@ -2399,10 +2457,11 @@ document.getElementById('debtEditSaveBtn').addEventListener('click', ()=>{
   closeDebtEditModal();
 });
 function deleteDebt(id){
-  if(!confirm(t('confirmDeleteDebt'))) return;
+  const idx=debts.findIndex(d=>d.id===id); if(idx<0) return;
+  const removed=debts[idx];
   debts=debts.filter(d=>d.id!==id);
   saveDebts(); renderDebtsList();
-  showToast(t('toastDebtDeleted'));
+  offerUndo(t('toastDebtDeleted'), ()=>{ debts.splice(Math.min(idx,debts.length),0,removed); saveDebts(); renderDebtsList(); });
 }
 document.getElementById('addDebtBtn').addEventListener('click', ()=>{
   const person=document.getElementById('newDebtPerson').value.trim();
@@ -2582,9 +2641,11 @@ function renderRecurringSettings(){
     </div>`;
   }).join('');
   el.querySelectorAll('.rec-del').forEach(b=>b.addEventListener('click', ()=>{
-    if(!confirm(t('confirmStopRecur'))) return;
+    const idx=recurring.findIndex(r=>r.id===b.dataset.id); if(idx<0) return;
+    const removed=recurring[idx];
     recurring=recurring.filter(r=>r.id!==b.dataset.id);
-    saveRecurring(); renderRecurringSettings(); showToast(t('toastRecurStopped'));
+    saveRecurring(); renderRecurringSettings();
+    offerUndo(t('toastRecurStopped'), ()=>{ recurring.splice(Math.min(idx,recurring.length),0,removed); saveRecurring(); renderRecurringSettings(); });
   }));
 }
 function renderUpcomingRecurring(){
@@ -2604,6 +2665,55 @@ function renderUpcomingRecurring(){
   }).join('');
 }
 
+
+/* ---------- budget alerts (when an expense crosses 80% / 100%) ---------- */
+let _bannerTimer=null;
+function showBudgetBanner(msg, over){
+  let b=document.getElementById('budgetBanner');
+  if(!b){
+    b=document.createElement('div'); b.id='budgetBanner'; document.body.appendChild(b);
+    b.addEventListener('click',()=>b.classList.remove('show'));
+  }
+  b.className=over?'over':'';
+  b.textContent=msg;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>b.classList.add('show')));
+  clearTimeout(_bannerTimer);
+  _bannerTimer=setTimeout(()=>b.classList.remove('show'), 6500);
+}
+function checkBudgetAlert(tx){
+  try{
+    if(settings.budgetAlerts===false) return;
+    if(!tx || tx.type!=='expense') return;
+    const budget=(settings.budgets||{})[tx.category];
+    if(!(budget>0)) return;
+    const nowYm=toLocalISO(new Date()).slice(0,7);
+    const ym=(tx.date||'').slice(0,7);
+    if(ym!==nowYm) return;                       // only the current month
+    const spent=transactions.filter(x=>x.type==='expense'&&x.category===tx.category&&(x.date||'').startsWith(ym)).reduce((a,x)=>a+(+x.amount||0),0);
+    const pct=spent/budget*100;
+    const level=pct>=100?100:(pct>=80?80:0);
+    if(!level) return;
+    settings.budgetAlertSeen=settings.budgetAlertSeen||{};
+    const key=ym+':'+tx.category+':'+budget;
+    if((settings.budgetAlertSeen[key]||0)>=level) return;
+    settings.budgetAlertSeen[key]=level;
+    Object.keys(settings.budgetAlertSeen).forEach(k=>{ if(k.slice(0,7)<nowYm) delete settings.budgetAlertSeen[k]; });
+    saveSettings();
+    const c=findCat(tx.category), name=c.icon+' '+trLabel(c);
+    const msg = level>=100
+      ? LX('🚨 تجاوزت ميزانية '+name+' بمقدار '+fmt(spent-budget), '🚨 You exceeded the '+name+' budget by '+fmt(spent-budget))
+      : LX('⚠️ وصلت إلى '+Math.round(pct)+'% من ميزانية '+name+' ('+fmt(spent)+' من '+fmt(budget)+')', '⚠️ You have used '+Math.round(pct)+'% of the '+name+' budget ('+fmt(spent)+' of '+fmt(budget)+')');
+    showBudgetBanner(msg, level>=100);
+    if(navigator.vibrate) try{ navigator.vibrate(level>=100?[80,60,80]:60); }catch(e){}
+  }catch(e){ console.error(e); }
+}
+function renderBudgetAlertSwitch(){
+  const sw=document.getElementById('budgetAlertSwitch'); if(sw) sw.classList.toggle('on', settings.budgetAlerts!==false);
+}
+document.getElementById('budgetAlertSwitch').addEventListener('click', ()=>{
+  settings.budgetAlerts = (settings.budgetAlerts===false);
+  saveSettings(); renderBudgetAlertSwitch();
+});
 
 /* ---------- Salary (one-time or monthly on a chosen day) ---------- */
 function _localISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -2657,24 +2767,25 @@ document.getElementById('salaryMonthlySwitch').addEventListener('click', ()=>{
   sw.classList.toggle('on', salaryDraftMonthly);
   document.getElementById('salaryDayRow').style.display = salaryDraftMonthly ? 'block' : 'none';
 });
-document.getElementById('salarySaveBtn').addEventListener('click', ()=>{
-  const amount=parseFloat(document.getElementById('salaryAmountInput').value);
-  if(!amount || amount<=0){ showToast(t('salaryInvalid')); return; }
-  const monthly=document.getElementById('salaryMonthlySwitch').classList.contains('on');
-  const wallet=_salaryWalletId();
-  const now=new Date();
+function commitSalary(amount, monthly, day){
+  const wallet=_salaryWalletId(), now=new Date();
   if(monthly){
-    const day=parseInt(document.getElementById('salaryDaySelect').value,10)||1;
-    settings.salary={amount, monthly:true, day, wallet, nextMonth:_ym(now)};
+    settings.salary={amount, monthly:true, day:day||1, wallet, nextMonth:_ym(now)};
     saveSettings();
     processSalary();           // adds this month's salary right away if its day has already passed
-    showToast(t('salaryToastMonthly'));
   }else{
     transactions.push({id:Date.now().toString()+Math.random().toString(36).slice(2,6), type:'income', category:'salary', amount, note:'', date:_localISO(now), wallet, receipt:null, billType:null});
     settings.salary=null;
     saveTx(); saveSettings();
-    showToast(t('salaryToastOnce'));
   }
+}
+document.getElementById('salarySaveBtn').addEventListener('click', ()=>{
+  const amount=parseFloat(document.getElementById('salaryAmountInput').value);
+  if(!amount || amount<=0){ showToast(t('salaryInvalid')); return; }
+  const monthly=document.getElementById('salaryMonthlySwitch').classList.contains('on');
+  const day=parseInt(document.getElementById('salaryDaySelect').value,10)||1;
+  commitSalary(amount, monthly, day);
+  showToast(monthly ? t('salaryToastMonthly') : t('salaryToastOnce'));
   salaryDraftMonthly=null;
   renderSalarySettings();
 });
@@ -2762,10 +2873,17 @@ function renderCatManage(){
     saveCats(); renderCatManage(); showToast(t('toastCatUpdated'));
   }));
   el.querySelectorAll('.cm-del').forEach(b=>b.addEventListener('click', ()=>{
-    if(!confirm(t('confirmDeleteCat'))) return;
-    categories=categories.filter(c=>c.id!==b.dataset.id);
-    if(settings.budgets && settings.budgets[b.dataset.id]) delete settings.budgets[b.dataset.id];
-    saveCats(); saveSettings(); renderCatManage(); renderBudgetSettings(); showToast(t('toastCatDeleted'));
+    const cid=b.dataset.id, idx=categories.findIndex(c=>c.id===cid); if(idx<0) return;
+    const removed=categories[idx];
+    const hadBudget=(settings.budgets && settings.budgets[cid]) ? settings.budgets[cid] : null;
+    categories=categories.filter(c=>c.id!==cid);
+    if(hadBudget) delete settings.budgets[cid];
+    saveCats(); saveSettings(); renderCatManage(); renderBudgetSettings();
+    offerUndo(t('toastCatDeleted'), ()=>{
+      categories.splice(Math.min(idx,categories.length),0,removed);
+      if(hadBudget){ settings.budgets=settings.budgets||{}; settings.budgets[cid]=hadBudget; }
+      saveCats(); saveSettings(); renderCatManage(); renderBudgetSettings();
+    });
   }));
 }
 document.getElementById('addCatBtn').addEventListener('click', ()=>{
@@ -3487,6 +3605,45 @@ function renderTpl(){
   };
 }
 
+/* ---------- home: insight cards ---------- */
+function renderInsights(){
+  const now=new Date(), day=now.getDate();
+  const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const ym=toLocalISO(now).slice(0,7);
+  const pym=toLocalISO(new Date(now.getFullYear(),now.getMonth()-1,1)).slice(0,7);
+  const list=txByWalletFilter(transactions);
+  const sum=a=>a.reduce((s,x)=>s+(+x.amount||0),0);
+  const cur=list.filter(x=>(x.date||'').startsWith(ym));
+  const exp=cur.filter(x=>x.type==='expense'), spent=sum(exp), income=sum(cur.filter(x=>x.type==='income'));
+  if(!list.length || (!spent && !income)){ fcBox.style.display='none'; return; }
+  const dd=String(day).padStart(2,'0');
+  const prevSame=sum(list.filter(x=>x.type==='expense'&&(x.date||'').startsWith(pym)&&(x.date||'').slice(8,10)<=dd));
+  const tiles=[];
+  if(spent>0 && prevSame>0){
+    const pct=Math.round((spent-prevSame)/prevSame*100);
+    tiles.push({k:LX('مقارنة بالشهر الماضي','vs last month'), v:(pct>0?'▲ ':pct<0?'▼ ':'= ')+Math.abs(pct)+'%', cls:pct>0?'up':(pct<0?'down':''),
+      s:pct>0?LX('صرفت أكثر في نفس الفترة','Spending more, same period'):(pct<0?LX('صرفت أقل في نفس الفترة','Spending less, same period'):LX('مثل نفس الفترة','Same as the same period'))});
+  }
+  if(spent>0){
+    const by={}; exp.forEach(x=>{ by[x.category]=(by[x.category]||0)+(+x.amount||0); });
+    const top=Object.keys(by).sort((a,b)=>by[b]-by[a])[0], c=findCat(top);
+    tiles.push({k:LX('أكثر فئة صرفًا','Top category'), v:c.icon+' '+escapeHtml(trLabel(c)), s:fmt(by[top])+' · '+Math.round(by[top]/spent*100)+'%'});
+    if(day>=3) tiles.push({k:LX('توقّع مصروف نهاية الشهر','Month-end forecast'), v:fmt(spent/day*dim), s:LX('متوسطك اليومي: ','Daily average: ')+fmt(spent/day)});
+    else tiles.push({k:LX('متوسطك اليومي','Daily average'), v:fmt(spent/day), s:''});
+  }
+  if(income>0){
+    const left=income-spent, rate=Math.round(left/income*100);
+    tiles.push({k:LX('المتبقي من دخل الشهر','Left from this month\'s income'), v:fmt(left), cls:left<0?'up':'',
+      s:left>=0?LX('نسبة الادخار ','Savings rate ')+rate+'%':LX('تجاوزت دخل هذا الشهر','Over this month\'s income')});
+  }else if(spent>0){
+    const big=[...exp].sort((a,b)=>b.amount-a.amount)[0];
+    tiles.push({k:LX('أكبر مصروف هذا الشهر','Biggest expense'), v:fmt(big.amount), s:escapeHtml(big.note||trLabel(findCat(big.category)))});
+  }
+  if(!tiles.length){ fcBox.style.display='none'; return; }
+  fcBox.style.display='block';
+  fcBox.innerHTML='<div class="ins-head">📊 '+LX('نظرة سريعة على هذا الشهر','This month at a glance')+'</div><div class="ins-grid">'+
+    tiles.slice(0,4).map((x,i,arr)=>'<div class="ins-tile'+((arr.length%2===1&&i===arr.length-1)?' wide':'')+'"><div class="k">'+x.k+'</div><div class="v '+(x.cls||'')+'">'+x.v+'</div>'+(x.s?'<div class="s">'+x.s+'</div>':'')+'</div>').join('')+'</div>';
+}
 /* home: empty state + month-end forecast */
 const fcBox=document.createElement('div'); fcBox.id='forecastBox'; document.getElementById('budgetAlerts').before(fcBox);
 const _renderHome=renderHome;
@@ -3497,35 +3654,88 @@ renderHome=function(){
     rec.innerHTML=`<div class="empty-state"><div class="big">📒</div><div>${LX('لا توجد حركات بعد. سجّل أول مصروف أو دخل لتبدأ.','No transactions yet. Add your first one to get started.')}</div><button type="button" id="emptyAdd">${LX('➕ إضافة حركة','➕ Add transaction')}</button></div>`;
     document.getElementById('emptyAdd').onclick=()=>switchTab('tabAdd');
   }
-  const now=new Date(), ym=now.toISOString().slice(0,7), day=now.getDate();
-  const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
-  const spent=txByWalletFilter(transactions).filter(x=>x.type==='expense'&&(x.date||'').startsWith(ym)).reduce((a,x)=>a+(+x.amount||0),0);
-  if(day<3||spent<=0){fcBox.style.display='none';return;}
-  fcBox.style.display='block';
-  fcBox.innerHTML=`📈 ${LX('توقّع مصروف نهاية الشهر','Month-end spending forecast')}: <b>${fmt(spent/day*dim)}</b><br>${LX('متوسطك اليومي','Daily average')}: ${fmt(spent/day)}`;
+  renderInsights();
 };
 
-/* first-run onboarding */
+/* first-run onboarding (multi-step wizard) */
 setTimeout(()=>{
   let seen=false; try{seen=!!localStorage.getItem('daftari_onboarded');}catch(e){}
   if(seen||transactions.length) return;
-  const ob=document.createElement('div'); ob.id='onboard';
-  ob.innerHTML=`<div class="box"><div style="font-size:54px">📒</div><h2>${LX('مرحبًا بك في دفتري','Welcome to Daftari')}</h2>
-  <p>${LX('1) سجّل مصاريفك ودخلك في ثوانٍ.<br>2) حدّد ميزانية لكل فئة وتابع التقارير.<br>3) تتبّع مدخراتك وديونك في مكان واحد.','1) Log expenses and income in seconds.<br>2) Set budgets and follow reports.<br>3) Track savings and debts in one place.')}</p>
-  <div class="row"><select id="obCur">${document.getElementById('currencySelect').innerHTML}</select>
-  <select id="obLang"><option value="ar">العربية</option><option value="en">English</option></select></div>
-  <button class="ob-go" id="obGo">${LX('ابدأ','Start')}</button></div>`;
-  document.body.appendChild(ob);
-  document.getElementById('obCur').value=settings.currency; document.getElementById('obLang').value=settings.lang;
-  ob.classList.add('open');
-  document.getElementById('obGo').onclick=()=>{
-    const lg=document.getElementById('obLang').value;
-    settings.currency=document.getElementById('obCur').value; saveSettings();
-    if(lg!==settings.lang){const b=document.querySelector('#langPill button[data-lang="'+lg+'"]'); if(b) b.click();}
+  const ob=document.createElement('div'); ob.id='onboard'; document.body.appendChild(ob);
+  const N=4; let step=0;
+  const D={salary:'', monthly:true, day:String(new Date().getDate()), bud:{}};
+  const budIds=['food','transport','bills'].filter(id=>categories.some(c=>c.id===id&&c.type==='expense'));
+  const grab=()=>{
+    const a=document.getElementById('obSal'); if(a) D.salary=a.value;
+    const d=document.getElementById('obDay'); if(d) D.day=d.value;
+    ob.querySelectorAll('.ob-bud-in').forEach(i=>{ D.bud[i.dataset.id]=i.value; });
+  };
+  const finish=()=>{
+    grab();
+    const sal=parseFloat(D.salary);
+    if(sal>0) commitSalary(sal, D.monthly, parseInt(D.day,10)||1);
+    budIds.forEach(id=>{ const v=parseFloat(D.bud[id]); if(v>0){ settings.budgets=settings.budgets||{}; settings.budgets[id]=v; } });
+    saveSettings();
     try{localStorage.setItem('daftari_onboarded','1');}catch(e){}
     ob.remove(); switchTab('tabHome');
   };
+  function render(){
+    const dots=Array.from({length:N},(_,i)=>'<i class="'+(i===step?'on':'')+'"></i>').join('');
+    const last=step===N-1; let body='';
+    if(step===0){
+      body='<div style="font-size:54px">📒</div><h2>'+LX('مرحبًا بك في دفتري','Welcome to Daftari')+'</h2>'+
+        '<p>'+LX('1) سجّل مصاريفك ودخلك في ثوانٍ.<br>2) حدّد ميزانية لكل فئة ونُنبّهك عند اقترابك منها.<br>3) تتبّع مدخراتك وديونك في مكان واحد.','1) Log expenses and income in seconds.<br>2) Set budgets and get alerted as you approach them.<br>3) Track savings and debts in one place.')+'</p>'+
+        '<div class="row"><select id="obCur">'+Object.keys(CURRENCIES).map(k=>'<option value="'+k+'">'+k+' — '+currencyName(k)+' ('+currencySymbol(k)+')</option>').join('')+'</select>'+
+        '<select id="obLang"><option value="ar">العربية</option><option value="en">English</option></select></div>';
+    }else if(step===1){
+      const days=Array.from({length:31},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join('');
+      body='<div style="font-size:54px">💼</div><h2>'+LX('ما هو راتبك؟','What is your salary?')+'</h2>'+
+        '<p>'+LX('اختياري — نضيفه لك كدخل تلقائيًا، فتبدأ بصورة صحيحة لرصيدك.','Optional — we add it as income automatically so your balance starts right.')+'</p>'+
+        '<input type="number" id="obSal" inputmode="decimal" min="0" placeholder="0.00" value="'+escapeHtml(D.salary)+'">'+
+        '<div class="ob-chips"><button type="button" class="ob-chip '+(D.monthly?'on':'')+'" data-m="1">'+LX('شهري','Monthly')+'</button><button type="button" class="ob-chip '+(D.monthly?'':'on')+'" data-m="0">'+LX('مرة واحدة','One time')+'</button></div>'+
+        (D.monthly?'<p>'+LX('يوم نزول الراتب من الشهر','Day of the month it arrives')+'</p><select id="obDay" style="width:auto;margin:0 auto;display:block">'+days+'</select>':'');
+    }else if(step===2){
+      body='<div style="font-size:54px">🎯</div><h2>'+LX('حدّد ميزانياتك','Set your budgets')+'</h2>'+
+        '<p>'+LX('اختياري — سقف شهري لكل فئة، ونُنبّهك عند 80% وعند التجاوز. يمكنك تعديلها لاحقًا من الإعدادات.','Optional — a monthly cap per category. We alert you at 80% and when exceeded. Change them later in Settings.')+'</p>'+
+        budIds.map(id=>{ const c=findCat(id); return '<div class="ob-bud"><span class="lbl">'+c.icon+' '+escapeHtml(trLabel(c))+'</span><input type="number" class="ob-bud-in" data-id="'+id+'" inputmode="decimal" min="0" placeholder="0" value="'+escapeHtml(D.bud[id]||'')+'"></div>'; }).join('');
+    }else{
+      const supported=(typeof Notification!=='undefined');
+      const on=supported && Notification.permission==='granted' && settings.notifEnabled;
+      body='<div style="font-size:54px">🔔</div><h2>'+LX('كل شيء جاهز تقريبًا','Almost ready')+'</h2>'+
+        '<p>'+LX('فعّل التنبيهات لتذكيرك بالمستحقات والمعاملات المتكررة القريبة.','Turn on reminders for upcoming dues and recurring payments.')+'</p>'+
+        (on?'<div class="ob-ok">✓ '+LX('التنبيهات مفعّلة','Notifications on')+'</div>'
+          :(supported?'<button type="button" class="ob-chip" id="obNotif" style="width:100%">🔔 '+LX('تفعيل التنبيهات','Enable notifications')+'</button>':'<p>'+LX('التنبيهات غير مدعومة في هذا المتصفح.','Notifications are not supported in this browser.')+'</p>'));
+    }
+    ob.innerHTML='<div class="box"><div class="ob-dots">'+dots+'</div>'+body+'<div class="ob-btns">'+
+      (step>0?'<button type="button" class="ob-ghost" id="obBack">'+LX('رجوع','Back')+'</button>':'')+
+      (step>0&&!last?'<button type="button" class="ob-ghost" id="obSkip">'+LX('تخطي','Skip')+'</button>':'')+
+      '<button type="button" class="ob-go" id="obNext">'+(last?LX('ابدأ الاستخدام','Start'):LX('التالي','Next'))+'</button></div></div>';
+    const $=id=>document.getElementById(id);
+    if(step===0){
+      $('obCur').value=settings.currency; $('obLang').value=settings.lang;
+      $('obCur').onchange=()=>{ settings.currency=$('obCur').value; saveSettings(); };
+      $('obLang').onchange=()=>{ const lg=$('obLang').value; const b=document.querySelector('#langPill button[data-lang="'+lg+'"]'); if(b) b.click(); render(); };
+    }
+    if(step===1){
+      if($('obDay')) $('obDay').value=D.day;
+      ob.querySelectorAll('.ob-chip[data-m]').forEach(el=>el.onclick=()=>{ grab(); D.monthly=el.dataset.m==='1'; render(); });
+    }
+    if(step===3 && $('obNotif')) $('obNotif').onclick=async()=>{
+      try{
+        let perm=Notification.permission;
+        if(perm==='default') perm=await Notification.requestPermission();
+        if(perm==='granted'){ settings.notifEnabled=true; saveSettings(); }
+        else showToast(t('toastNotifDenied'));
+      }catch(e){}
+      render();
+    };
+    if($('obBack')) $('obBack').onclick=()=>{ grab(); step--; render(); };
+    if($('obSkip')) $('obSkip').onclick=()=>{ if(step===1) D.salary=''; if(step===2) D.bud={}; step++; render(); };
+    $('obNext').onclick=()=>{ if(last){ finish(); } else { grab(); step++; render(); } };
+  }
+  ob.classList.add('open'); render();
 },900);
+
 
 /* ===== one-time cleanup of the removed server push ===== */
 (function(){
