@@ -296,17 +296,18 @@
   #printReport h3{font-size:13.5px; margin:20px 0 8px; padding-bottom:5px; border-bottom:1px solid #e2ddd0; color:#191308;}
   #printReport .pr-cat-row{display:flex; align-items:center; gap:8px; font-size:11.5px; margin-bottom:7px;}
   #printReport .pr-cat-row .nm{width:100px; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  #printReport .pr-cat-row .track{flex:1; height:7px; background:#eee; border-radius:99px; overflow:hidden;}
-  #printReport .pr-cat-row .fill{height:100%; background:#c9a24a; border-radius:99px;}
+  #printReport .pr-cat-row .track{display:block; flex:1; height:7px; background:#eee; border-radius:99px; overflow:hidden;}
+  #printReport .pr-cat-row .fill{display:block; height:100%; background:#c9a24a; border-radius:99px;}
   #printReport .pr-cat-row .amt{width:80px; text-align:left; direction:ltr; color:#555; flex-shrink:0;}
-  #printReport table{width:100%; border-collapse:collapse; font-size:10.5px; margin-top:8px;}
-  #printReport th{background:#f5f1e8; color:#555; font-weight:700; text-transform:uppercase; font-size:9.5px; letter-spacing:.03em;}
-  #printReport th, #printReport td{border-bottom:1px solid #eee; padding:6px 7px; text-align:right;}
+  #printReport table{width:100%; border-collapse:collapse; table-layout:fixed; font-size:10.5px; margin-top:8px;}
+  #printReport th{background:#f5f1e8; color:#555; font-weight:700; font-size:10px;}
+  #printReport th, #printReport td{border-bottom:1px solid #eee; padding:7px 6px; vertical-align:middle; overflow-wrap:anywhere; word-break:break-word; text-align:start;}
   #printReport tr:nth-child(even) td{background:#fbfaf7;}
-  #printReport td.amt-in{color:#3f7a5f; font-weight:700; direction:ltr; text-align:left;}
-  #printReport td.amt-out{color:#b04c3c; font-weight:700; direction:ltr; text-align:left;}
-  #printReport td.rc-col{width:34px; text-align:center;}
-  #printReport td.rc-col img{width:26px; height:26px; object-fit:cover; border-radius:5px; border:1px solid #ddd;}
+  #printReport .c-date, #printReport .c-rc, #printReport .c-amt{text-align:center;}
+  #printReport td.c-date, #printReport td.c-amt{direction:ltr; white-space:nowrap;}
+  #printReport td.amt-in{color:#3f7a5f; font-weight:700;}
+  #printReport td.amt-out{color:#b04c3c; font-weight:700;}
+  #printReport td.c-rc img{width:26px; height:26px; object-fit:cover; border-radius:5px; border:1px solid #ddd; display:block; margin:0 auto;}
   #printReport .pr-foot{margin-top:18px; font-size:9.5px; color:#999; text-align:center;}
   @media print{
     html, body{height:auto !important; overflow:visible !important;}
@@ -997,7 +998,7 @@ const DEFAULT_WALLETS=[
 ];
 const BILL_TYPES=[
   {id:'internet', label:'إنترنت', label_en:'Internet', label_fr:'Internet', icon:'🌐'},
-  {id:'phone', label:'تلفون', label_en:'Phone', label_fr:'Téléphone', icon:'📱'},
+  {id:'phone', label:'هاتف', label_en:'Phone', label_fr:'Téléphone', icon:'📱'},
   {id:'electricity', label:'كهرباء', label_en:'Electricity', label_fr:'Électricité', icon:'💡'},
   {id:'water', label:'ماء', label_en:'Water', label_fr:'Eau', icon:'💧'},
   {id:'bill_other', label:'أخرى', label_en:'Other', label_fr:'Autre', icon:'📦'}
@@ -1146,8 +1147,8 @@ const I18N={
     debtsPeopleSuffix:'شخص', debtsBalanced:'متوازن',
     debtDueToday:'يستحق اليوم', debtDueTomorrow:'يستحق غدًا', debtDueInDaysPrefix:'يستحق خلال', debtDaysUnit:'يوم',
     debtOverdueByPrefix:'متأخر منذ',
-    printTitle:'دفتري — تقرير', printGenerated:'تم إنشاؤه بتاريخ', printIncome:'إجمالي الدخل', printExpense:'إجمالي المصروف', printNet:'الصافي',
-    printByCat:'الإنفاق حسب الفئة', printAllTx:'كل الحركات', printDate:'التاريخ', printCat:'الفئة', printNote:'ملاحظة', printAmount:'المبلغ', printWalletCol:'المحفظة', printReceiptCol:'🧾',
+    printTitle:'تقرير الدخل والمصروفات', printGenerated:'تاريخ إنشاء التقرير:', printIncome:'إجمالي الدخل', printExpense:'إجمالي المصروفات', printNet:'صافي الرصيد',
+    printByCat:'الإنفاق حسب الفئة', printAllTx:'جميع العمليات', printDate:'التاريخ', printCat:'الفئة', printNote:'الملاحظة', printAmount:'المبلغ', printWalletCol:'المحفظة', printReceiptCol:'الإيصال',
     otherCat:'أخرى',
     budgetInputPh:"الحد الشهري",
     budgetNone:"بدون ميزانية",
@@ -1262,7 +1263,7 @@ const I18N={
     debtsPeopleSuffix:'people', debtsBalanced:'Balanced',
     debtDueToday:'Due today', debtDueTomorrow:'Due tomorrow', debtDueInDaysPrefix:'Due in', debtDaysUnit:'days',
     debtOverdueByPrefix:'Overdue by',
-    printTitle:'Daftari — Report', printGenerated:'Generated on', printIncome:'Total Income', printExpense:'Total Expense', printNet:'Net',
+    printTitle:'Income & Expense Report', printGenerated:'Generated on', printIncome:'Total Income', printExpense:'Total Expense', printNet:'Net',
     printByCat:'Spending by Category', printAllTx:'All transactions', printDate:'Date', printCat:'Category', printNote:'Note', printAmount:'Amount', printWalletCol:'Wallet', printReceiptCol:'🧾',
     otherCat:'Other',
     budgetInputPh:"Monthly limit",
@@ -1563,7 +1564,7 @@ const I18N={
     debtDueInDaysPrefix:"Échéance dans",
     debtDaysUnit:"jours",
     debtOverdueByPrefix:"En retard de",
-    printTitle:"Daftari — Rapport",
+    printTitle:"Rapport des revenus et dépenses",
     printGenerated:"Généré le",
     printIncome:"Total des revenus",
     printExpense:"Total des dépenses",
@@ -3202,7 +3203,10 @@ function buildPrintReport(){
     });
   }
 
-  html+=`<h3>${t('printAllTx')}</h3><table><tr><th>${t('printDate')}</th><th>${t('printCat')}</th>${showWalCol?`<th>${t('printWalletCol')}</th>`:''}<th>${t('printNote')}</th><th class="rc-col">${t('printReceiptCol')}</th><th>${t('printAmount')}</th></tr>`;
+  const cols=showWalCol ? [['c-date',12],['c-cat',24],['c-wal',16],['c-note',24],['c-rc',9],['c-amt',15]]
+                        : [['c-date',13],['c-cat',29],['c-note',30],['c-rc',10],['c-amt',18]];
+  html+=`<h3>${t('printAllTx')}</h3><table><colgroup>${cols.map(c=>`<col style="width:${c[1]}%">`).join('')}</colgroup>`;
+  html+=`<tr><th class="c-date">${t('printDate')}</th><th class="c-cat">${t('printCat')}</th>${showWalCol?`<th class="c-wal">${t('printWalletCol')}</th>`:''}<th class="c-note">${t('printNote')}</th><th class="c-rc">${t('printReceiptCol')}</th><th class="c-amt">${t('printAmount')}</th></tr>`;
   if(rows.length===0){
     html+=`<tr><td colspan="${showWalCol?6:5}" style="text-align:center; color:#999;">${escapeHtml(t('noMatch'))}</td></tr>`;
   }
@@ -3210,9 +3214,9 @@ function buildPrintReport(){
     const c=findCat(t2.category);
     const bt = t2.billType ? findBillType(t2.billType) : null;
     const catCell = bt ? `${c.icon} ${escapeHtml(trLabel(c))} — ${bt.icon} ${escapeHtml(trLabel(bt))}` : `${c.icon} ${escapeHtml(trLabel(c))}`;
-    const walCell = showWalCol ? `<td>${escapeHtml(trLabel(findWallet(t2.wallet)))}</td>` : '';
-    const rcCell = t2.receipt ? `<td class="rc-col"><img src="${safeImg(t2.receipt)}" alt=""></td>` : `<td class="rc-col"></td>`;
-    html+=`<tr><td>${t2.date}</td><td>${catCell}</td>${walCell}<td>${escapeHtml(t2.note||'')}</td>${rcCell}<td class="${t2.type==='income'?'amt-in':'amt-out'}">${t2.type==='income'?'+':'-'}${fmt(t2.amount)}</td></tr>`;
+    const walCell = showWalCol ? `<td class="c-wal">${escapeHtml(trLabel(findWallet(t2.wallet)))}</td>` : '';
+    const rcCell = t2.receipt ? `<td class="c-rc"><img src="${safeImg(t2.receipt)}" alt=""></td>` : `<td class="c-rc"></td>`;
+    html+=`<tr><td class="c-date">${t2.date}</td><td class="c-cat">${catCell}</td>${walCell}<td class="c-note">${escapeHtml(t2.note||'')}</td>${rcCell}<td class="c-amt ${t2.type==='income'?'amt-in':'amt-out'}">${t2.type==='income'?'+':'-'}${fmt(t2.amount)}</td></tr>`;
   });
   html+=`</table>`;
   html+=`<div class="pr-foot">${settings.lang==='fr'?'Daftari':'دفتري'} — ${escapeHtml(t('tagline'))}</div>`;
