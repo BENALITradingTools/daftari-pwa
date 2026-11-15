@@ -764,6 +764,7 @@
         <div class="lang-pill" id="langPill">
           <button data-lang="ar">العربية</button>
           <button data-lang="en">English</button>
+          <button data-lang="fr">Français</button>
         </div>
       </div>
     <div class="set-row"><div><div class="lab" id="numeralsLab">الأرقام</div></div>
@@ -951,58 +952,61 @@ let pendingReceipt=null;
 let reportPeriod='thisMonth';
 
 const DEFAULT_CATS=[
-  {id:'food', label:'طعام', label_en:'Food', icon:'🍔', type:'expense'},
-  {id:'transport', label:'مواصلات', label_en:'Transport', icon:'🚗', type:'expense'},
-  {id:'home', label:'منزل', label_en:'Home', icon:'🏠', type:'expense'},
-  {id:'bills', label:'فواتير', label_en:'Bills', icon:'💡', type:'expense'},
-  {id:'shopping', label:'تسوق', label_en:'Shopping', icon:'🛍️', type:'expense'},
-  {id:'fun', label:'ترفيه', label_en:'Fun', icon:'🎮', type:'expense'},
-  {id:'health', label:'صحة', label_en:'Health', icon:'💊', type:'expense'},
-  {id:'edu', label:'تعليم', label_en:'Education', icon:'📚', type:'expense'},
-  {id:'other_exp', label:'أخرى', label_en:'Other', icon:'📦', type:'expense'},
-  {id:'salary', label:'راتب', label_en:'Salary', icon:'💼', type:'income'},
-  {id:'invest', label:'استثمار', label_en:'Investment', icon:'📈', type:'income'},
-  {id:'other_inc', label:'أخرى', label_en:'Other', icon:'📦', type:'income'}
+  {id:'food', label:'طعام', label_en:'Food', label_fr:'Alimentation', icon:'🍔', type:'expense'},
+  {id:'transport', label:'مواصلات', label_en:'Transport', label_fr:'Transport', icon:'🚗', type:'expense'},
+  {id:'home', label:'منزل', label_en:'Home', label_fr:'Logement', icon:'🏠', type:'expense'},
+  {id:'bills', label:'فواتير', label_en:'Bills', label_fr:'Factures', icon:'💡', type:'expense'},
+  {id:'shopping', label:'تسوق', label_en:'Shopping', label_fr:'Achats', icon:'🛍️', type:'expense'},
+  {id:'fun', label:'ترفيه', label_en:'Fun', label_fr:'Loisirs', icon:'🎮', type:'expense'},
+  {id:'health', label:'صحة', label_en:'Health', label_fr:'Santé', icon:'💊', type:'expense'},
+  {id:'edu', label:'تعليم', label_en:'Education', label_fr:'Éducation', icon:'📚', type:'expense'},
+  {id:'other_exp', label:'أخرى', label_en:'Other', label_fr:'Autre', icon:'📦', type:'expense'},
+  {id:'salary', label:'راتب', label_en:'Salary', label_fr:'Salaire', icon:'💼', type:'income'},
+  {id:'invest', label:'استثمار', label_en:'Investment', label_fr:'Investissement', icon:'📈', type:'income'},
+  {id:'other_inc', label:'أخرى', label_en:'Other', label_fr:'Autre', icon:'📦', type:'income'}
 ];
 const DEFAULT_WALLETS=[
-  {id:'default', label:'المحفظة الرئيسية', label_en:'Main Wallet', icon:'👛'}
+  {id:'default', label:'المحفظة الرئيسية', label_en:'Main Wallet', label_fr:'Portefeuille principal', icon:'👛'}
 ];
 const BILL_TYPES=[
-  {id:'internet', label:'إنترنت', label_en:'Internet', icon:'🌐'},
-  {id:'phone', label:'تلفون', label_en:'Phone', icon:'📱'},
-  {id:'electricity', label:'كهرباء', label_en:'Electricity', icon:'💡'},
-  {id:'water', label:'ماء', label_en:'Water', icon:'💧'},
-  {id:'bill_other', label:'أخرى', label_en:'Other', icon:'📦'}
+  {id:'internet', label:'إنترنت', label_en:'Internet', label_fr:'Internet', icon:'🌐'},
+  {id:'phone', label:'تلفون', label_en:'Phone', label_fr:'Téléphone', icon:'📱'},
+  {id:'electricity', label:'كهرباء', label_en:'Electricity', label_fr:'Électricité', icon:'💡'},
+  {id:'water', label:'ماء', label_en:'Water', label_fr:'Eau', icon:'💧'},
+  {id:'bill_other', label:'أخرى', label_en:'Other', label_fr:'Autre', icon:'📦'}
 ];
 function findBillType(id){ return BILL_TYPES.find(b=>b.id===id) || null; }
 const CURRENCIES={DZD:'د.ج',SAR:'ر.س',USD:'$',EUR:'€',AED:'د.إ',EGP:'ج.م',KWD:'د.ك',QAR:'ر.ق',OMR:'ر.ع',BHD:'د.ب',MAD:'د.م',JOD:'د.أ',GBP:'£'};
 const CURRENCIES_EN={DZD:'DA',SAR:'SR',USD:'$',EUR:'€',AED:'AED',EGP:'EGP',KWD:'KD',QAR:'QR',OMR:'OMR',BHD:'BD',MAD:'DH',JOD:'JD',GBP:'£'};
+const CURRENCIES_FR={DZD:'DA',SAR:'SAR',USD:'$',EUR:'€',AED:'AED',EGP:'EGP',KWD:'KWD',QAR:'QAR',OMR:'OMR',BHD:'BHD',MAD:'DH',JOD:'JOD',GBP:'£'};
 function currencySymbol(code){
-  const map = settings.lang==='en' ? CURRENCIES_EN : CURRENCIES;
+  const map = settings.lang==='fr' ? CURRENCIES_FR : (settings.lang==='en' ? CURRENCIES_EN : CURRENCIES);
   return map[code] || CURRENCIES[code] || code;
 }
 const CURRENCY_NAMES={
-  DZD:{ar:'دينار جزائري', en:'Algerian Dinar'},
-  SAR:{ar:'ريال سعودي', en:'Saudi Riyal'},
-  USD:{ar:'دولار أمريكي', en:'US Dollar'},
-  EUR:{ar:'يورو', en:'Euro'},
-  AED:{ar:'درهم إماراتي', en:'UAE Dirham'},
-  EGP:{ar:'جنيه مصري', en:'Egyptian Pound'},
-  KWD:{ar:'دينار كويتي', en:'Kuwaiti Dinar'},
-  QAR:{ar:'ريال قطري', en:'Qatari Riyal'},
-  OMR:{ar:'ريال عماني', en:'Omani Rial'},
-  BHD:{ar:'دينار بحريني', en:'Bahraini Dinar'},
-  MAD:{ar:'درهم مغربي', en:'Moroccan Dirham'},
-  JOD:{ar:'دينار أردني', en:'Jordanian Dinar'},
-  GBP:{ar:'جنيه إسترليني', en:'British Pound'}
+  DZD:{ar:'دينار جزائري', en:'Algerian Dinar', fr:'Dinar algérien'},
+  SAR:{ar:'ريال سعودي', en:'Saudi Riyal', fr:'Riyal saoudien'},
+  USD:{ar:'دولار أمريكي', en:'US Dollar', fr:'Dollar américain'},
+  EUR:{ar:'يورو', en:'Euro', fr:'Euro'},
+  AED:{ar:'درهم إماراتي', en:'UAE Dirham', fr:'Dirham des Émirats'},
+  EGP:{ar:'جنيه مصري', en:'Egyptian Pound', fr:'Livre égyptienne'},
+  KWD:{ar:'دينار كويتي', en:'Kuwaiti Dinar', fr:'Dinar koweïtien'},
+  QAR:{ar:'ريال قطري', en:'Qatari Riyal', fr:'Riyal qatari'},
+  OMR:{ar:'ريال عماني', en:'Omani Rial', fr:'Rial omanais'},
+  BHD:{ar:'دينار بحريني', en:'Bahraini Dinar', fr:'Dinar bahreïni'},
+  MAD:{ar:'درهم مغربي', en:'Moroccan Dirham', fr:'Dirham marocain'},
+  JOD:{ar:'دينار أردني', en:'Jordanian Dinar', fr:'Dinar jordanien'},
+  GBP:{ar:'جنيه إسترليني', en:'British Pound', fr:'Livre sterling'}
 };
 function currencyName(code){
   const n=CURRENCY_NAMES[code];
   if(!n) return code;
-  return settings.lang==='en' ? n.en : n.ar;
+  return settings.lang==='fr' ? (n.fr||n.en) : (settings.lang==='en' ? n.en : n.ar);
 }
 const MONTHS_AR=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 const MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_FR=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const MONTHS_FR_SHORT=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
 
 /* ---------- i18n ---------- */
 const I18N={
@@ -1231,9 +1235,318 @@ const I18N={
     printTitle:'Daftari — Report', printGenerated:'Generated on', printIncome:'Total Income', printExpense:'Total Expense', printNet:'Net',
     printByCat:'Spending by Category', printAllTx:'All transactions', printDate:'Date', printCat:'Category', printNote:'Note', printAmount:'Amount', printWalletCol:'Wallet', printReceiptCol:'🧾',
     otherCat:'Other'
+  },
+  fr:{
+    tagline:"Votre carnet de dépenses personnel",
+    navHome:"Accueil",
+    navAdd:"Ajouter",
+    navSavings:"Épargne",
+    navDebts:"Dettes",
+    navLog:"Journal",
+    navReports:"Rapports",
+    navSettings:"Paramètres",
+    balanceLabel:"Solde actuel",
+    totalIncome:"Total des revenus",
+    totalExpense:"Total des dépenses",
+    monthExpense:"📅 Dépenses de ce mois",
+    toggleBalanceLabel:"Afficher/Masquer le solde",
+    last6months:"6 derniers mois",
+    last5tx:"5 dernières opérations",
+    emptyHomeTitle:"Votre carnet est vide",
+    emptyHomeSub:"Appuyez sur «\u00a0Ajouter\u00a0» pour enregistrer votre première opération",
+    allWallets:"Tous les portefeuilles",
+    expense:"Dépense",
+    income:"Revenu",
+    amountLabel:"Montant",
+    categoryLabel:"Catégorie",
+    billTypeLabel:"Type de facture",
+    dateLabel:"Date",
+    noteLabel:"Note (facultatif)",
+    notePh:"ex. Déjeuner avec des amis",
+    moreOptionsHint:"⬇ Plus d'options\u00a0: portefeuille, date, note, reçu, répétition",
+    walletLabel:"Portefeuille",
+    receiptLabel:"Reçu (facultatif)",
+    receiptHint:"📎 Joindre la photo du reçu",
+    showMore:"Afficher plus ▾",
+    showLess:"Afficher moins ▴",
+    recurTitle:"🔁 Répéter automatiquement cette opération",
+    recurSub:"Utile pour le loyer, les abonnements, le salaire...",
+    monthly:"Chaque mois",
+    weekly:"Chaque semaine",
+    yearly:"Chaque année",
+    freqMonthly:"Mensuel",
+    freqWeekly:"Hebdomadaire",
+    freqYearly:"Annuel",
+    saveBtn:"Enregistrer l'opération",
+    updateBtn:"Mettre à jour l'opération",
+    cancelEdit:"Annuler la modification",
+    searchPh:"🔍 Rechercher dans les notes ou les catégories",
+    allMonths:"Tous les mois et années",
+    allTypes:"Tous",
+    incomeOnly:"Revenus uniquement",
+    expenseOnly:"Dépenses uniquement",
+    logMonthIncome:"Revenus de ce mois",
+    logMonthExpense:"Dépenses de ce mois",
+    logIncomeOf:"Revenus ({period})",
+    logExpenseOf:"Dépenses ({period})",
+    reportWalletSection:"👛 Portefeuille",
+    reportPeriodSection:"🗂️ Période du rapport",
+    reportPeriodLabel:"Durée",
+    periodThisMonth:"Ce mois-ci",
+    periodLastMonth:"Mois dernier",
+    periodLast3:"3 derniers mois",
+    periodLast6:"6 derniers mois",
+    periodThisYear:"Cette année",
+    periodLastYear:"Année dernière",
+    periodAll:"Toute la période",
+    periodCustom:"Période personnalisée",
+    trendChart:"📈 Évolution sur la période ({period})",
+    catByMonth:"Dépenses par catégorie ({period})",
+    incomeVsExpense:"Revenus et dépenses (total)",
+    monthlyCompare:"Comparaison mensuelle (6 derniers mois)",
+    yearlyCompare:"Comparaison annuelle",
+    exportPDF:"🖨️ Exporter le rapport en PDF",
+    general:"Général",
+    darkMode:"Apparence",
+    themeAuto:"Auto (selon le téléphone)",
+    themeDark:"Sombre",
+    themeLight:"Clair",
+    salarySection:"💼 Mon salaire",
+    salaryHint:"Saisissez votre salaire une seule fois, ou rendez-le mensuel pour qu'il soit ajouté automatiquement comme revenu le jour de votre choix.",
+    salaryAmount:"Montant du salaire",
+    salaryMonthly:"Salaire mensuel",
+    salaryMonthlySub:"Ajouté automatiquement chaque mois",
+    salaryDay:"Jour du mois où le salaire arrive",
+    salarySave:"Enregistrer le salaire",
+    salaryStop:"Arrêter le salaire mensuel",
+    salaryDayOpt:"Jour",
+    salaryStatusMonthly:"Salaire mensuel\u00a0: {amt} — jour {day} de chaque mois",
+    salaryToastOnce:"Salaire ajouté",
+    salaryToastMonthly:"Salaire mensuel enregistré",
+    salaryToastStopped:"Salaire mensuel arrêté",
+    salaryInvalid:"Saisissez le montant du salaire",
+    budgetAlertLab:"Alertes de budget",
+    budgetAlertSub:"À 80\u00a0% et en cas de dépassement",
+    currency:"Devise",
+    language:"Langue",
+    walletsSection:"👛 Portefeuilles / Comptes",
+    walletsHint:"Ajoutez plusieurs portefeuilles ou comptes (espèces, banque, épargne...) et suivez chaque solde séparément.",
+    newWalletName:"Nom du nouveau portefeuille",
+    budgetSection:"🎯 Budget mensuel",
+    budgetHint:"Fixez un plafond mensuel pour chaque catégorie de dépenses à suivre. Laissez vide ou mettez 0 pour supprimer le budget de cette catégorie.",
+    savingsSection:"💰 Épargne",
+    savingsHint:"Créez des objectifs d'épargne (voiture, maison...) avec un montant cible. Les fonds ajoutés ici sont totalement séparés de votre solde actuel et n'y sont pas comptés.",
+    newSavingsName:"Nom de l'objectif (ex. Voiture)",
+    newSavingsTarget:"Montant cible",
+    savingsNameLabel:"Nom de l'objectif",
+    savingsIconLabel:"Icône de l'objectif",
+    savingsTargetLabel:"Montant cible",
+    savingsFundsPrompt:"Saisissez le montant (nombre négatif pour retirer)",
+    noSavingsGoals:"Aucun objectif d'épargne pour le moment",
+    addNewSavingsGoal:"➕ Nouvel objectif d'épargne",
+    savingsAddFundsBtn:"➕ Ajouter",
+    savingsWithdrawBtn:"➖ Retirer",
+    savingsRemainingLabel:"Reste à atteindre",
+    savingsAvailableLabel:"Disponible au retrait",
+    savingsGoalReached:"Objectif atteint 🎉",
+    savingsFillRemaining:"Compléter le montant restant",
+    savingsWithdrawAll:"Tout retirer",
+    cancel:"Annuler",
+    confirm:"Confirmer",
+    moveUp:"Monter",
+    moveDown:"Descendre",
+    recurringSection:"🔁 Opérations récurrentes",
+    recurringHint:"Les opérations dont la répétition a été activée depuis l'écran «\u00a0Ajouter\u00a0» apparaissent ici. Une nouvelle opération est créée automatiquement à chaque ouverture de l'application après son échéance — sans internet ni serveur.",
+    shortcutSection:"Raccourci sur l'écran d'accueil",
+    shortcutRow:"📲 Raccourci «\u00a0Enregistrer un paiement\u00a0»",
+    shortcutSub:"Ajoutez une deuxième icône sur votre écran d'accueil qui ouvre l'application directement sur l'écran d'ajout",
+    shortcutBannerText:"Ajoutez un raccourci sur l'écran d'accueil qui ouvre directement cette page pour enregistrer un paiement en un clic. Appuyez sur ⋯ ci-dessous pour voir comment faire.",
+    howToShortcut:"Comment ajouter le raccourci\u00a0?",
+    cloudSection:"☁️ Synchronisation cloud",
+    cloudHint:"Connectez-vous pour synchroniser automatiquement vos données sur tous vos appareils via internet.",
+    cloudEmailPh:"E-mail",
+    cloudPasswordPh:"Mot de passe (6 caractères minimum)",
+    cloudSignIn:"Se connecter",
+    cloudSignUp:"Créer un compte",
+    cloudSignOut:"Se déconnecter",
+    cloudLoggedInAs:"Connecté en tant que\u00a0:",
+    cloudSyncing:"⏳ Synchronisation...",
+    cloudSynced:"✅ Synchronisé",
+    cloudErrGeneric:"Une erreur est survenue, réessayez",
+    cloudErrInvalidEmail:"Adresse e-mail invalide",
+    cloudErrWrongPassword:"Mot de passe incorrect",
+    cloudErrUserNotFound:"Aucun compte trouvé avec cet e-mail",
+    cloudErrEmailInUse:"Cet e-mail est déjà enregistré, essayez de vous connecter",
+    cloudErrWeakPassword:"Mot de passe trop faible (6 caractères minimum)",
+    cloudErrNetwork:"Impossible de joindre le serveur — vérifiez votre connexion internet",
+    cloudFillFields:"Saisissez l'e-mail et le mot de passe",
+    cloudUpdateToast:"🔄 Mise à jour reçue depuis un autre appareil...",
+    cloudSignedOutToast:"Déconnecté (vos données locales restent sur cet appareil)",
+    backupSection:"Sauvegarde",
+    exportBackup:"⬇️ Exporter la sauvegarde",
+    downloadBackup:"Télécharger la sauvegarde",
+    restoreBackup:"Restaurer depuis une sauvegarde",
+    autoBackupRow:"💾 Sauvegarde automatique",
+    autoBackupSub:"L'application enregistre automatiquement une sauvegarde dans son propre stockage local dès que l'intervalle ci-dessous est écoulé — sans boîte de dialogue «\u00a0Enregistrer sous\u00a0» et sans aucune action de votre part. Pour créer un fichier portable à transférer vers un autre appareil, utilisez «\u00a0Télécharger la sauvegarde\u00a0» ci-dessous.",
+    restoreAutoBackup:"↩️ Restaurer la dernière sauvegarde automatique",
+    confirmRestoreAuto:"Cela remplacera vos données actuelles par la dernière sauvegarde automatique enregistrée sur cet appareil. Continuer\u00a0?",
+    toastNoAutoBackup:"Aucune sauvegarde automatique n'a encore été enregistrée",
+    autoBackupIntervalLabel:"Fréquence",
+    everyDay:"Tous les jours",
+    every3Days:"Tous les 3 jours",
+    every7Days:"Toutes les semaines",
+    every14Days:"Toutes les 2 semaines",
+    every30Days:"Tous les mois",
+    lastBackupNever:"Aucune sauvegarde automatique créée pour le moment",
+    lastBackupLabel:"Dernière sauvegarde automatique\u00a0:",
+    notifSection:"🔔 Notifications",
+    notifRow:"Alertes d'échéances",
+    notifSub:"Notification sur votre appareil à l'ouverture ou au retour dans l'application si une dette ou une opération récurrente arrive à échéance dans un jour ou deux",
+    notifInfo:"ℹ️ La notification est créée sur votre appareil, sans serveur push. Elle s'affiche à l'ouverture ou au retour dans l'application (pas lorsqu'elle est entièrement fermée).",
+    securitySection:"Sécurité",
+    pinRow:"Verrouillage par code PIN",
+    pinSub:"Protège l'ouverture de l'application avec un code à 4 chiffres",
+    pinInfo:"ℹ️ Face ID / Touch ID n'est pas pris en charge de façon fiable pour les applications web comme celle-ci. Le code PIN protège uniquement l'interface ; les données elles-mêmes ne sont pas chiffrées dans le stockage du navigateur.",
+    categoriesSection:"Catégories",
+    newCatPh:"Nom de la nouvelle catégorie",
+    clearAllSection:"Réinitialiser l'application",
+    clearAllBtn:"🗑️ Tout effacer et réinitialiser",
+    widgetInfo:"ℹ️ À propos du widget\u00a0: un véritable widget d'écran d'accueil n'est pas possible, car il nécessite une application iOS native (Swift/WidgetKit via Xcode) — les applications web ne le permettent pas du tout sur iOS. En revanche, vous pouvez ajouter une icône de raccourci qui ouvre directement la page «\u00a0Enregistrer un paiement\u00a0» (voir ci-dessus).",
+    forgotPin:"Code oublié\u00a0?",
+    undoBtn:"Annuler",
+    undoDeleteMsg:"Opération supprimée",
+    lockUnlock:"🔒 Saisissez votre code PIN",
+    lockSetFirst:"🔒 Saisissez un nouveau code à 4 chiffres",
+    lockSetConfirm:"🔒 Saisissez à nouveau le code pour confirmer",
+    lockVerifyDisable:"🔒 Saisissez le code actuel pour désactiver le verrouillage",
+    pinErrWrong:"Code incorrect",
+    pinErrMismatch:"Les codes ne correspondent pas, recommencez",
+    noMatch:"Aucune opération correspondante",
+    noExpenseMonth:"Aucune dépense sur cette période",
+    noBudgetCats:"Aucune catégorie de dépenses pour le moment",
+    noRecurYet:"Aucune opération récurrente pour le moment. Activez-en une depuis l'écran «\u00a0Ajouter\u00a0».",
+    today:"Aujourd'hui",
+    yesterday:"Hier",
+    toastInvalidAmount:"Saisissez un montant valide",
+    toastChooseCat:"Choisissez une catégorie",
+    toastUpdated:"Opération mise à jour ✓",
+    toastSavedRecur:"Enregistré, se répétera automatiquement ✓",
+    toastSaved:"Enregistré ✓",
+    toastCurrencyChanged:"Devise modifiée",
+    toastNotifOn:"Notifications activées ✓",
+    toastNotifOff:"Notifications désactivées",
+    toastNotifDenied:"Autorisation refusée dans les paramètres du navigateur",
+    toastNoNotifSupport:"Votre navigateur ne prend pas en charge les notifications",
+    toastBudgetSaved:"Budget enregistré",
+    toastNoDataExport:"Aucune donnée à exporter",
+    toastBackupCreated:"Sauvegarde créée",
+    toastBackupImported:"Sauvegarde importée ✓",
+    toastBackupInvalid:"Fichier de sauvegarde invalide",
+    toastAutoBackupCreated:"💾 Sauvegarde automatique enregistrée sur cet appareil",
+    toastAutoBackupOn:"Sauvegarde automatique activée",
+    toastAutoBackupOff:"Sauvegarde automatique désactivée",
+    toastCatUpdated:"Catégorie mise à jour",
+    toastCatDeleted:"Catégorie supprimée",
+    toastCatAdded:"Catégorie ajoutée ✓",
+    toastEnterCatName:"Saisissez un nom de catégorie",
+    toastWalletAdded:"Portefeuille ajouté ✓",
+    toastEnterWalletName:"Saisissez un nom de portefeuille",
+    toastWalletDeleted:"Portefeuille supprimé",
+    toastWalletUpdated:"Portefeuille mis à jour",
+    toastCantDeleteLastWallet:"Il doit rester au moins un portefeuille",
+    toastSavingsAdded:"Objectif d'épargne ajouté ✓",
+    toastEnterSavingsName:"Saisissez un nom d'objectif",
+    toastEnterSavingsTarget:"Saisissez un montant cible valide",
+    toastSavingsUpdated:"Objectif mis à jour",
+    toastSavingsDeleted:"Objectif supprimé",
+    toastFundsAdded:"Fonds ajoutés à l'objectif ✓",
+    toastFundsWithdrawn:"Fonds retirés de l'objectif",
+    toastPinOff:"Verrouillage désactivé",
+    toastPinOn:"Verrouillage par PIN activé",
+    toastPinDisabled:"Verrouillage par PIN désactivé",
+    toastRecurStopped:"Répétition arrêtée",
+    toastUndoDone:"Suppression annulée ✓",
+    toastReceiptTooBig:"Impossible de traiter l'image",
+    confirmDeleteCat:"Supprimer cette catégorie\u00a0? Les opérations existantes seront conservées mais s'afficheront comme «\u00a0Autre\u00a0».",
+    confirmStopRecur:"Arrêter cette opération récurrente\u00a0? Les opérations déjà créées resteront enregistrées.",
+    confirmReplaceOrMerge:"Appuyez sur «\u00a0OK\u00a0» pour remplacer entièrement vos données actuelles, ou sur «\u00a0Annuler\u00a0» pour les fusionner avec vos données actuelles.",
+    confirmClearAll:"Cela supprimera définitivement tout sur cet appareil\u00a0: opérations, catégories, portefeuilles, épargne, dettes et paramètres — l'application sera réinitialisée comme si elle venait d'être installée. Si vous êtes connecté à la synchronisation cloud, vous serez d'abord déconnecté (les données de votre compte cloud restent en sécurité sur le serveur et ne seront pas supprimées). Nous vous recommandons de faire d'abord une sauvegarde. Continuer\u00a0?",
+    confirmDeleteWallet:"Supprimer ce portefeuille\u00a0? Ses opérations seront transférées vers le portefeuille principal restant.",
+    confirmForgotPin:"Il n'existe aucun moyen de récupérer un code oublié. En continuant, vous ne ferez que désactiver le verrouillage par PIN (vos données financières restent intactes). Continuer\u00a0?",
+    confirmDeleteSavings:"Supprimer cet objectif d'épargne\u00a0? Le montant épargné enregistré sera perdu.",
+    debtsHint:"Suivez l'argent que les autres vous doivent et celui que vous leur devez. Ces montants sont totalement séparés de votre solde et n'y sont pas comptés.",
+    debtsTotalOwedToMe:"On me doit",
+    debtsTotalIOwe:"Je dois",
+    debtsOwedToMeSection:"💚 On me doit",
+    debtsIOweSection:"❤️ Je dois",
+    noDebtsOwedToMe:"Personne ne vous doit rien pour le moment",
+    noDebtsIOwe:"Vous ne devez rien pour le moment",
+    addNewDebt:"➕ Nouvelle dette",
+    addDebtBtn:"➕ Ajouter la dette",
+    newDebtPersonPh:"Nom de la personne",
+    newDebtAmountPh:"Montant",
+    newDebtNotePh:"Note (facultatif)",
+    debtOwedToMe:"On me doit",
+    debtIOwe:"Je dois",
+    debtDueLabel:"Échéance",
+    debtDueOverdue:"⚠️ En retard",
+    debtSettledBadge:"✓ Entièrement réglée",
+    debtSettleBtn:"💵 Régler",
+    debtEditBtn:"✏️",
+    debtDeleteBtn:"🗑️",
+    debtRemainingLabel:"Reste",
+    debtOfLabel:"sur",
+    debtSettlePrompt:"Saisissez le montant réglé",
+    debtSettleFillRemaining:"↳ Régler la totalité du reste",
+    debtPersonNameLabel:"Nom de la personne",
+    debtIconLabel:"Icône",
+    debtAmountLabel:"Montant total",
+    debtDueDateLabel:"Échéance (AAAA-MM-JJ)",
+    debtNoteLabel:"Note",
+    toastDebtAdded:"Dette ajoutée ✓",
+    toastEnterDebtPerson:"Saisissez le nom de la personne",
+    toastEnterDebtAmount:"Saisissez un montant valide",
+    toastDebtUpdated:"Dette mise à jour",
+    toastDebtDeleted:"Dette supprimée",
+    toastDebtSettled:"Paiement enregistré ✓",
+    confirmDeleteDebt:"Supprimer définitivement cette dette\u00a0?",
+    debtsNetLabel:"Net",
+    debtsSearchPh:"🔍 Rechercher par personne ou par note",
+    debtsShowSettled:"Afficher les dettes réglées",
+    debtsHideSettled:"Masquer les dettes réglées",
+    debtsNoSearchResults:"Aucun résultat pour votre recherche",
+    debtsNoFilterResults:"Aucune dette dans cette catégorie pour le moment",
+    debtEditTitle:"Modifier la dette",
+    saveChanges:"💾 Enregistrer les modifications",
+    toastFixDebtErrors:"Veuillez saisir un nom et un montant valides",
+    debtsChipAll:"Toutes",
+    debtsChipOverdue:"⚠️ En retard",
+    debtsChipSoon:"⏳ Bientôt dues",
+    debtsChipSettled:"✅ Réglées",
+    debtsPeopleSuffix:"personnes",
+    debtsBalanced:"Équilibré",
+    debtDueToday:"Échéance aujourd'hui",
+    debtDueTomorrow:"Échéance demain",
+    debtDueInDaysPrefix:"Échéance dans",
+    debtDaysUnit:"jours",
+    debtOverdueByPrefix:"En retard de",
+    printTitle:"Daftari — Rapport",
+    printGenerated:"Généré le",
+    printIncome:"Total des revenus",
+    printExpense:"Total des dépenses",
+    printNet:"Net",
+    printByCat:"Dépenses par catégorie",
+    printAllTx:"Toutes les opérations",
+    printDate:"Date",
+    printCat:"Catégorie",
+    printNote:"Note",
+    printAmount:"Montant",
+    printWalletCol:"Portefeuille",
+    printReceiptCol:"🧾",
+    otherCat:"Autre"
   }
 };
-function t(key){ return (I18N[settings.lang] && I18N[settings.lang][key]) || I18N.ar[key] || key; }
+function t(key){ const L=I18N[settings.lang]; return (L && L[key]) || (settings.lang==='fr' && I18N.en[key]) || I18N.ar[key] || key; }
 function applyI18n(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder=t(el.dataset.i18nPh); });
@@ -1241,21 +1554,40 @@ function applyI18n(){
   document.getElementById('lockTitle').textContent = t('lockUnlock');
 }
 function applyLangDirection(){
-  const dir = settings.lang==='en' ? 'ltr' : 'rtl';
+  const dir = _isLTR() ? 'ltr' : 'rtl';
   document.documentElement.setAttribute('dir', dir);
   document.documentElement.setAttribute('lang', settings.lang);
-  document.body.classList.toggle('lang-en', settings.lang==='en');
+  document.body.classList.toggle('lang-en', _isLTR());
+  document.body.classList.toggle('lang-fr', settings.lang==='fr');
   document.querySelectorAll('#langPill button').forEach(b=>b.classList.toggle('active', b.dataset.lang===settings.lang));
   const brandEl=document.getElementById('appBrandTitle');
-  if(brandEl) brandEl.innerHTML = settings.lang==='en' ? 'Daf<span>tari</span>' : 'دفت<span>ري</span>';
+  if(brandEl) brandEl.innerHTML = _isLTR() ? 'Daf<span>tari</span>' : 'دفت<span>ري</span>';
 }
-function trLabel(o){ return (settings.lang==='en' && o && o.label_en) ? o.label_en : (o ? o.label : ''); }
-function months(){ return settings.lang==='en' ? MONTHS_EN : MONTHS_AR; }
-function locale(){ return settings.lang==='en' ? 'en' : 'ar'; }
+const _isLTR=()=>settings.lang==='en'||settings.lang==='fr';
+/* default category / wallet / bill-type names in French, looked up by id so data saved before French existed still shows French names */
+const _FR_DEFAULTS={};
+[...DEFAULT_CATS,...DEFAULT_WALLETS,...BILL_TYPES].forEach(x=>{ _FR_DEFAULTS[x.id]={label_en:x.label_en, label_fr:x.label_fr}; });
+function trLabel(o){
+  if(!o) return '';
+  if(settings.lang==='fr'){
+    if(o.label_fr) return o.label_fr;
+    const d=_FR_DEFAULTS[o.id];
+    if(d && (!o.label_en || o.label_en===d.label_en)) return d.label_fr;
+    return o.label_en || o.label;
+  }
+  return (settings.lang==='en' && o.label_en) ? o.label_en : o.label;
+}
+function setTrLabel(o,v){ v=(v||'').trim(); if(settings.lang==='en') o.label_en=v||o.label_en; else if(settings.lang==='fr') o.label_fr=v||o.label_fr; else o.label=v||o.label; }
+function months(){ return settings.lang==='fr' ? MONTHS_FR : (settings.lang==='en' ? MONTHS_EN : MONTHS_AR); }
+function monthShort(i){ return settings.lang==='fr' ? MONTHS_FR_SHORT[i] : months()[i].slice(0,3); }
+function locale(){ return settings.lang==='fr' ? 'fr' : (settings.lang==='en' ? 'en' : 'ar'); }
+function daysUnit(n){ return (settings.lang==='fr' && n<2) ? 'jour' : t('debtDaysUnit'); }
+function peopleWord(n){ return (settings.lang==='fr' && n<2) ? 'personne' : t('debtsPeopleSuffix'); }
+const _c=()=>settings.lang==='fr'?'\u00a0:':':'; /* French puts a (non-breaking) space before a colon */
 
-function findCat(id){ return categories.find(c=>c.id===id) || {label:'أخرى', label_en:'Other', icon:'📦'}; }
+function findCat(id){ return categories.find(c=>c.id===id) || {label:'أخرى', label_en:'Other', label_fr:'Autre', icon:'📦'}; }
 function catsByType(t){ return categories.filter(c=>c.type===t); }
-function findWallet(id){ return wallets.find(w=>w.id===id) || wallets[0] || {id:'default', label:'المحفظة الرئيسية', label_en:'Main Wallet', icon:'👛'}; }
+function findWallet(id){ return wallets.find(w=>w.id===id) || wallets[0] || {id:'default', label:'المحفظة الرئيسية', label_en:'Main Wallet', label_fr:'Portefeuille principal', icon:'👛'}; }
 function fmt(n){
   const v=Math.round((n||0)*100)/100;
   return numFmt(v) + ' ' + currencySymbol(settings.currency);
@@ -1293,13 +1625,13 @@ async function load(){
   recurring.forEach(r=>{ if(!r.wallet){ r.wallet=defId; migrated=true; } });
   if(migrated){ saveTx(); saveRecurring(); }
 }
-async function saveTx(){ try{ localStorage.setItem(TX_KEY, JSON.stringify(transactions)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
-async function saveCats(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(categories)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
-async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
-async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
-async function saveWallets(){ try{ localStorage.setItem(WAL_KEY, JSON.stringify(wallets)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
-async function saveSavings(){ try{ localStorage.setItem(SAV_KEY, JSON.stringify(savingsGoals)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
-async function saveDebts(){ try{ localStorage.setItem(DEBT_KEY, JSON.stringify(debts)); }catch(e){ showToast('تعذر الحفظ على الجهاز'); } scheduleCloudPush(); }
+async function saveTx(){ try{ localStorage.setItem(TX_KEY, JSON.stringify(transactions)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveCats(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(categories)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveWallets(){ try{ localStorage.setItem(WAL_KEY, JSON.stringify(wallets)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveSavings(){ try{ localStorage.setItem(SAV_KEY, JSON.stringify(savingsGoals)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveDebts(){ try{ localStorage.setItem(DEBT_KEY, JSON.stringify(debts)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
 
 /* ---------- theme ---------- */
 const _darkMQ = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
@@ -1366,7 +1698,7 @@ function switchTab(name){
     if(name==='tabSettings') renderSettings();
   }catch(e){
     console.error('render failed for', name, e);
-    showToast('حدث خطأ أثناء عرض هذا القسم');
+    showToast(LXF('حدث خطأ أثناء عرض هذا القسم','Une erreur est survenue lors de l\'affichage de cette section'));
   }
 }
 document.querySelectorAll('.navbtn').forEach(b=>b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
@@ -1693,7 +2025,7 @@ function lastNMonths(n){
   const arr=[]; const d=new Date();
   for(let i=n-1;i>=0;i--){
     const dt=new Date(d.getFullYear(), d.getMonth()-i, 1);
-    arr.push({key:dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'), label:months()[dt.getMonth()].slice(0,3)+' '+String(dt.getFullYear()).slice(2)});
+    arr.push({key:dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'), label:monthShort(dt.getMonth())+' '+String(dt.getFullYear()).slice(2)});
   }
   return arr;
 }
@@ -1778,7 +2110,7 @@ function dateGroupLabel(dateStr){
   if(diffDays===0) return t('today')+' — '+full;
   if(diffDays===1) return t('yesterday')+' — '+full;
   const weekday=d.toLocaleDateString(locale(), {weekday:'long', numberingSystem:'latn'});
-  return weekday+'، '+full;
+  return weekday+(settings.lang==='fr'?', ':'، ')+full;
 }
 function logPeriodDisplayLabel(monthF){
   if(monthF==='all' || !monthF) return t('allMonths');
@@ -1838,7 +2170,7 @@ function drawChart(canvasId, type, data, options){
   if(!canvas) return;
   if(typeof Chart === 'undefined'){
     const box=canvas.closest('.chart-box');
-    if(box) box.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12px;text-align:center;padding:0 10px;">تعذّر تحميل الرسم البياني (يتطلب اتصالًا بالإنترنت في أول فتح)</div>';
+    if(box) box.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12px;text-align:center;padding:0 10px;">'+LXF('تعذّر تحميل الرسم البياني (يتطلب اتصالًا بالإنترنت في أول فتح)','Impossible de charger le graphique (connexion internet requise à la première ouverture)')+'</div>';
     return;
   }
   try{
@@ -2032,7 +2364,7 @@ function renderLastBackupInfo(){
   const el=document.getElementById('lastBackupInfo');
   if(!settings.lastAutoBackup){ el.textContent=t('lastBackupNever'); return; }
   const d=new Date(settings.lastAutoBackup);
-  el.textContent=t('lastBackupLabel')+' '+d.toLocaleDateString(settings.lang==='ar'?'ar':'en', {year:'numeric', month:'2-digit', day:'2-digit'})+' '+d.toLocaleTimeString(settings.lang==='ar'?'ar':'en', {hour:'2-digit', minute:'2-digit'});
+  el.textContent=t('lastBackupLabel')+' '+d.toLocaleDateString(locale(), {year:'numeric', month:'2-digit', day:'2-digit'})+' '+d.toLocaleTimeString(locale(), {hour:'2-digit', minute:'2-digit'});
 }
 function maybeNotifyDueRecurring(){
   if(!settings.notifEnabled) return;
@@ -2050,11 +2382,11 @@ function maybeNotifyDueRecurring(){
   dueRec.forEach(x=>parts.push(`${findCat(x.r.category).icon} ${trLabel(findCat(x.r.category))}: ${fmt(x.r.amount)}`));
   dueDebts.forEach(x=>{
     const left=(+x.d.amount||0)-(+x.d.paid||0);
-    const dir=x.d.direction==='owed_to_me' ? LX('لك عند','Owed by') : LX('عليك لـ','You owe');
+    const dir=x.d.direction==='owed_to_me' ? LX('لك عند','Owed by','À recevoir de') : LX('عليك لـ','You owe','Vous devez à');
     parts.push(`${x.d.icon||'👤'} ${dir} ${x.d.person}: ${fmt(left)}`);
   });
-  const title=LX('دفتري — مستحقات قريبة','Daftari — upcoming dues');
-  const opts={body:parts.join(' · '), icon:'./icon-192.png', badge:'./icon-192.png', tag:'daftari-due', dir:'auto', lang:settings.lang==='en'?'en':'ar', data:{tab:dueDebts.length?'tabDebts':'tabSettings'}};
+  const title=LX('دفتري — مستحقات قريبة','Daftari — upcoming dues','Daftari — échéances à venir');
+  const opts={body:parts.join(' · '), icon:'./icon-192.png', badge:'./icon-192.png', tag:'daftari-due', dir:'auto', lang:locale(), data:{tab:dueDebts.length?'tabDebts':'tabSettings'}};
   const fire=()=>{
     if('serviceWorker' in navigator){
       navigator.serviceWorker.getRegistration().then(reg=>{
@@ -2090,7 +2422,7 @@ function renderWalletManage(){
     if(newLabel===null) return;
     const newIcon=prompt(t('walletLabel')+' 👛:', w.icon||'👛');
     if(newIcon===null) return;
-    if(settings.lang==='en') w.label_en=newLabel.trim()||w.label_en; else w.label=newLabel.trim()||w.label;
+    setTrLabel(w,newLabel);
     w.icon=newIcon.trim()||w.icon;
     saveWallets(); renderWalletManage(); renderWalletChips(); populateWalletSelect(); showToast(t('toastWalletUpdated'));
   }));
@@ -2121,7 +2453,7 @@ document.getElementById('addWalletBtn').addEventListener('click', ()=>{
   const icon=document.getElementById('newWalletIcon').value.trim()||'👛';
   const name=document.getElementById('newWalletName').value.trim();
   if(!name){ showToast(t('toastEnterWalletName')); return; }
-  wallets.push({id:'w_'+Date.now(), label:name, label_en:name, icon});
+  wallets.push({id:'w_'+Date.now(), label:name, label_en:name, label_fr:name, icon});
   saveWallets();
   document.getElementById('newWalletName').value=''; document.getElementById('newWalletIcon').value='';
   renderWalletManage(); renderWalletChips(); populateWalletSelect();
@@ -2174,7 +2506,7 @@ function renderSavingsCards(){
     if(newIcon===null) return;
     const newTarget=prompt(t('savingsTargetLabel')+':', g.target||0);
     if(newTarget===null) return;
-    if(settings.lang==='en') g.label_en=newLabel.trim()||g.label_en; else g.label=newLabel.trim()||g.label;
+    setTrLabel(g,newLabel);
     g.icon=newIcon.trim()||g.icon;
     const tv=parseFloat(newTarget); if(tv>0) g.target=tv;
     saveSavings(); renderSavingsCards();
@@ -2201,7 +2533,7 @@ document.getElementById('addSavBtn').addEventListener('click', ()=>{
   const targetVal=parseFloat(document.getElementById('newSavTarget').value);
   if(!name){ showToast(t('toastEnterSavingsName')); return; }
   if(!targetVal || targetVal<=0){ showToast(t('toastEnterSavingsTarget')); return; }
-  savingsGoals.push({id:'sv_'+Date.now(), label:name, label_en:name, icon, target:targetVal, saved:0});
+  savingsGoals.push({id:'sv_'+Date.now(), label:name, label_en:name, label_fr:name, icon, target:targetVal, saved:0});
   saveSavings();
   document.getElementById('newSavName').value=''; document.getElementById('newSavIcon').value=''; document.getElementById('newSavTarget').value='';
   renderSavingsCards();
@@ -2224,7 +2556,7 @@ function openSavingsFundModal(goalId, mode){
   confirmBtn.className='sav-modal-confirm';
   if(mode==='add'){
     titleEl.textContent=`${t('savingsAddFundsBtn')} — ${trLabel(g)}`;
-    subEl.textContent = remain>0 ? `${t('savingsRemainingLabel')}: ${fmt(remain)}` : t('savingsGoalReached');
+    subEl.textContent = remain>0 ? `${t('savingsRemainingLabel')}${_c()} ${fmt(remain)}` : t('savingsGoalReached');
     if(remain>0){
       quickBtn.style.display='inline-block';
       quickBtn.textContent=`↳ ${t('savingsFillRemaining')} (${fmt(remain)})`;
@@ -2233,7 +2565,7 @@ function openSavingsFundModal(goalId, mode){
     amtEl.max=''; amtEl.removeAttribute('max');
   } else {
     titleEl.textContent=`${t('savingsWithdrawBtn')} — ${trLabel(g)}`;
-    subEl.textContent = `${t('savingsAvailableLabel')}: ${fmt(g.saved||0)}`;
+    subEl.textContent = `${t('savingsAvailableLabel')}${_c()} ${fmt(g.saved||0)}`;
     if((g.saved||0)>0){
       quickBtn.style.display='inline-block';
       quickBtn.textContent=`↳ ${t('savingsWithdrawAll')} (${fmt(g.saved||0)})`;
@@ -2299,12 +2631,12 @@ function debtDueStatusText(d, overdue){
   if(diff===null) return {text:'', cls:''};
   if(overdue){
     const daysLate=Math.abs(diff);
-    return {text:`${t('debtOverdueByPrefix')} ${daysLate} ${t('debtDaysUnit')}`, cls:'overdue'};
+    return {text:`${t('debtOverdueByPrefix')} ${daysLate} ${daysUnit(daysLate)}`, cls:'overdue'};
   }
   if(debtRemaining(d)>0 && diff>=0 && diff<=7){
     if(diff===0) return {text:t('debtDueToday'), cls:'soon'};
     if(diff===1) return {text:t('debtDueTomorrow'), cls:'soon'};
-    return {text:`${t('debtDueInDaysPrefix')} ${diff} ${t('debtDaysUnit')}`, cls:'soon'};
+    return {text:`${t('debtDueInDaysPrefix')} ${diff} ${daysUnit(diff)}`, cls:'soon'};
   }
   return {text:'', cls:''};
 }
@@ -2316,7 +2648,7 @@ function debtCardHtml(d){
   const badgeClass = d.direction==='owed_to_me' ? 'owed' : 'iowe';
   const badgeLabel = d.direction==='owed_to_me' ? t('debtOwedToMe') : t('debtIOwe');
   const status=debtDueStatusText(d, overdue);
-  const dueHtml = d.dueDate ? `<div class="debt-card-due ${status.cls}">${status.text? status.text+' • ' : ''}${t('debtDueLabel')}: ${escapeHtml(d.dueDate)}</div>` : '';
+  const dueHtml = d.dueDate ? `<div class="debt-card-due ${status.cls}">${status.text? status.text+' • ' : ''}${t('debtDueLabel')}${_c()} ${escapeHtml(d.dueDate)}</div>` : '';
   const noteHtml = d.note ? `<div class="debt-card-note">${escapeHtml(d.note)}</div>` : '';
   const statusHtml = settled ? `<div class="debt-card-done">${escapeHtml(t('debtSettledBadge'))}</div>` : '';
   const pct = (d.amount||0)>0 ? Math.max(0, Math.min(100, ((d.paid||0)/d.amount)*100)) : 0;
@@ -2351,8 +2683,8 @@ function renderDebtsList(){
   const totalIOwe=iOweAll.reduce((s,d)=>s+debtRemaining(d),0);
   document.getElementById('debtTotalOwed').textContent=fmt(totalOwed);
   document.getElementById('debtTotalIOwe').textContent=fmt(totalIOwe);
-  document.getElementById('debtOwedCount').textContent = owedAll.length ? `${owedAll.length} ${t('debtsPeopleSuffix')}` : '';
-  document.getElementById('debtIOweCount').textContent = iOweAll.length ? `${iOweAll.length} ${t('debtsPeopleSuffix')}` : '';
+  document.getElementById('debtOwedCount').textContent = owedAll.length ? `${owedAll.length} ${peopleWord(owedAll.length)}` : '';
+  document.getElementById('debtIOweCount').textContent = iOweAll.length ? `${iOweAll.length} ${peopleWord(iOweAll.length)}` : '';
   const net=totalOwed-totalIOwe;
   const netEl=document.getElementById('debtTotalNet');
   netEl.textContent=fmt(Math.abs(net));
@@ -2493,7 +2825,7 @@ function openDebtSettleModal(debtId){
   const quickBtn=document.getElementById('debtModalQuickBtn');
   const remain=debtRemaining(d);
   titleEl.textContent=`${t('debtSettleBtn')} — ${d.person}`;
-  subEl.textContent=`${t('debtRemainingLabel')}: ${fmt(remain)}`;
+  subEl.textContent=`${t('debtRemainingLabel')}${_c()} ${fmt(remain)}`;
   document.getElementById('debtModalAmount').value='';
   if(remain>0){
     quickBtn.style.display='block';
@@ -2701,8 +3033,8 @@ function checkBudgetAlert(tx){
     saveSettings();
     const c=findCat(tx.category), name=c.icon+' '+trLabel(c);
     const msg = level>=100
-      ? LX('🚨 تجاوزت ميزانية '+name+' بمقدار '+fmt(spent-budget), '🚨 You exceeded the '+name+' budget by '+fmt(spent-budget))
-      : LX('⚠️ وصلت إلى '+Math.round(pct)+'% من ميزانية '+name+' ('+fmt(spent)+' من '+fmt(budget)+')', '⚠️ You have used '+Math.round(pct)+'% of the '+name+' budget ('+fmt(spent)+' of '+fmt(budget)+')');
+      ? LX('🚨 تجاوزت ميزانية '+name+' بمقدار '+fmt(spent-budget), '🚨 You exceeded the '+name+' budget by '+fmt(spent-budget),'🚨 Vous avez dépassé le budget '+name+' de '+fmt(spent-budget))
+      : LX('⚠️ وصلت إلى '+Math.round(pct)+'% من ميزانية '+name+' ('+fmt(spent)+' من '+fmt(budget)+')', '⚠️ You have used '+Math.round(pct)+'% of the '+name+' budget ('+fmt(spent)+' of '+fmt(budget)+')','⚠️ Vous avez atteint '+Math.round(pct)+'\u00a0% du budget '+name+' ('+fmt(spent)+' sur '+fmt(budget)+')');
     showBudgetBanner(msg, level>=100);
     if(navigator.vibrate) try{ navigator.vibrate(level>=100?[80,60,80]:60); }catch(e){}
   }catch(e){ console.error(e); }
@@ -2810,8 +3142,8 @@ function buildPrintReport(){
   const showWalCol = walletFilter==='all' && wallets.length>1;
 
   let html=`<div class="pr-head">
-    <div class="pr-brand">دفت<span>ري</span> — ${t('printTitle')}</div>
-    <div class="pr-period">${monthLabel}<br><span style="font-size:11px;">${t('printWalletCol')}: ${escapeHtml(walLabel)}</span></div>
+    <div class="pr-brand">${settings.lang==='fr'?'Daf<span>tari</span>':'دفت<span>ري</span>'} — ${t('printTitle')}</div>
+    <div class="pr-period">${monthLabel}<br><span style="font-size:11px;">${t('printWalletCol')}${_c()} ${escapeHtml(walLabel)}</span></div>
   </div>`;
   html+=`<div class="pr-sub">${t('printGenerated')} ${new Date().toLocaleDateString(locale(),{numberingSystem:'latn'})}</div>`;
 
@@ -2844,7 +3176,7 @@ function buildPrintReport(){
     html+=`<tr><td>${t2.date}</td><td>${catCell}</td>${walCell}<td>${escapeHtml(t2.note||'')}</td>${rcCell}<td class="${t2.type==='income'?'amt-in':'amt-out'}">${t2.type==='income'?'+':'-'}${fmt(t2.amount)}</td></tr>`;
   });
   html+=`</table>`;
-  html+=`<div class="pr-foot">دفتري — ${escapeHtml(t('tagline'))}</div>`;
+  html+=`<div class="pr-foot">${settings.lang==='fr'?'Daftari':'دفتري'} — ${escapeHtml(t('tagline'))}</div>`;
   document.getElementById('printReport').innerHTML=html;
 }
 document.getElementById('exportPDFBtn').addEventListener('click', ()=>{
@@ -2868,7 +3200,7 @@ function renderCatManage(){
     if(newLabel===null) return;
     const newIcon=prompt(t('categoryLabel')+' 🏷️:', c.icon);
     if(newIcon===null) return;
-    if(settings.lang==='en') c.label_en=newLabel.trim()||c.label_en; else c.label=newLabel.trim()||c.label;
+    setTrLabel(c,newLabel);
     c.icon=newIcon.trim()||c.icon;
     saveCats(); renderCatManage(); showToast(t('toastCatUpdated'));
   }));
@@ -2891,7 +3223,7 @@ document.getElementById('addCatBtn').addEventListener('click', ()=>{
   const label=document.getElementById('newCatLabel').value.trim();
   const type=document.getElementById('newCatType').value;
   if(!label){ showToast(t('toastEnterCatName')); return; }
-  categories.push({id:'c_'+Date.now(), label, label_en:label, icon, type});
+  categories.push({id:'c_'+Date.now(), label, label_en:label, label_fr:label, icon, type});
   saveCats();
   document.getElementById('newCatLabel').value=''; document.getElementById('newCatIcon').value='';
   renderCatManage();
@@ -2926,11 +3258,11 @@ function cloudErrorMessage(err){
   if(code.includes('email-already-in-use')) return t('cloudErrEmailInUse');
   if(code.includes('weak-password')) return t('cloudErrWeakPassword');
   if(code.includes('network-request-failed')) return t('cloudErrNetwork');
-  if(code.includes('requires-recent-login')) return LX('أدخل كلمة المرور الحالية، أو ادخل برابط جديد ثم أعد المحاولة','Enter your current password, or sign in with a new link, then retry');
-  if(code.includes('operation-not-allowed')) return LX('الدخول برابط البريد غير مفعّل في Firebase','Email-link sign-in is not enabled in Firebase');
-  if(code.includes('expired-action-code') || code.includes('invalid-action-code')) return LX('الرابط منتهٍ أو مستخدم — اطلب رابطًا جديدًا','Link expired or already used — request a new one');
-  if(code.includes('unauthorized-continue-uri') || code.includes('invalid-continue-uri')) return LX('نطاق الموقع غير مصرّح به في Firebase (Authorized domains)','Site domain is not in Firebase Authorized domains');
-  if(code.includes('too-many-requests')) return LX('محاولات كثيرة، انتظر قليلًا','Too many attempts, wait a bit');
+  if(code.includes('requires-recent-login')) return LX('أدخل كلمة المرور الحالية، أو ادخل برابط جديد ثم أعد المحاولة','Enter your current password, or sign in with a new link, then retry','Saisissez votre mot de passe actuel, ou connectez-vous avec un nouveau lien, puis réessayez');
+  if(code.includes('operation-not-allowed')) return LX('الدخول برابط البريد غير مفعّل في Firebase','Email-link sign-in is not enabled in Firebase','La connexion par lien e-mail n\'est pas activée dans Firebase');
+  if(code.includes('expired-action-code') || code.includes('invalid-action-code')) return LX('الرابط منتهٍ أو مستخدم — اطلب رابطًا جديدًا','Link expired or already used — request a new one','Lien expiré ou déjà utilisé — demandez-en un nouveau');
+  if(code.includes('unauthorized-continue-uri') || code.includes('invalid-continue-uri')) return LX('نطاق الموقع غير مصرّح به في Firebase (Authorized domains)','Site domain is not in Firebase Authorized domains','Le domaine du site ne figure pas dans les domaines autorisés de Firebase');
+  if(code.includes('too-many-requests')) return LX('محاولات كثيرة، انتظر قليلًا','Too many attempts, wait a bit','Trop de tentatives, patientez un instant');
   return t('cloudErrGeneric');
 }
 
@@ -2959,7 +3291,7 @@ async function pushCloudNow(){
     setCloudStatus(t('cloudSyncing'));
     const payload=buildCloudPayload();
     if(new Blob([JSON.stringify(payload)]).size>1000000){
-      setCloudStatus(LX('⚠️ حجم البيانات (مع الإيصالات) يتجاوز حد المزامنة 1MB — لم تُرفع. احذف بعض الإيصالات القديمة.','⚠️ Data (incl. receipts) exceeds the 1MB sync limit — not uploaded. Remove some old receipts.'));
+      setCloudStatus(LX('⚠️ حجم البيانات (مع الإيصالات) يتجاوز حد المزامنة 1MB — لم تُرفع. احذف بعض الإيصالات القديمة.','⚠️ Data (incl. receipts) exceeds the 1MB sync limit — not uploaded. Remove some old receipts.','⚠️ Les données (reçus compris) dépassent la limite de synchronisation de 1 Mo — non envoyées. Supprimez quelques anciens reçus.'));
       return;
     }
     await CloudAPI.pushData(cloudUser.uid, payload);
@@ -3033,7 +3365,7 @@ async function handleSignedIn(user){
     const localTs=foreign ? 0 : parseInt(localStorage.getItem(CLOUD_TS_KEY)||'0',10);
     const localHas=hasLocalData();
     if(remote && remote.updatedAt && remote.updatedAt > localTs){
-      if(localHas && localTs===0 && !confirm(LX('سيتم استبدال بيانات هذا الجهاز ببيانات حسابك السحابي. تنبيه: لن تُدمج. متابعة؟','This device\'s data will be REPLACED by your cloud account data (not merged). Continue?'))){
+      if(localHas && localTs===0 && !confirm(LX('سيتم استبدال بيانات هذا الجهاز ببيانات حسابك السحابي. تنبيه: لن تُدمج. متابعة؟','This device\'s data will be REPLACED by your cloud account data (not merged). Continue?','Les données de cet appareil seront REMPLACÉES par celles de votre compte cloud (sans fusion). Continuer\u00a0?'))){
         await CloudAPI.signOutUser(); return;
       }
       try{ localStorage.setItem(CLOUD_UID_KEY,user.uid); }catch(e){}
@@ -3049,7 +3381,7 @@ async function handleSignedIn(user){
       applyCloudPayload(remote); // page will reload; listener starts after reload via onAuthChange
       return;
     }
-    if(foreign && localHas && !confirm(LX('بيانات هذا الجهاز تخص حسابًا آخر. هل ترفعها إلى هذا الحساب؟','This device\'s data belongs to another account. Upload it to this account?'))){
+    if(foreign && localHas && !confirm(LX('بيانات هذا الجهاز تخص حسابًا آخر. هل ترفعها إلى هذا الحساب؟','This device\'s data belongs to another account. Upload it to this account?','Les données de cet appareil appartiennent à un autre compte. Les envoyer vers ce compte\u00a0?'))){
       await CloudAPI.signOutUser(); return;
     }
     try{ localStorage.setItem(CLOUD_UID_KEY,user.uid); }catch(e){}
@@ -3075,12 +3407,12 @@ window.addEventListener('daftari-cloud-ready', function(e){
   try{
     if(CloudAPI.isLoginLink && CloudAPI.isLoginLink()){
       let em=null; try{ em=localStorage.getItem('daftari_emailForSignIn'); }catch(_){}
-      if(!em) em=(prompt(LX('أدخل بريدك الإلكتروني لإكمال الدخول','Enter your email to complete sign-in'))||'').trim();
+      if(!em) em=(prompt(LX('أدخل بريدك الإلكتروني لإكمال الدخول','Enter your email to complete sign-in','Saisissez votre e-mail pour terminer la connexion'))||'').trim();
       if(em){
         CloudAPI.completeLoginLink(em).then(()=>{
           try{ localStorage.removeItem('daftari_emailForSignIn'); }catch(_){}
           history.replaceState(null,'',location.pathname);
-          showToast(LX('تم الدخول ✓ عيّن كلمة مرور جديدة من الإعدادات','Signed in ✓ set a new password in Settings'));
+          showToast(LX('تم الدخول ✓ عيّن كلمة مرور جديدة من الإعدادات','Signed in ✓ set a new password in Settings','Connecté ✓ définissez un nouveau mot de passe dans les Paramètres'));
           setTimeout(()=>{ switchTab('tabSettings'); const f=document.getElementById('cloudNewPwInput'); if(f) f.focus(); },1500);
         }).catch(err=>{ history.replaceState(null,'',location.pathname); showToast(cloudErrorMessage(err)); });
       }
@@ -3106,10 +3438,10 @@ document.getElementById('cloudSignUpBtn').addEventListener('click', async ()=>{
 });
 document.getElementById('cloudResetBtn').addEventListener('click', async ()=>{
   const email=document.getElementById('cloudEmailInput').value.trim();
-  if(!email){ showToast(LX('أدخل بريدك الإلكتروني أولًا','Enter your email first')); return; }
+  if(!email){ showToast(LX('أدخل بريدك الإلكتروني أولًا','Enter your email first','Saisissez d\'abord votre e-mail')); return; }
   if(!CloudAPI){ showToast(t('cloudErrNetwork')); return; }
   try{ await CloudAPI.sendLoginLink(email); try{ localStorage.setItem('daftari_emailForSignIn',email); }catch(_){}
-    showToast(LX('أُرسل رابط الدخول إلى بريدك. افتحه ثم عيّن كلمة مرور جديدة من الإعدادات','A sign-in link was sent. Open it, then set a new password in Settings')); }
+    showToast(LX('أُرسل رابط الدخول إلى بريدك. افتحه ثم عيّن كلمة مرور جديدة من الإعدادات','A sign-in link was sent. Open it, then set a new password in Settings','Un lien de connexion a été envoyé. Ouvrez-le, puis définissez un nouveau mot de passe dans les Paramètres')); }
   catch(e){ showToast(cloudErrorMessage(e)); }
 });
 document.getElementById('cloudChangePwBtn').addEventListener('click', async ()=>{
@@ -3118,7 +3450,7 @@ document.getElementById('cloudChangePwBtn').addEventListener('click', async ()=>
   if(!CloudAPI || !cloudUser){ showToast(t('cloudErrNetwork')); return; }
   try{ await CloudAPI.changePassword(cur,nw);
     document.getElementById('cloudCurPwInput').value=''; document.getElementById('cloudNewPwInput').value='';
-    showToast(LX('تم تغيير كلمة المرور ✓','Password changed ✓')); }
+    showToast(LX('تم تغيير كلمة المرور ✓','Password changed ✓','Mot de passe modifié ✓')); }
   catch(e){ showToast(cloudErrorMessage(e)); }
 });
 document.getElementById('cloudSignOutBtn').addEventListener('click', async ()=>{
@@ -3270,13 +3602,27 @@ function shortcutURL(){
 function quickURL(){ const u=new URL('quick.html', window.location.href); u.search=''; u.hash=''; return u.toString(); }
 function shortcutHowToHtml(){
   const q=escapeHtml(quickURL());
-  const extra = settings.lang==='en'
+  const extra = settings.lang==='fr'
+    ? `<br><br><b>Ajout rapide (sans ouvrir l'application complète) :</b> une petite page avec uniquement le montant et la catégorie. Sur Android, elle apparaît dans le menu d'appui long de l'icône sous le nom « Ajout rapide ». Sur iOS, ouvrez ce lien dans Safari → Partager → Sur l'écran d'accueil : <span style="direction:ltr; display:inline-block; word-break:break-all;">${q}</span>`
+    : settings.lang==='en'
     ? `<br><br><b>Quick add (without opening the full app):</b> a small page with only amount + category. On Android it appears in the icon's long-press menu as \"Quick add\". On iOS open this link in Safari → Share → Add to Home Screen: <span style=\"direction:ltr; display:inline-block; word-break:break-all;\">${q}</span>`
     : `<br><br><b>التسجيل السريع (دون فتح التطبيق كاملًا):</b> صفحة صغيرة فيها المبلغ والفئة فقط. على أندرويد تظهر في قائمة الضغط المطوّل على الأيقونة باسم \"تسجيل سريع\". على iOS افتح هذا الرابط في Safari ← مشاركة ← إضافة إلى الشاشة الرئيسية: <span style=\"direction:ltr; display:inline-block; word-break:break-all;\">${q}</span>`;
   return _shortcutHowToBase() + extra;
 }
 function _shortcutHowToBase(){
   const url=escapeHtml(shortcutURL());
+  if(settings.lang==='fr'){
+    if(isIOS()){
+      return `Pour obtenir une icône indépendante qui s'ouvre directement sur « Ajouter un paiement » :<br>
+      1) Ouvrez ce lien dans Safari : <span style="direction:ltr; display:inline-block; word-break:break-all;">${url}</span><br>
+      2) Appuyez sur le bouton Partager.<br>
+      3) Choisissez « Sur l'écran d'accueil ».<br>
+      4) Nommez-la par exemple « Paiement rapide » puis appuyez sur « Ajouter ».<br>
+      Vous obtiendrez une deuxième icône à côté de Daftari qui ouvre directement l'écran d'ajout.`;
+    }
+    return `Appuyez longuement (ou faites un clic droit) sur l'icône Daftari de votre écran d'accueil ou de votre barre des tâches : une option de raccourci « Enregistrer un paiement » apparaîtra directement dans le menu.<br><br>
+    Si elle n'apparaît pas, vous pouvez aussi ajouter ce lien comme raccourci indépendant : <span style="direction:ltr; display:inline-block; word-break:break-all;">${url}</span>`;
+  }
   if(settings.lang==='en'){
     if(isIOS()){
       return `To get a standalone icon that opens directly to "Add Payment":<br>
@@ -3353,7 +3699,7 @@ async function onPinKey(k){
   if(pinBuffer.length===4){
     if(pinMode==='unlock'){
       const wait=_pinWait();
-      if(wait>0){ document.getElementById('pinErr').textContent=LX('محاولات كثيرة، انتظر '+wait+' ثانية','Too many attempts, wait '+wait+'s'); pinBuffer=''; renderPinDots(); return; }
+      if(wait>0){ document.getElementById('pinErr').textContent=LX('محاولات كثيرة، انتظر '+wait+' ثانية','Too many attempts, wait '+wait+'s','Trop de tentatives, patientez '+wait+' s'); pinBuffer=''; renderPinDots(); return; }
       const h=await sha256(pinBuffer);
       if(h===settings.pinHash){
         _pinReset();
@@ -3363,7 +3709,7 @@ async function onPinKey(k){
         pinBuffer='';
       }else{
         const w=_pinFail();
-        document.getElementById('pinErr').textContent= w>0 ? LX('محاولات كثيرة، انتظر '+w+' ثانية','Too many attempts, wait '+w+'s') : t('pinErrWrong');
+        document.getElementById('pinErr').textContent= w>0 ? LX('محاولات كثيرة، انتظر '+w+' ثانية','Too many attempts, wait '+w+'s','Trop de tentatives, patientez '+w+' s') : t('pinErrWrong');
         pinBuffer=''; renderPinDots();
       }
     }else if(pinMode==='verify-disable'){
@@ -3453,7 +3799,7 @@ async function init(){
     if(settings.pinEnabled && !unlockedThisSession){ openLock('unlock'); }
   }catch(e){
     console.error('init failed:', e);
-    showToast('حدث خطأ أثناء تشغيل التطبيق');
+    showToast(LXF('حدث خطأ أثناء تشغيل التطبيق','Une erreur est survenue au démarrage de l\'application'));
   }
 }
 window.addEventListener('error', function(e){
@@ -3506,9 +3852,10 @@ if('serviceWorker' in navigator){
 }
 
 /* ================= Daftari extras ================= */
-const LX=(a,e)=>settings.lang==='en'?e:a;
+const LX=(a,e,f)=>settings.lang==='fr'?(f!==undefined?f:e):(settings.lang==='en'?e:a);
+const LXF=(a,f)=>settings.lang==='fr'?f:a; /* French-only override: ar and en keep the original text */
 function numFmt(v){
-  const k=(settings.lang==='en'?'en':'ar')+'-u-nu-'+(settings.numerals==='arab'?'arab':'latn');
+  const k=locale()+'-u-nu-'+(settings.numerals==='arab'?'arab':'latn');
   numFmt._c=numFmt._c||{};
   return (numFmt._c[k]=numFmt._c[k]||new Intl.NumberFormat(k,{minimumFractionDigits:2,maximumFractionDigits:2})).format(v);
 }
@@ -3537,7 +3884,7 @@ const moreSheet=document.createElement('div'); moreSheet.className='more-sheet';
 document.body.append(moreBd,moreSheet);
 function closeMore(){moreBd.classList.remove('open');moreSheet.classList.remove('open');}
 function openMore(){
-  moreSheet.innerHTML=[['tabSavings','💰',LX('المدخرات','Savings')],['tabDebts','🤝',LX('الديون','Debts')],['tabSettings','⚙️',LX('الإعدادات','Settings')]]
+  moreSheet.innerHTML=[['tabSavings','💰',LX('المدخرات','Savings','Épargne')],['tabDebts','🤝',LX('الديون','Debts','Dettes')],['tabSettings','⚙️',LX('الإعدادات','Settings','Paramètres')]]
     .map(x=>`<button data-go="${x[0]}"><span>${x[1]}</span>${x[2]}</button>`).join('');
   moreSheet.querySelectorAll('button').forEach(b=>b.onclick=()=>{closeMore();switchTab(b.dataset.go);});
   moreBd.classList.add('open');moreSheet.classList.add('open');
@@ -3553,10 +3900,12 @@ switchTab=function(name){
 
 /* numerals setting */
 const numSel=document.getElementById('numeralsSelect');
+const _numOptDef=[numSel.options[0].text,numSel.options[1].text];
 numSel.onchange=()=>{settings.numerals=numSel.value;saveSettings();switchTab(document.querySelector('main.active').id);};
 const _renderSettings=renderSettings;
 renderSettings=function(){_renderSettings();numSel.value=settings.numerals||'latn';
-  document.getElementById('numeralsLab').textContent=LX('الأرقام','Numerals');document.getElementById('moreLbl').textContent=LX('المزيد','More');};
+  if(numSel.options.length>1){ const _f=settings.lang==='fr'; numSel.options[0].text=_f?'123 (occidentaux)':_numOptDef[0]; numSel.options[1].text=_f?'١٢٣ (orientaux)':_numOptDef[1]; }
+  document.getElementById('numeralsLab').textContent=LX('الأرقام','Numerals','Chiffres');document.getElementById('moreLbl').textContent=LX('المزيد','More','Plus');};
 
 /* category suggestion from note history */
 (function(){
@@ -3570,7 +3919,7 @@ renderSettings=function(){_renderSettings();numSel.value=settings.numerals||'lat
       const n=tx.note.toLowerCase(); toks.forEach(w=>{ if(n.includes(w)) score[tx.category]=(score[tx.category]||0)+1; }); });
     const best=Object.keys(score).sort((a,b)=>score[b]-score[a])[0];
     const c=best&&best!==selectedCategory&&categories.find(c=>c.id===best); if(!c) return;
-    box.innerHTML=`<button type="button" class="sugg-chip">💡 ${LX('اقتراح','Suggested')}: ${c.icon} ${escapeHtml(settings.lang==='en'&&c.label_en?c.label_en:c.label)}</button>`;
+    box.innerHTML=`<button type="button" class="sugg-chip">💡 ${LX('اقتراح','Suggested','Suggestion')}: ${c.icon} ${escapeHtml(trLabel(c))}</button>`;
     box.firstChild.onclick=()=>{selectedCategory=best;renderCatGrid();box.innerHTML='';};
   });
 })();
@@ -3586,7 +3935,7 @@ document.querySelector('#tabAdd .type-toggle').before(tplBox);
 function renderTpl(){
   tplBox.innerHTML=templates.map((p,i)=>{const c=categories.find(c=>c.id===p.category);
     return `<span class="tpl-chip" data-i="${i}">${c?c.icon:'🏷️'} ${escapeHtml(p.name)} · ${p.amount}<b data-del="${i}">×</b></span>`;}).join('')
-    +`<button type="button" class="tpl-chip" id="tplAdd">➕ ${LX('حفظ كقالب','Save as template')}</button>`;
+    +`<button type="button" class="tpl-chip" id="tplAdd">➕ ${LX('حفظ كقالب','Save as template','Enregistrer comme modèle')}</button>`;
   tplBox.querySelectorAll('.tpl-chip[data-i]').forEach(el=>el.onclick=(e)=>{
     if(e.target.dataset.del!==undefined){templates.splice(+e.target.dataset.del,1);tplSave();renderTpl();return;}
     const p=templates[+el.dataset.i]; currentType=p.type; selectedCategory=p.category;
@@ -3597,11 +3946,11 @@ function renderTpl(){
   });
   document.getElementById('tplAdd').onclick=()=>{
     const amount=parseFloat(document.getElementById('amountInput').value), note=document.getElementById('noteInput').value.trim();
-    if(!(amount>0)||!selectedCategory){showToast(LX('أدخل المبلغ واختر الفئة أولًا','Enter amount and pick a category first'));return;}
+    if(!(amount>0)||!selectedCategory){showToast(LX('أدخل المبلغ واختر الفئة أولًا','Enter amount and pick a category first','Saisissez le montant et choisissez d\'abord une catégorie'));return;}
     const c=categories.find(c=>c.id===selectedCategory);
     templates.push({type:currentType,category:selectedCategory,amount,note,wallet:document.getElementById('walletSelect').value,
-      name:note||(c?(settings.lang==='en'&&c.label_en?c.label_en:c.label):'')});
-    tplSave();renderTpl();showToast(LX('تم حفظ القالب','Template saved'));
+      name:note||(c?trLabel(c):'')});
+    tplSave();renderTpl();showToast(LX('تم حفظ القالب','Template saved','Modèle enregistré'));
   };
 }
 
@@ -3621,27 +3970,27 @@ function renderInsights(){
   const tiles=[];
   if(spent>0 && prevSame>0){
     const pct=Math.round((spent-prevSame)/prevSame*100);
-    tiles.push({k:LX('مقارنة بالشهر الماضي','vs last month'), v:(pct>0?'▲ ':pct<0?'▼ ':'= ')+Math.abs(pct)+'%', cls:pct>0?'up':(pct<0?'down':''),
-      s:pct>0?LX('صرفت أكثر في نفس الفترة','Spending more, same period'):(pct<0?LX('صرفت أقل في نفس الفترة','Spending less, same period'):LX('مثل نفس الفترة','Same as the same period'))});
+    tiles.push({k:LX('مقارنة بالشهر الماضي','vs last month','Par rapport au mois dernier'), v:(pct>0?'▲ ':pct<0?'▼ ':'= ')+Math.abs(pct)+'%', cls:pct>0?'up':(pct<0?'down':''),
+      s:pct>0?LX('صرفت أكثر في نفس الفترة','Spending more, same period','Vous dépensez plus sur la même période'):(pct<0?LX('صرفت أقل في نفس الفترة','Spending less, same period','Vous dépensez moins sur la même période'):LX('مثل نفس الفترة','Same as the same period','Identique à la même période'))});
   }
   if(spent>0){
     const by={}; exp.forEach(x=>{ by[x.category]=(by[x.category]||0)+(+x.amount||0); });
     const top=Object.keys(by).sort((a,b)=>by[b]-by[a])[0], c=findCat(top);
-    tiles.push({k:LX('أكثر فئة صرفًا','Top category'), v:c.icon+' '+escapeHtml(trLabel(c)), s:fmt(by[top])+' · '+Math.round(by[top]/spent*100)+'%'});
-    if(day>=3) tiles.push({k:LX('توقّع مصروف نهاية الشهر','Month-end forecast'), v:fmt(spent/day*dim), s:LX('متوسطك اليومي: ','Daily average: ')+fmt(spent/day)});
-    else tiles.push({k:LX('متوسطك اليومي','Daily average'), v:fmt(spent/day), s:''});
+    tiles.push({k:LX('أكثر فئة صرفًا','Top category','Catégorie principale'), v:c.icon+' '+escapeHtml(trLabel(c)), s:fmt(by[top])+' · '+Math.round(by[top]/spent*100)+'%'});
+    if(day>=3) tiles.push({k:LX('توقّع مصروف نهاية الشهر','Month-end forecast','Prévision de fin de mois'), v:fmt(spent/day*dim), s:LX('متوسطك اليومي: ','Daily average: ','Moyenne quotidienne\u00a0: ')+fmt(spent/day)});
+    else tiles.push({k:LX('متوسطك اليومي','Daily average','Moyenne quotidienne'), v:fmt(spent/day), s:''});
   }
   if(income>0){
     const left=income-spent, rate=Math.round(left/income*100);
-    tiles.push({k:LX('المتبقي من دخل الشهر','Left from this month\'s income'), v:fmt(left), cls:left<0?'up':'',
-      s:left>=0?LX('نسبة الادخار ','Savings rate ')+rate+'%':LX('تجاوزت دخل هذا الشهر','Over this month\'s income')});
+    tiles.push({k:LX('المتبقي من دخل الشهر','Left from this month\'s income','Reste du revenu du mois'), v:fmt(left), cls:left<0?'up':'',
+      s:left>=0?LX('نسبة الادخار ','Savings rate ','Taux d\'épargne ')+rate+'%':LX('تجاوزت دخل هذا الشهر','Over this month\'s income','Revenu du mois dépassé')});
   }else if(spent>0){
     const big=[...exp].sort((a,b)=>b.amount-a.amount)[0];
-    tiles.push({k:LX('أكبر مصروف هذا الشهر','Biggest expense'), v:fmt(big.amount), s:escapeHtml(big.note||trLabel(findCat(big.category)))});
+    tiles.push({k:LX('أكبر مصروف هذا الشهر','Biggest expense','Plus grosse dépense'), v:fmt(big.amount), s:escapeHtml(big.note||trLabel(findCat(big.category)))});
   }
   if(!tiles.length){ fcBox.style.display='none'; return; }
   fcBox.style.display='block';
-  fcBox.innerHTML='<div class="ins-head">📊 '+LX('نظرة سريعة على هذا الشهر','This month at a glance')+'</div><div class="ins-grid">'+
+  fcBox.innerHTML='<div class="ins-head">📊 '+LX('نظرة سريعة على هذا الشهر','This month at a glance','Aperçu de ce mois')+'</div><div class="ins-grid">'+
     tiles.slice(0,4).map((x,i,arr)=>'<div class="ins-tile'+((arr.length%2===1&&i===arr.length-1)?' wide':'')+'"><div class="k">'+x.k+'</div><div class="v '+(x.cls||'')+'">'+x.v+'</div>'+(x.s?'<div class="s">'+x.s+'</div>':'')+'</div>').join('')+'</div>';
 }
 /* home: empty state + month-end forecast */
@@ -3651,7 +4000,7 @@ renderHome=function(){
   _renderHome();
   const rec=document.getElementById('homeRecent');
   if(!transactions.length){
-    rec.innerHTML=`<div class="empty-state"><div class="big">📒</div><div>${LX('لا توجد حركات بعد. سجّل أول مصروف أو دخل لتبدأ.','No transactions yet. Add your first one to get started.')}</div><button type="button" id="emptyAdd">${LX('➕ إضافة حركة','➕ Add transaction')}</button></div>`;
+    rec.innerHTML=`<div class="empty-state"><div class="big">📒</div><div>${LX('لا توجد حركات بعد. سجّل أول مصروف أو دخل لتبدأ.','No transactions yet. Add your first one to get started.','Aucune opération pour le moment. Ajoutez la première pour commencer.')}</div><button type="button" id="emptyAdd">${LX('➕ إضافة حركة','➕ Add transaction','➕ Ajouter une opération')}</button></div>`;
     document.getElementById('emptyAdd').onclick=()=>switchTab('tabAdd');
   }
   renderInsights();
@@ -3683,33 +4032,33 @@ setTimeout(()=>{
     const dots=Array.from({length:N},(_,i)=>'<i class="'+(i===step?'on':'')+'"></i>').join('');
     const last=step===N-1; let body='';
     if(step===0){
-      body='<div style="font-size:54px">📒</div><h2>'+LX('مرحبًا بك في دفتري','Welcome to Daftari')+'</h2>'+
-        '<p>'+LX('1) سجّل مصاريفك ودخلك في ثوانٍ.<br>2) حدّد ميزانية لكل فئة ونُنبّهك عند اقترابك منها.<br>3) تتبّع مدخراتك وديونك في مكان واحد.','1) Log expenses and income in seconds.<br>2) Set budgets and get alerted as you approach them.<br>3) Track savings and debts in one place.')+'</p>'+
+      body='<div style="font-size:54px">📒</div><h2>'+LX('مرحبًا بك في دفتري','Welcome to Daftari','Bienvenue dans Daftari')+'</h2>'+
+        '<p>'+LX('1) سجّل مصاريفك ودخلك في ثوانٍ.<br>2) حدّد ميزانية لكل فئة ونُنبّهك عند اقترابك منها.<br>3) تتبّع مدخراتك وديونك في مكان واحد.','1) Log expenses and income in seconds.<br>2) Set budgets and get alerted as you approach them.<br>3) Track savings and debts in one place.','1) Enregistrez vos dépenses et vos revenus en quelques secondes.<br>2) Fixez des budgets et soyez alerté quand vous vous en approchez.<br>3) Suivez votre épargne et vos dettes au même endroit.')+'</p>'+
         '<div class="row"><select id="obCur">'+Object.keys(CURRENCIES).map(k=>'<option value="'+k+'">'+k+' — '+currencyName(k)+' ('+currencySymbol(k)+')</option>').join('')+'</select>'+
-        '<select id="obLang"><option value="ar">العربية</option><option value="en">English</option></select></div>';
+        '<select id="obLang"><option value="ar">العربية</option><option value="en">English</option><option value="fr">Français</option></select></div>';
     }else if(step===1){
       const days=Array.from({length:31},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join('');
-      body='<div style="font-size:54px">💼</div><h2>'+LX('ما هو راتبك؟','What is your salary?')+'</h2>'+
-        '<p>'+LX('اختياري — نضيفه لك كدخل تلقائيًا، فتبدأ بصورة صحيحة لرصيدك.','Optional — we add it as income automatically so your balance starts right.')+'</p>'+
+      body='<div style="font-size:54px">💼</div><h2>'+LX('ما هو راتبك؟','What is your salary?','Quel est votre salaire\u00a0?')+'</h2>'+
+        '<p>'+LX('اختياري — نضيفه لك كدخل تلقائيًا، فتبدأ بصورة صحيحة لرصيدك.','Optional — we add it as income automatically so your balance starts right.','Facultatif — nous l\'ajoutons automatiquement comme revenu pour que votre solde démarre juste.')+'</p>'+
         '<input type="number" id="obSal" inputmode="decimal" min="0" placeholder="0.00" value="'+escapeHtml(D.salary)+'">'+
-        '<div class="ob-chips"><button type="button" class="ob-chip '+(D.monthly?'on':'')+'" data-m="1">'+LX('شهري','Monthly')+'</button><button type="button" class="ob-chip '+(D.monthly?'':'on')+'" data-m="0">'+LX('مرة واحدة','One time')+'</button></div>'+
-        (D.monthly?'<p>'+LX('يوم نزول الراتب من الشهر','Day of the month it arrives')+'</p><select id="obDay" style="width:auto;margin:0 auto;display:block">'+days+'</select>':'');
+        '<div class="ob-chips"><button type="button" class="ob-chip '+(D.monthly?'on':'')+'" data-m="1">'+LX('شهري','Monthly','Mensuel')+'</button><button type="button" class="ob-chip '+(D.monthly?'':'on')+'" data-m="0">'+LX('مرة واحدة','One time','Une seule fois')+'</button></div>'+
+        (D.monthly?'<p>'+LX('يوم نزول الراتب من الشهر','Day of the month it arrives','Jour du mois où il arrive')+'</p><select id="obDay" style="width:auto;margin:0 auto;display:block">'+days+'</select>':'');
     }else if(step===2){
-      body='<div style="font-size:54px">🎯</div><h2>'+LX('حدّد ميزانياتك','Set your budgets')+'</h2>'+
-        '<p>'+LX('اختياري — سقف شهري لكل فئة، ونُنبّهك عند 80% وعند التجاوز. يمكنك تعديلها لاحقًا من الإعدادات.','Optional — a monthly cap per category. We alert you at 80% and when exceeded. Change them later in Settings.')+'</p>'+
+      body='<div style="font-size:54px">🎯</div><h2>'+LX('حدّد ميزانياتك','Set your budgets','Fixez vos budgets')+'</h2>'+
+        '<p>'+LX('اختياري — سقف شهري لكل فئة، ونُنبّهك عند 80% وعند التجاوز. يمكنك تعديلها لاحقًا من الإعدادات.','Optional — a monthly cap per category. We alert you at 80% and when exceeded. Change them later in Settings.','Facultatif — un plafond mensuel par catégorie. Nous vous alertons à 80\u00a0% et en cas de dépassement. Vous pourrez les modifier plus tard dans les Paramètres.')+'</p>'+
         budIds.map(id=>{ const c=findCat(id); return '<div class="ob-bud"><span class="lbl">'+c.icon+' '+escapeHtml(trLabel(c))+'</span><input type="number" class="ob-bud-in" data-id="'+id+'" inputmode="decimal" min="0" placeholder="0" value="'+escapeHtml(D.bud[id]||'')+'"></div>'; }).join('');
     }else{
       const supported=(typeof Notification!=='undefined');
       const on=supported && Notification.permission==='granted' && settings.notifEnabled;
-      body='<div style="font-size:54px">🔔</div><h2>'+LX('كل شيء جاهز تقريبًا','Almost ready')+'</h2>'+
-        '<p>'+LX('فعّل التنبيهات لتذكيرك بالمستحقات والمعاملات المتكررة القريبة.','Turn on reminders for upcoming dues and recurring payments.')+'</p>'+
-        (on?'<div class="ob-ok">✓ '+LX('التنبيهات مفعّلة','Notifications on')+'</div>'
-          :(supported?'<button type="button" class="ob-chip" id="obNotif" style="width:100%">🔔 '+LX('تفعيل التنبيهات','Enable notifications')+'</button>':'<p>'+LX('التنبيهات غير مدعومة في هذا المتصفح.','Notifications are not supported in this browser.')+'</p>'));
+      body='<div style="font-size:54px">🔔</div><h2>'+LX('كل شيء جاهز تقريبًا','Almost ready','Presque prêt')+'</h2>'+
+        '<p>'+LX('فعّل التنبيهات لتذكيرك بالمستحقات والمعاملات المتكررة القريبة.','Turn on reminders for upcoming dues and recurring payments.','Activez les rappels pour les échéances à venir et les paiements récurrents.')+'</p>'+
+        (on?'<div class="ob-ok">✓ '+LX('التنبيهات مفعّلة','Notifications on','Notifications activées')+'</div>'
+          :(supported?'<button type="button" class="ob-chip" id="obNotif" style="width:100%">🔔 '+LX('تفعيل التنبيهات','Enable notifications','Activer les notifications')+'</button>':'<p>'+LX('التنبيهات غير مدعومة في هذا المتصفح.','Notifications are not supported in this browser.','Les notifications ne sont pas prises en charge par ce navigateur.')+'</p>'));
     }
     ob.innerHTML='<div class="box"><div class="ob-dots">'+dots+'</div>'+body+'<div class="ob-btns">'+
-      (step>0?'<button type="button" class="ob-ghost" id="obBack">'+LX('رجوع','Back')+'</button>':'')+
-      (step>0&&!last?'<button type="button" class="ob-ghost" id="obSkip">'+LX('تخطي','Skip')+'</button>':'')+
-      '<button type="button" class="ob-go" id="obNext">'+(last?LX('ابدأ الاستخدام','Start'):LX('التالي','Next'))+'</button></div></div>';
+      (step>0?'<button type="button" class="ob-ghost" id="obBack">'+LX('رجوع','Back','Retour')+'</button>':'')+
+      (step>0&&!last?'<button type="button" class="ob-ghost" id="obSkip">'+LX('تخطي','Skip','Passer')+'</button>':'')+
+      '<button type="button" class="ob-go" id="obNext">'+(last?LX('ابدأ الاستخدام','Start','Commencer'):LX('التالي','Next','Suivant'))+'</button></div></div>';
     const $=id=>document.getElementById(id);
     if(step===0){
       $('obCur').value=settings.currency; $('obLang').value=settings.lang;
@@ -3753,11 +4102,11 @@ if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('messa
 });
 { const qt=new URLSearchParams(location.search).get('tab');
   if(qt&&/^tab\w+$/.test(qt)&&document.getElementById(qt)) setTimeout(()=>switchTab(qt),1200); }
-function _extraLabels(){ try{ const b=document.getElementById('cloudResetBtn'); if(b) b.textContent=LX('نسيت كلمة المرور؟ (دخول برابط البريد)','Forgot password? (sign in by email link)');
-  const c=document.getElementById('cloudCurPwInput'); if(c) c.placeholder=LX('كلمة المرور الحالية (اتركها فارغة بعد الدخول برابط)','Current password (leave empty after email-link sign-in)');
-  const n=document.getElementById('cloudNewPwInput'); if(n) n.placeholder=LX('كلمة المرور الجديدة (6 أحرف على الأقل)','New password (min 6 characters)');
-  const cb=document.getElementById('cloudChangePwBtn'); if(cb) cb.textContent=LX('تغيير كلمة المرور','Change password');
-  const vb=document.getElementById('voiceBtn'); if(vb && !vb.dataset.listening) vb.textContent=LX('🎤 تسجيل بالصوت','🎤 Voice entry');
+function _extraLabels(){ try{ const b=document.getElementById('cloudResetBtn'); if(b) b.textContent=LX('نسيت كلمة المرور؟ (دخول برابط البريد)','Forgot password? (sign in by email link)','Mot de passe oublié\u00a0? (connexion par lien e-mail)');
+  const c=document.getElementById('cloudCurPwInput'); if(c) c.placeholder=LX('كلمة المرور الحالية (اتركها فارغة بعد الدخول برابط)','Current password (leave empty after email-link sign-in)','Mot de passe actuel (laissez vide après une connexion par lien)');
+  const n=document.getElementById('cloudNewPwInput'); if(n) n.placeholder=LX('كلمة المرور الجديدة (6 أحرف على الأقل)','New password (min 6 characters)','Nouveau mot de passe (6 caractères minimum)');
+  const cb=document.getElementById('cloudChangePwBtn'); if(cb) cb.textContent=LX('تغيير كلمة المرور','Change password','Changer le mot de passe');
+  const vb=document.getElementById('voiceBtn'); if(vb && !vb.dataset.listening) vb.textContent=LX('🎤 تسجيل بالصوت','🎤 Voice entry','🎤 Saisie vocale');
   }catch(e){} }
 { const _ai=applyI18n; applyI18n=function(){ const r=_ai.apply(this,arguments); _extraLabels(); return r; }; }
 _extraLabels();
@@ -3774,7 +4123,7 @@ async function _syncQuick(){
     add.forEach(x=>transactions.push(x));
     await saveTx();
     const m=document.querySelector('main.active'); if(m && m.id!=='tabAdd') switchTab(m.id);
-    showToast(LX('أُضيفت عمليات سُجّلت من الاختصار السريع','Added entries recorded from the quick shortcut'));
+    showToast(LX('أُضيفت عمليات سُجّلت من الاختصار السريع','Added entries recorded from the quick shortcut','Opérations enregistrées depuis le raccourci rapide ajoutées'));
   }catch(e){ console.error('quick sync failed', e); }
 }
 window.addEventListener('storage', e=>{ if(e.key===TX_KEY) _syncQuick(); });
@@ -3785,6 +4134,7 @@ window.addEventListener('load', ()=>{ try{ fetch('./quick.html').catch(()=>{}); 
 function parseVoiceEntry(raw){
   let txt=String(raw||'').trim();
   txt=txt.replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/٫/g,'.').replace(/٬/g,',');
+  if(settings.lang==='fr') txt=txt.replace(/(\d)[\u00a0\u202f ](?=\d{3}(?!\d))/g,'$1'); /* "1 200" -> "1200" */
   const MUL={'ألف':1e3,'الف':1e3,'آلاف':1e3,'مليون':1e6};
   const CUR=/^(دينار|دنانير|دينارا|دج|دا|da|dzd|dinar|dinars)$/i;
   const clean=n=>{ const v=Math.round(n*100)/100; return (isFinite(v)&&v>0&&v<1e9)?v:null; };
@@ -3825,11 +4175,12 @@ function parseVoiceEntry(raw){
   return {amount, note};
 }
 /* ---------- voice: pick the category from what was said ---------- */
-const _vNorm=w=>String(w||'').toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u0652\u0640]/g,'');
+const _vNorm=w=>String(w||'').toLowerCase().replace(/[àâä]/g,'a').replace(/[éèêë]/g,'e').replace(/[îï]/g,'i').replace(/[ôö]/g,'o').replace(/[ùûü]/g,'u').replace(/ç/g,'c').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u0652\u0640]/g,'');
 const _vVariants=w=>{ const v=new Set([w]);
   if(/^(وال|بال|فال|كال)/.test(w)) v.add(w.slice(3));
   if(/^(ال|لل)/.test(w)) v.add(w.slice(2));
   if(/^[وبلفك]/.test(w)) v.add(w.slice(1));
+  if(settings.lang==='fr'){ if(/^(l|d|j|c|n|s|qu)['’]/.test(w)) v.add(w.replace(/^(l|d|j|c|n|s|qu)['’]/,'')); if(w.length>3 && /[sx]$/.test(w)) v.add(w.slice(0,-1)); }
   return v; };
 const VOICE_KW={
   food:'اكل طعام غداء عشاء فطور فطار سحور مطعم قهوه شاي خبز حليب لحم دجاج سمك خضر خضره فواكه فاكهه بيتزا برغر ساندويتش ساندوتش عصير مشروب حلويات كافي كافيه مقهي سوبرماركت بقاله ماركت مخبزه وجبه وجبات غدا food lunch dinner breakfast restaurant coffee grocery groceries pizza burger snack drink meal',
@@ -3843,6 +4194,20 @@ const VOICE_KW={
   salary:'راتب مرتب معاش salary wage paycheck',
   invest:'استثمار ارباح ربح اسهم عائد فوائد investment profit dividend'
 };
+/* French keywords (only consulted when the interface language is French) */
+const VOICE_KW_FR={
+  food:'alimentation manger repas déjeuner dîner petit-déjeuner restaurant resto café thé pain lait viande poulet poisson légumes fruits pizza burger sandwich jus boisson boissons courses supermarché épicerie boulangerie pâtisserie snack cantine',
+  transport:'essence carburant gasoil diesel voiture taxi bus tramway métro train avion billet billets parking péage transport vidange garage lavage',
+  home:'loyer maison logement appartement meuble meubles décoration plombier électricien nettoyage ménage',
+  bills:'facture factures électricité eau gaz internet wifi téléphone recharge abonnement forfait sonelgaz mobilis djezzy ooredoo',
+  shopping:'shopping achats vêtements vêtement chaussures chemise pantalon veste cadeau cadeaux parfum maquillage',
+  fun:'loisirs cinéma jeu jeux voyage sortie concert film netflix sport salle piscine vacances',
+  health:'médicament médicaments pharmacie médecin docteur hôpital clinique analyses soins dentiste lunettes santé',
+  edu:'école université livre livres cours formation éducation fournitures inscription scolarité',
+  salary:'salaire paie paye',
+  invest:'investissement bénéfices profit dividende dividendes actions'
+};
+const VOICE_BILL_KW_FR={ electricity:'électricité sonelgaz', water:'eau', internet:'internet wifi', phone:'téléphone recharge mobilis djezzy ooredoo' };
 const VOICE_BILL_KW={
   electricity:'كهرباء سونلغاز electricity',
   water:'ماء مياه water',
@@ -3850,8 +4215,9 @@ const VOICE_BILL_KW={
   phone:'هاتف تلفون رصيد تعبئه موبيليس جازي اوريدو phone topup'
 };
 const _vSets=(obj)=>{ const o={}; for(const k in obj) o[k]=new Set(obj[k].split(/\s+/).map(_vNorm)); return o; };
-const _VKW=_vSets(VOICE_KW), _VBILL=_vSets(VOICE_BILL_KW);
+const _VKW=_vSets(VOICE_KW), _VBILL=_vSets(VOICE_BILL_KW), _VKW_FR=_vSets(VOICE_KW_FR), _VBILL_FR=_vSets(VOICE_BILL_KW_FR);
 const _V_STOP=new Set(['مع','من','في','على','الي','عن','for','the','and','with','to','of','in','on','at','a']);
+const _V_STOP_FR=new Set(['des','les','une','pour','avec','chez','aux','sur','dans','par','pas','mon','mes','ma']);
 function guessVoiceCategory(note){
   const toks=String(note||'').split(/\s+/).map(_vNorm).filter(Boolean);
   if(!toks.length) return null;
@@ -3862,22 +4228,22 @@ function guessVoiceCategory(note){
     let billType=null;
     if(c.id==='bills' && c.type==='expense'){
       billType='bill_other';
-      for(const k in _VBILL){ if(hit(_VBILL[k])){ billType=k; break; } }
+      for(const k in _VBILL){ if(hit(_VBILL[k]) || (settings.lang==='fr' && _VBILL_FR[k] && hit(_VBILL_FR[k]))){ billType=k; break; } }
     }
     return {id:c.id, type:c.type, billType};
   };
   // 1) the category's own name was said (skip the generic "Other" ones)
   for(const c of categories){
     if(c.id==='other_exp'||c.id==='other_inc') continue;
-    const names=[c.label,c.label_en].filter(Boolean).map(_vNorm);
+    const names=[c.label,c.label_en].concat(settings.lang==='fr'?[c.label_fr,(_FR_DEFAULTS[c.id]||{}).label_fr]:[]).filter(Boolean).map(_vNorm);
     if(toks.some(w=>[..._vVariants(w)].some(v=>names.includes(v)))) return result(c);
   }
   // 2) keyword dictionary (Arabic / English / common Algerian words)
   let best=null, bestN=0;
-  for(const id in _VKW){ const c=ok(id); if(!c) continue; const n=count(_VKW[id]); if(n>bestN){ best=c; bestN=n; } }
+  for(const id in _VKW){ const c=ok(id); if(!c) continue; const n=count(_VKW[id])+((settings.lang==='fr'&&_VKW_FR[id])?count(_VKW_FR[id]):0); if(n>bestN){ best=c; bestN=n; } }
   if(best) return result(best);
   // 3) your own history: same words used in earlier notes
-  const words=toks.filter(w=>w.length>2 && !_V_STOP.has(w)), score={};
+  const words=toks.filter(w=>w.length>2 && !_V_STOP.has(w) && !(settings.lang==='fr' && _V_STOP_FR.has(w))), score={};
   if(words.length){
     transactions.forEach(tx=>{
       if(tx.type!==currentType||!tx.note||!tx.category) return;
@@ -3894,13 +4260,13 @@ function guessVoiceCategory(note){
   if(!SR||!btn) return;
   btn.style.display='block';
   let rec=null, retried=false;
-  const idle=()=>{ delete btn.dataset.listening; btn.textContent=LX('🎤 تسجيل بالصوت','🎤 Voice entry'); };
+  const idle=()=>{ delete btn.dataset.listening; btn.textContent=LX('🎤 تسجيل بالصوت','🎤 Voice entry','🎤 Saisie vocale'); };
   function apply(text){
     const p=parseVoiceEntry(text);
-    st.style.display='block'; st.textContent=LX('سمعت: ','Heard: ')+text;
+    st.style.display='block'; st.textContent=LX('سمعت: ','Heard: ','J\'ai entendu\u00a0: ')+text;
     const am=document.getElementById('amountInput'), nt=document.getElementById('noteInput');
     if(p.amount!=null){ am.value=p.amount; am.dispatchEvent(new Event('input',{bubbles:true})); }
-    else showToast(LX('لم أتعرّف على مبلغ — راجع النص وأدخله يدويًا','No amount recognized — check the text and enter it manually'));
+    else showToast(LX('لم أتعرّف على مبلغ — راجع النص وأدخله يدويًا','No amount recognized — check the text and enter it manually','Aucun montant reconnu — vérifiez le texte et saisissez-le manuellement'));
     nt.value=p.note;
     // choose the category from the spoken note
     const g=guessVoiceCategory(p.note||text);
@@ -3914,22 +4280,22 @@ function guessVoiceCategory(note){
       selectedBillType=g.billType||null;
       renderCatGrid();
       const gc=categories.find(c=>c.id===g.id);
-      if(gc) st.textContent += LX('  ·  الفئة: ','  ·  Category: ')+gc.icon+' '+trLabel(gc);
+      if(gc) st.textContent += LX('  ·  الفئة: ','  ·  Category: ','  ·  Catégorie\u00a0: ')+gc.icon+' '+trLabel(gc);
     }
     nt.dispatchEvent(new Event('input',{bubbles:true}));
   }
   function start(lang){
     const r=new SR(); rec=r; r.lang=lang; r.interimResults=false; r.maxAlternatives=1; r.continuous=false;
-    r.onstart=()=>{ if(rec!==r) return; btn.dataset.listening='1'; btn.textContent=LX('🎙️ أستمع… اضغط للإيقاف','🎙️ Listening… tap to stop'); };
+    r.onstart=()=>{ if(rec!==r) return; btn.dataset.listening='1'; btn.textContent=LX('🎙️ أستمع… اضغط للإيقاف','🎙️ Listening… tap to stop','🎙️ J\'écoute… appuyez pour arrêter'); };
     r.onresult=(ev)=>{ if(rec!==r) return; try{ apply(ev.results[0][0].transcript); }catch(e){ console.error(e); } };
     r.onerror=(e)=>{
       if(rec!==r) return; const c=e&&e.error;
-      if(c==='language-not-supported' && lang!=='ar-SA' && settings.lang!=='en' && !retried){ retried=true; start('ar-SA'); return; }
+      if(c==='language-not-supported' && lang!=='ar-SA' && settings.lang==='ar' && !retried){ retried=true; start('ar-SA'); return; }
       idle();
-      showToast(c==='not-allowed'||c==='service-not-allowed' ? LX('مُنع الوصول إلى الميكروفون — فعّله من إعدادات المتصفح','Microphone access blocked — enable it in browser settings')
-        : c==='no-speech' ? LX('لم أسمع شيئًا، حاول مجددًا','Did not hear anything, try again')
-        : c==='network' ? LX('التعرف الصوتي يتطلب اتصالًا بالإنترنت','Speech recognition needs an internet connection')
-        : LX('تعذّر التعرف على الصوت','Could not recognize speech'));
+      showToast(c==='not-allowed'||c==='service-not-allowed' ? LX('مُنع الوصول إلى الميكروفون — فعّله من إعدادات المتصفح','Microphone access blocked — enable it in browser settings','Accès au microphone bloqué — activez-le dans les paramètres du navigateur')
+        : c==='no-speech' ? LX('لم أسمع شيئًا، حاول مجددًا','Did not hear anything, try again','Je n\'ai rien entendu, réessayez')
+        : c==='network' ? LX('التعرف الصوتي يتطلب اتصالًا بالإنترنت','Speech recognition needs an internet connection','La reconnaissance vocale nécessite une connexion internet')
+        : LX('تعذّر التعرف على الصوت','Could not recognize speech','Impossible de reconnaître la voix'));
     };
     r.onend=()=>{ if(rec===r) idle(); };
     try{ r.start(); }catch(e){ idle(); }
@@ -3938,10 +4304,10 @@ function guessVoiceCategory(note){
     if(btn.dataset.listening){ try{ rec.stop(); }catch(e){} return; }
     let ok=false; try{ ok=localStorage.getItem('daftari_voice_ok')==='1'; }catch(e){}
     if(!ok){
-      if(!confirm(LX('سيُرسَل الصوت إلى خوادم المتصفح (مثل Google في Chrome) لتحويله إلى نص. هل توافق؟','Your voice will be sent to the browser\'s speech servers (e.g. Google in Chrome) to convert it to text. Continue?'))) return;
+      if(!confirm(LX('سيُرسَل الصوت إلى خوادم المتصفح (مثل Google في Chrome) لتحويله إلى نص. هل توافق؟','Your voice will be sent to the browser\'s speech servers (e.g. Google in Chrome) to convert it to text. Continue?','Votre voix sera envoyée aux serveurs vocaux du navigateur (par ex. Google dans Chrome) pour être convertie en texte. Continuer\u00a0?'))) return;
       try{ localStorage.setItem('daftari_voice_ok','1'); }catch(e){}
     }
-    retried=false; start(settings.lang==='en'?'en-US':'ar-DZ');
+    retried=false; start(settings.lang==='en'?'en-US':(settings.lang==='fr'?'fr-FR':'ar-DZ'));
   });
 })();
 /* ================= end extras ================= */
