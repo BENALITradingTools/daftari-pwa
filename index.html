@@ -213,6 +213,10 @@
   .budget-row:last-child{border-bottom:none;}
   .budget-row .ic{font-size:16px; width:22px; text-align:center; flex-shrink:0;}
   .budget-row .lbl{flex:1; font-size:13.5px;}
+  .budget-row .lbl small{display:block; font-size:10.5px; color:var(--muted); margin-top:1px;}
+  .budget-row .bud-field{display:flex; align-items:center; gap:5px; direction:ltr; flex-shrink:0;}
+  .budget-row .cur{font-size:11px; color:var(--muted); min-width:22px;}
+  .budget-row input::placeholder{font-size:11.5px;}
   .budget-row input{width:110px; padding:8px 10px; font-size:13px; direction:ltr; text-align:right; flex-shrink:0;}
 
   .bud-prog-row{margin-bottom:12px;}
@@ -1121,7 +1125,10 @@ const I18N={
     debtOverdueByPrefix:'متأخر منذ',
     printTitle:'دفتري — تقرير', printGenerated:'تم إنشاؤه بتاريخ', printIncome:'إجمالي الدخل', printExpense:'إجمالي المصروف', printNet:'الصافي',
     printByCat:'الإنفاق حسب الفئة', printAllTx:'كل الحركات', printDate:'التاريخ', printCat:'الفئة', printNote:'ملاحظة', printAmount:'المبلغ', printWalletCol:'المحفظة', printReceiptCol:'🧾',
-    otherCat:'أخرى'
+    otherCat:'أخرى',
+    budgetInputPh:"الحد الشهري",
+    budgetNone:"بدون ميزانية",
+    budgetSet:"ميزانية محددة"
   },
   en:{
     tagline:'Your personal expense book',
@@ -1234,7 +1241,10 @@ const I18N={
     debtOverdueByPrefix:'Overdue by',
     printTitle:'Daftari — Report', printGenerated:'Generated on', printIncome:'Total Income', printExpense:'Total Expense', printNet:'Net',
     printByCat:'Spending by Category', printAllTx:'All transactions', printDate:'Date', printCat:'Category', printNote:'Note', printAmount:'Amount', printWalletCol:'Wallet', printReceiptCol:'🧾',
-    otherCat:'Other'
+    otherCat:'Other',
+    budgetInputPh:"Monthly limit",
+    budgetNone:"No budget set",
+    budgetSet:"Budget set"
   },
   fr:{
     tagline:"Votre carnet de dépenses personnel",
@@ -1543,7 +1553,10 @@ const I18N={
     printAmount:"Montant",
     printWalletCol:"Portefeuille",
     printReceiptCol:"🧾",
-    otherCat:"Autre"
+    otherCat:"Autre",
+    budgetInputPh:"Plafond mensuel",
+    budgetNone:"Aucun budget défini",
+    budgetSet:"Budget défini"
   }
 };
 function t(key){ const L=I18N[settings.lang]; return (L && L[key]) || (settings.lang==='fr' && I18N.en[key]) || I18N.ar[key] || key; }
@@ -1625,13 +1638,13 @@ async function load(){
   recurring.forEach(r=>{ if(!r.wallet){ r.wallet=defId; migrated=true; } });
   if(migrated){ saveTx(); saveRecurring(); }
 }
-async function saveTx(){ try{ localStorage.setItem(TX_KEY, JSON.stringify(transactions)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
-async function saveCats(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(categories)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
-async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
-async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
-async function saveWallets(){ try{ localStorage.setItem(WAL_KEY, JSON.stringify(wallets)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
-async function saveSavings(){ try{ localStorage.setItem(SAV_KEY, JSON.stringify(savingsGoals)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
-async function saveDebts(){ try{ localStorage.setItem(DEBT_KEY, JSON.stringify(debts)); }catch(e){ showToast(LXF('تعذر الحفظ على الجهاز','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveTx(){ try{ localStorage.setItem(TX_KEY, JSON.stringify(transactions)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveCats(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(categories)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveWallets(){ try{ localStorage.setItem(WAL_KEY, JSON.stringify(wallets)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveSavings(){ try{ localStorage.setItem(SAV_KEY, JSON.stringify(savingsGoals)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveDebts(){ try{ localStorage.setItem(DEBT_KEY, JSON.stringify(debts)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
 
 /* ---------- theme ---------- */
 const _darkMQ = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
@@ -1698,7 +1711,7 @@ function switchTab(name){
     if(name==='tabSettings') renderSettings();
   }catch(e){
     console.error('render failed for', name, e);
-    showToast(LXF('حدث خطأ أثناء عرض هذا القسم','Une erreur est survenue lors de l\'affichage de cette section'));
+    showToast(LX('حدث خطأ أثناء عرض هذا القسم','Something went wrong while displaying this section','Une erreur est survenue lors de l\'affichage de cette section'));
   }
 }
 document.querySelectorAll('.navbtn').forEach(b=>b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
@@ -2170,7 +2183,7 @@ function drawChart(canvasId, type, data, options){
   if(!canvas) return;
   if(typeof Chart === 'undefined'){
     const box=canvas.closest('.chart-box');
-    if(box) box.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12px;text-align:center;padding:0 10px;">'+LXF('تعذّر تحميل الرسم البياني (يتطلب اتصالًا بالإنترنت في أول فتح)','Impossible de charger le graphique (connexion internet requise à la première ouverture)')+'</div>';
+    if(box) box.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:12px;text-align:center;padding:0 10px;">'+LX('تعذّر تحميل الرسم البياني (يتطلب اتصالًا بالإنترنت في أول فتح)','Could not load the chart (an internet connection is required on first open)','Impossible de charger le graphique (connexion internet requise à la première ouverture)')+'</div>';
     return;
   }
   try{
@@ -2318,7 +2331,7 @@ function renderSettings(){
   renderWalletManage();
 }
 document.getElementById('currencySelect').addEventListener('change', (e)=>{
-  settings.currency=e.target.value; saveSettings(); showToast(t('toastCurrencyChanged'));
+  settings.currency=e.target.value; saveSettings(); renderBudgetSettings(); showToast(t('toastCurrencyChanged'));
 });
 document.getElementById('themeSelect').addEventListener('change', (e)=>{
   settings.theme = e.target.value;
@@ -2866,9 +2879,10 @@ function renderBudgetSettings(){
   el.innerHTML=expCats.map(c=>`
     <div class="budget-row">
       <span class="ic">${c.icon}</span>
-      <span class="lbl">${escapeHtml(trLabel(c))}</span>
-      <input type="number" inputmode="decimal" min="0" step="1" class="budget-input" data-id="${escapeHtml(c.id)}"
-        value="${settings.budgets && settings.budgets[c.id] ? settings.budgets[c.id] : ''}">
+      <span class="lbl">${escapeHtml(trLabel(c))}<small class="bud-hint">${escapeHtml((settings.budgets && settings.budgets[c.id]) ? t('budgetSet') : t('budgetNone'))}</small></span>
+      <span class="bud-field"><input type="number" inputmode="decimal" min="0" step="1" class="budget-input" data-id="${escapeHtml(c.id)}"
+        placeholder="${escapeHtml(t('budgetInputPh'))}"
+        value="${settings.budgets && settings.budgets[c.id] ? settings.budgets[c.id] : ''}"><span class="cur">${escapeHtml(currencySymbol(settings.currency))}</span></span>
     </div>`).join('');
   el.querySelectorAll('.budget-input').forEach(inp=>{
     inp.addEventListener('change', ()=>{
@@ -2876,6 +2890,8 @@ function renderBudgetSettings(){
       const v=parseFloat(inp.value);
       if(!v || v<=0){ delete settings.budgets[inp.dataset.id]; inp.value=''; }
       else{ settings.budgets[inp.dataset.id]=v; }
+      const _h=inp.closest('.budget-row') && inp.closest('.budget-row').querySelector('.bud-hint');
+      if(_h) _h.textContent = settings.budgets[inp.dataset.id] ? t('budgetSet') : t('budgetNone');
       saveSettings();
       showToast(t('toastBudgetSaved'));
     });
@@ -3799,7 +3815,7 @@ async function init(){
     if(settings.pinEnabled && !unlockedThisSession){ openLock('unlock'); }
   }catch(e){
     console.error('init failed:', e);
-    showToast(LXF('حدث خطأ أثناء تشغيل التطبيق','Une erreur est survenue au démarrage de l\'application'));
+    showToast(LX('حدث خطأ أثناء تشغيل التطبيق','Something went wrong while starting the app','Une erreur est survenue au démarrage de l\'application'));
   }
 }
 window.addEventListener('error', function(e){
@@ -3853,7 +3869,6 @@ if('serviceWorker' in navigator){
 
 /* ================= Daftari extras ================= */
 const LX=(a,e,f)=>settings.lang==='fr'?(f!==undefined?f:e):(settings.lang==='en'?e:a);
-const LXF=(a,f)=>settings.lang==='fr'?f:a; /* French-only override: ar and en keep the original text */
 function numFmt(v){
   const k=locale()+'-u-nu-'+(settings.numerals==='arab'?'arab':'latn');
   numFmt._c=numFmt._c||{};
@@ -4046,7 +4061,7 @@ setTimeout(()=>{
     }else if(step===2){
       body='<div style="font-size:54px">🎯</div><h2>'+LX('حدّد ميزانياتك','Set your budgets','Fixez vos budgets')+'</h2>'+
         '<p>'+LX('اختياري — سقف شهري لكل فئة، ونُنبّهك عند 80% وعند التجاوز. يمكنك تعديلها لاحقًا من الإعدادات.','Optional — a monthly cap per category. We alert you at 80% and when exceeded. Change them later in Settings.','Facultatif — un plafond mensuel par catégorie. Nous vous alertons à 80\u00a0% et en cas de dépassement. Vous pourrez les modifier plus tard dans les Paramètres.')+'</p>'+
-        budIds.map(id=>{ const c=findCat(id); return '<div class="ob-bud"><span class="lbl">'+c.icon+' '+escapeHtml(trLabel(c))+'</span><input type="number" class="ob-bud-in" data-id="'+id+'" inputmode="decimal" min="0" placeholder="0" value="'+escapeHtml(D.bud[id]||'')+'"></div>'; }).join('');
+        budIds.map(id=>{ const c=findCat(id); return '<div class="ob-bud"><span class="lbl">'+c.icon+' '+escapeHtml(trLabel(c))+'</span><input type="number" class="ob-bud-in" data-id="'+id+'" inputmode="decimal" min="0" placeholder="'+escapeHtml(t('budgetInputPh'))+'" value="'+escapeHtml(D.bud[id]||'')+'"></div>'; }).join('');
     }else{
       const supported=(typeof Notification!=='undefined');
       const on=supported && Notification.permission==='granted' && settings.notifEnabled;
@@ -4102,7 +4117,7 @@ if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('messa
 });
 { const qt=new URLSearchParams(location.search).get('tab');
   if(qt&&/^tab\w+$/.test(qt)&&document.getElementById(qt)) setTimeout(()=>switchTab(qt),1200); }
-function _extraLabels(){ try{ const b=document.getElementById('cloudResetBtn'); if(b) b.textContent=LX('نسيت كلمة المرور؟ (دخول برابط البريد)','Forgot password? (sign in by email link)','Mot de passe oublié\u00a0? (connexion par lien e-mail)');
+function _extraLabels(){ try{ const ml=document.getElementById('moreLbl'); if(ml) ml.textContent=LX('المزيد','More','Plus'); const b=document.getElementById('cloudResetBtn'); if(b) b.textContent=LX('نسيت كلمة المرور؟ (دخول برابط البريد)','Forgot password? (sign in by email link)','Mot de passe oublié\u00a0? (connexion par lien e-mail)');
   const c=document.getElementById('cloudCurPwInput'); if(c) c.placeholder=LX('كلمة المرور الحالية (اتركها فارغة بعد الدخول برابط)','Current password (leave empty after email-link sign-in)','Mot de passe actuel (laissez vide après une connexion par lien)');
   const n=document.getElementById('cloudNewPwInput'); if(n) n.placeholder=LX('كلمة المرور الجديدة (6 أحرف على الأقل)','New password (min 6 characters)','Nouveau mot de passe (6 caractères minimum)');
   const cb=document.getElementById('cloudChangePwBtn'); if(cb) cb.textContent=LX('تغيير كلمة المرور','Change password','Changer le mot de passe');
