@@ -3182,7 +3182,7 @@ function buildPrintReport(){
   const showWalCol = walletFilter==='all' && wallets.length>1;
 
   let html=`<div class="pr-head">
-    <div class="pr-brand">${settings.lang==='fr'?'Daf<span>tari</span>':'دفت<span>ري</span>'} — ${t('printTitle')}</div>
+    <div class="pr-brand">${settings.lang==='ar'?'دفتري':(settings.lang==='en'?'DAF<span>TARI</span>':'Daf<span>tari</span>')} — ${t('printTitle')}</div>
     <div class="pr-period">${monthLabel}<br><span style="font-size:11px;">${t('printWalletCol')}${_c()} ${escapeHtml(walLabel)}</span></div>
   </div>`;
   html+=`<div class="pr-sub">${t('printGenerated')} ${new Date().toLocaleDateString(locale(),{numberingSystem:'latn'})}</div>`;
@@ -3219,7 +3219,7 @@ function buildPrintReport(){
     html+=`<tr><td class="c-date">${t2.date}</td><td class="c-cat">${catCell}</td>${walCell}<td class="c-note">${escapeHtml(t2.note||'')}</td>${rcCell}<td class="c-amt ${t2.type==='income'?'amt-in':'amt-out'}">${t2.type==='income'?'+':'-'}${fmt(t2.amount)}</td></tr>`;
   });
   html+=`</table>`;
-  html+=`<div class="pr-foot">${settings.lang==='fr'?'Daftari':'دفتري'} — ${escapeHtml(t('tagline'))}</div>`;
+  html+=`<div class="pr-foot">${settings.lang==='ar'?'دفتري':(settings.lang==='en'?'DAFTARI':'Daftari')} — ${escapeHtml(t('tagline'))}</div>`;
   document.getElementById('printReport').innerHTML=html;
 }
 /* ---- iPhone/iPad: window.print() does nothing (especially in the installed home-screen app),
