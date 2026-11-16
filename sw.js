@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daftari-cache-v18';
+const CACHE_NAME = 'daftari-cache-v19';
 const APP_SHELL = [
   './',
   './index.html',
@@ -98,20 +98,83 @@ self.addEventListener('fetch', (event) => {
 });
 
 /* ======================= Local notifications ======================= */
-// Notifications are created by the page itself (registration.showNotification) when the app is opened.
-// There is no server push: nothing is received while the app is closed.
+// 1) The page shows a local notification (registration.showNotification) when the app is opened.
+// 2) A free Cloudflare Worker sends an EMPTY Web Push on the due day, so this worker also wakes up while the app is closed.
 
-// Focus the open app (and switch tab) or open it if closed.
+/* ======================= Web Push (empty payload) ======================= */
+// The Worker only knows due-dates. The page keeps a device-local snapshot of upcoming dues in Cache Storage
+// ('daftari-due'); it is read here to build a specific notification. Nothing leaves the device.
+const DUE_CACHE = 'daftari-due';
+const DUE_URL = () => new URL('./__due.json', self.registration.scope).href;
+const sDiff = (a, b) => Math.round((new Date(a + 'T00:00:00Z') - new Date(b + 'T00:00:00Z')) / 864e5);
+function sNext(s, f) {
+  const d = new Date(s + 'T00:00:00Z');
+  if (f === 'weekly') d.setUTCDate(d.getUTCDate() + 7);
+  else if (f === 'yearly') d.setUTCFullYear(d.getUTCFullYear() + 1);
+  else d.setUTCMonth(d.getUTCMonth() + 1);
+  return d.toISOString().slice(0, 10);
+}
+function localToday() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+async function readDue() {
+  try {
+    const c = await caches.open(DUE_CACHE);
+    const r = await c.match(DUE_URL());
+    return r ? await r.json() : null;
+  } catch (e) { return null; }
+}
+
+self.addEventListener('push', (event) => {
+  // A notification MUST be shown for every push (userVisibleOnly), so there is always a fallback text.
+  event.waitUntil((async () => {
+    const snap = await readDue();
+    const today = localToday();
+    const parts = [], debtIds = [];
+    if (snap && Array.isArray(snap.items)) {
+      for (const it of snap.items) {
+        if (it.k === 'd') {
+          const k = sDiff(it.due, today);
+          if (k <= 1 && k >= -30) { parts.push(it.text); debtIds.push(it.id); }
+        } else if (it.k === 'r') {
+          let n = sNext(it.l, it.f), g = 0;
+          while (n < today && g++ < 40) n = sNext(n, it.f);
+          const k = sDiff(n, today);
+          if (k >= 0 && k <= 1) parts.push(it.text);
+        }
+      }
+    }
+    const data = { tab: debtIds.length ? 'tabDebts' : (parts.length ? 'tabSettings' : '') };
+    const opts = {
+      body: parts.length ? parts.join(' \u00b7 ') : ((snap && snap.generic) || '\u0644\u062f\u064a\u0643 \u0645\u0633\u062a\u062d\u0642\u0627\u062a \u0642\u0631\u064a\u0628\u0629'),
+      icon: './icon-192.png', badge: './icon-192.png', tag: 'daftari-due', dir: 'auto', lang: (snap && snap.lang) || 'ar', data
+    };
+    if (debtIds.length === 1) {
+      data.settle = debtIds[0];
+      opts.actions = [{ action: 'settle', title: (snap && snap.settleLabel) || '\u062a\u0633\u062f\u064a\u062f' }];
+    }
+    await self.registration.showNotification((snap && snap.title) || '\u062f\u0641\u062a\u0631\u064a', opts);
+  })());
+});
+
+// Focus the open app (and switch tab / open the settle dialog) or open it if closed.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const tab = (event.notification.data && event.notification.data.tab) || '';
-  const target = tab ? './?tab=' + encodeURIComponent(tab) : './';
+  const d = event.notification.data || {};
+  const tab = d.tab || '';
+  const settle = event.action === 'settle' ? (d.settle || '') : '';
+  const q = [];
+  if (tab) q.push('tab=' + encodeURIComponent(tab));
+  if (settle) q.push('settle=' + encodeURIComponent(settle));
+  const target = q.length ? './?' + q.join('&') : './';
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
       for (const client of clients) {
         if ('focus' in client) {
           client.postMessage({ type: 'OPEN_TAB', tab });
+          if (settle) client.postMessage({ type: 'OPEN_SETTLE', id: settle });
           return client.focus();
         }
       }
