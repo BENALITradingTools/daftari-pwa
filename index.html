@@ -905,10 +905,10 @@
     <div class="section-title" data-i18n="notifSection">🔔 الإشعارات</div>
     <div class="card-box">
       <div class="set-row">
-        <div><div class="lab" data-i18n="notifRow">تنبيه المعاملات المستحقة</div><div class="sub" data-i18n="notifSub">إشعار على جهازك عند فتح التطبيق أو العودة إليه إن وُجدت ديون أو معاملات متكررة مستحقة خلال يوم أو يومين</div></div>
+        <div><div class="lab" data-i18n="notifRow">تنبيه المعاملات المستحقة</div><div class="sub" data-i18n="notifSub">تنبيه إن وُجدت ديون أو معاملات متكررة مستحقة خلال يوم أو يومين، حتى والتطبيق مغلق</div></div>
         <div class="switch" id="notifSwitch"><div class="knob"></div></div>
       </div>
-      <div class="info-note" data-i18n="notifInfo">ℹ️ الإشعار يُنشأ على جهازك نفسه دون أي خادم إشعارات. يظهر عند فتح التطبيق أو العودة إليه (وليس وهو مغلق تمامًا).</div>
+      <div class="info-note" data-i18n="notifInfo">ℹ️ يصلك التنبيه صباح يوم الاستحقاق حتى لو كان التطبيق مغلقًا، عبر خادم مجاني لا يحفظ سوى تواريخ الاستحقاق (دون أسماء أو مبالغ). كما يظهر عند فتح التطبيق.</div>
     </div>
 
 <div class="section-title" data-i18n="securitySection">الأمان</div>
@@ -1093,8 +1093,8 @@ const I18N={
     restoreAutoBackup:'↩️ استعادة النسخة التلقائية الأخيرة', confirmRestoreAuto:'سيتم استبدال بياناتك الحالية بآخر نسخة احتياطية تلقائية محفوظة على الجهاز. هل تريد المتابعة؟', toastNoAutoBackup:'لا توجد نسخة احتياطية تلقائية محفوظة بعد',
     autoBackupIntervalLabel:'التكرار', everyDay:'كل يوم', every3Days:'كل 3 أيام', every7Days:'كل أسبوع', every14Days:'كل أسبوعين', every30Days:'كل شهر',
     lastBackupNever:'لم يتم إنشاء أي نسخة احتياطية بعد', lastBackupLabel:'آخر نسخة احتياطية:',
-    notifSection:'🔔 الإشعارات', notifRow:'تنبيه المعاملات المستحقة', notifSub:'إشعار على جهازك عند فتح التطبيق أو العودة إليه إن وُجدت ديون أو معاملات متكررة مستحقة خلال يوم أو يومين',
-    notifInfo:'ℹ️ الإشعار يُنشأ على جهازك نفسه دون أي خادم إشعارات. يظهر عند فتح التطبيق أو العودة إليه (وليس وهو مغلق تمامًا).',
+    notifSection:'🔔 الإشعارات', notifRow:'تنبيه المعاملات المستحقة', notifSub:'تنبيه إن وُجدت ديون أو معاملات متكررة مستحقة خلال يوم أو يومين، حتى والتطبيق مغلق',
+    notifInfo:'ℹ️ يصلك التنبيه صباح يوم الاستحقاق حتى لو كان التطبيق مغلقًا، عبر خادم مجاني لا يحفظ سوى تواريخ الاستحقاق (دون أسماء أو مبالغ). كما يظهر عند فتح التطبيق.',
     securitySection:'الأمان', pinRow:'قفل بالرمز (PIN)', pinSub:'يحمي فتح التطبيق برمز من 4 أرقام',
     pinInfo:'ℹ️ Face ID / Touch ID غير مدعوم بشكل موثوق لتطبيقات الويب مثل هذا. الرمز (PIN) يحمي الواجهة فقط، والبيانات نفسها غير مشفّرة داخل تخزين المتصفح.',
     categoriesSection:'الفئات', newCatPh:'اسم الفئة الجديدة',
@@ -1209,8 +1209,8 @@ const I18N={
     restoreAutoBackup:'↩️ Restore Last Automatic Backup', confirmRestoreAuto:'This will replace your current data with the last automatic backup saved on this device. Continue?', toastNoAutoBackup:'No automatic backup has been saved yet',
     autoBackupIntervalLabel:'Frequency', everyDay:'Every day', every3Days:'Every 3 days', every7Days:'Every week', every14Days:'Every 2 weeks', every30Days:'Every month',
     lastBackupNever:'No automatic backup created yet', lastBackupLabel:'Last automatic backup:',
-    notifSection:'🔔 Notifications', notifRow:'Due Transaction Alerts', notifSub:'Notification on your device when you open or return to the app if a debt or recurring transaction is due within a day or two',
-    notifInfo:'ℹ️ The notification is created on your device with no push server. Shown when you open or return to the app (not while it is fully closed).',
+    notifSection:'🔔 Notifications', notifRow:'Due Transaction Alerts', notifSub:'Alert when a debt or recurring transaction is due within a day or two, even if the app is closed',
+    notifInfo:'ℹ️ You get the alert on the morning it is due even when the app is closed, via a free server that stores only due dates (no names or amounts). It also shows when you open the app.',
     securitySection:'Security', pinRow:'PIN Lock', pinSub:'Protects app opening with a 4-digit code',
     pinInfo:'ℹ️ Face ID / Touch ID isn\'t reliably supported for web apps like this. The PIN protects the interface only; the data itself isn\'t encrypted inside browser storage.',
     categoriesSection:'Categories', newCatPh:'New category name',
@@ -1435,8 +1435,8 @@ const I18N={
     lastBackupLabel:"Dernière sauvegarde automatique\u00a0:",
     notifSection:"🔔 Notifications",
     notifRow:"Alertes d'échéances",
-    notifSub:"Notification sur votre appareil à l'ouverture ou au retour dans l'application si une dette ou une opération récurrente arrive à échéance dans un jour ou deux",
-    notifInfo:"ℹ️ La notification est créée sur votre appareil, sans serveur push. Elle s'affiche à l'ouverture ou au retour dans l'application (pas lorsqu'elle est entièrement fermée).",
+    notifSub:"Alerte si une dette ou une opération récurrente arrive à échéance dans un jour ou deux, même application fermée",
+    notifInfo:"ℹ️ L'alerte arrive le matin de l'échéance même application fermée, via un serveur gratuit qui ne stocke que les dates d'échéance (sans noms ni montants). Elle s'affiche aussi à l'ouverture de l'application.",
     securitySection:"Sécurité",
     pinRow:"Verrouillage par code PIN",
     pinSub:"Protège l'ouverture de l'application avec un code à 4 chiffres",
@@ -1665,10 +1665,10 @@ async function load(){
 async function saveTx(){ try{ localStorage.setItem(TX_KEY, JSON.stringify(transactions)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
 async function saveCats(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(categories)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
 async function saveSettings(){ try{ localStorage.setItem(SET_KEY, JSON.stringify(settings)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
-async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveRecurring(){ try{ localStorage.setItem(REC_KEY, JSON.stringify(recurring)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } try{ schedulePushSync(); }catch(e){} scheduleCloudPush(); }
 async function saveWallets(){ try{ localStorage.setItem(WAL_KEY, JSON.stringify(wallets)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
 async function saveSavings(){ try{ localStorage.setItem(SAV_KEY, JSON.stringify(savingsGoals)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
-async function saveDebts(){ try{ localStorage.setItem(DEBT_KEY, JSON.stringify(debts)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } scheduleCloudPush(); }
+async function saveDebts(){ try{ localStorage.setItem(DEBT_KEY, JSON.stringify(debts)); }catch(e){ showToast(LX('تعذر الحفظ على الجهاز','Could not save on this device','Impossible d\'enregistrer sur cet appareil')); } try{ schedulePushSync(); }catch(e){} scheduleCloudPush(); }
 
 /* ---------- theme ---------- */
 const _darkMQ = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
@@ -2384,6 +2384,7 @@ document.getElementById('notifSwitch').addEventListener('click', async ()=>{
     showToast(t('toastNotifOff'));
   }
   saveSettings();
+  try{ schedulePushSync(); }catch(e){}
   document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled);
 });
 document.getElementById('autoBackupSwitch').addEventListener('click', ()=>{
@@ -4234,16 +4235,75 @@ setTimeout(()=>{
 },900);
 
 
-/* ===== one-time cleanup of the removed server push ===== */
-(function(){
-  try{ localStorage.removeItem('daftari_push_on'); }catch(e){}
-  try{ if('caches' in window) caches.delete('daftari-prefs'); }catch(e){}
-  try{
-    if('serviceWorker' in navigator && 'PushManager' in window){
-      navigator.serviceWorker.ready.then(r=>r.pushManager.getSubscription()).then(sub=>{ if(sub) sub.unsubscribe(); }).catch(()=>{});
+/* ===== Web Push (free Cloudflare Worker, see wrangler.toml) ===== */
+var PUSH_API = 'https://daftari-push.bentrade.workers.dev/sync';   // SET THIS to your deployed Worker, e.g. 'https://daftari-push.<account>.workers.dev/sync' (empty = server push stays off)
+var VAPID_PUBLIC = 'BKiMhNj1s_cOnR6jinLfrSye087vOjQs1oqtta2KbJJxhyYo9pwd9OERCyVVNQk4GvGo3eWU04qKsPl3dziHr-g';
+var _pushT = null;
+function _b64uToU8(s){ const p='='.repeat((4-s.length%4)%4); const b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/')); return Uint8Array.from(b,c=>c.charCodeAt(0)); }
+function _dueItems(){
+  const items=[];
+  debts.forEach(d=>{
+    if(d.dueDate && (+d.paid||0)<(+d.amount||0)){
+      const left=(+d.amount||0)-(+d.paid||0);
+      const dir=d.direction==='owed_to_me' ? LX('لك عند','Owed by','À recevoir de') : LX('عليك لـ','You owe','Vous devez à');
+      items.push({k:'d', id:d.id, due:d.dueDate, text:`${d.icon||'👤'} ${dir} ${d.person}: ${fmt(left)}`});
     }
-  }catch(e){}
-})();
+  });
+  recurring.forEach(r=>{
+    if(r.lastDate) items.push({k:'r', l:r.lastDate, f:r.freq, text:`${findCat(r.category).icon} ${trLabel(findCat(r.category))}: ${fmt(r.amount)}`});
+  });
+  return items;
+}
+async function _writeDueSnapshot(){
+  if(!('caches' in window)) return;
+  const snap={v:1, lang:locale(),
+    title:LX('دفتري — مستحقات قريبة','Daftari — upcoming dues','Daftari — échéances à venir'),
+    generic:LX('لديك مستحقات قريبة','You have upcoming dues','Vous avez des échéances à venir'),
+    settleLabel:LX('تسديد','Settle','Régler'), items:_dueItems()};
+  const c=await caches.open('daftari-due');
+  await c.put(new URL('./__due.json', document.baseURI).href, new Response(JSON.stringify(snap),{headers:{'Content-Type':'application/json'}}));
+}
+async function _pushSync(){
+  try{
+    if(!PUSH_API || !('serviceWorker' in navigator) || !('PushManager' in window) || typeof Notification==='undefined') return;
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!settings.notifEnabled || Notification.permission!=='granted'){
+      if(sub){
+        const ep=sub.endpoint; await sub.unsubscribe();
+        try{ await fetch(PUSH_API,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:ep})}); }catch(e){}
+      }
+      try{ localStorage.removeItem('daftari_push_sig'); }catch(e){}
+      return;
+    }
+    if(!sub){
+      try{ sub=await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:_b64uToU8(VAPID_PUBLIC)}); }
+      catch(e){ console.warn('push subscribe failed', e); return; }
+    }
+    const items=_dueItems();
+    const sig=JSON.stringify({endpoint:sub.endpoint, debts:items.filter(i=>i.k==='d').map(i=>i.due), rec:items.filter(i=>i.k==='r').map(i=>({l:i.l,f:i.f}))});
+    let last=null; try{ last=JSON.parse(localStorage.getItem('daftari_push_sig')||'null'); }catch(e){}
+    // free KV plan: write only when something changed, or once a week as a keep-alive (the Worker drops devices silent for 120 days)
+    if(last && last.sig===sig && Date.now()-last.t < 7*864e5) return;
+    const r=await fetch(PUSH_API,{method:'POST',headers:{'Content-Type':'application/json'},body:sig});
+    if(r.ok){ try{ localStorage.setItem('daftari_push_sig', JSON.stringify({sig, t:Date.now()})); }catch(e){} }
+  }catch(e){ console.warn('push sync failed', e); }
+}
+function schedulePushSync(){
+  try{ if(settings.notifEnabled) _writeDueSnapshot().catch(()=>{}); }catch(e){}
+  clearTimeout(_pushT); _pushT=setTimeout(_pushSync, 1500);
+}
+setTimeout(()=>{ try{ schedulePushSync(); }catch(e){} }, 2500);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible'){ try{ schedulePushSync(); }catch(e){} } });
+// open the settle dialog requested by a notification action
+function _openSettleById(id){
+  const d=debts.find(x=>String(x.id)===String(id));
+  if(d && debtRemaining(d)>0){ try{ switchTab('tabDebts'); }catch(e){} openDebtSettleModal(d.id); }
+}
+if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message',e=>{
+  if(e.data&&e.data.type==='OPEN_SETTLE') setTimeout(()=>_openSettleById(e.data.id),200);
+});
+{ const sid=new URLSearchParams(location.search).get('settle'); if(sid) setTimeout(()=>_openSettleById(sid),1600); }
 // open the tab requested by a notification tap
 if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message',e=>{
   if(e.data&&e.data.type==='OPEN_TAB'&&/^tab\w+$/.test(e.data.tab||'')&&document.getElementById(e.data.tab)) switchTab(e.data.tab);
