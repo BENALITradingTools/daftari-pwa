@@ -1,9 +1,15 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Each user can read/write only their own document and sub-collections (devices).
+    // Pro entitlement: readable by its owner, writable ONLY by the server (Admin/REST with service account bypasses rules).
+    match /entitlements/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+    // Cloud sync is a Pro feature: the owner may read/write only while an entitlement with pro == true exists.
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if request.auth != null && request.auth.uid == uid
+        && get(/databases/$(database)/documents/entitlements/$(uid)).data.pro == true;
       match /devices/{token} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }

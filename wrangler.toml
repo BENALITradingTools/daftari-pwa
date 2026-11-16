@@ -1,0 +1,24 @@
+name = "daftari-push"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[triggers]
+crons = ["0 8 * * *"]          # 08:00 UTC = 09:00 Algeria (UTC+1)
+
+[[kv_namespaces]]
+binding = "SUBS"
+id = "PASTE_KV_NAMESPACE_ID"   # from: npx wrangler kv namespace create SUBS
+
+[vars]
+ALLOWED_ORIGIN = "https://daftari-pwa.bentrade.workers.dev"
+VAPID_PUBLIC   = "BPMmpjgaQJsTPOFWN-L_og5Kj44aVmNvFDcTSBcCZQaM5LC6Dnyki085qRBfKQo810dzzMZl-pd__faxTGWQskM"
+VAPID_SUBJECT  = "mailto:abooodi0712197107@gmail.com"
+
+# ---- Pro / Chargily (added) ----
+# Secrets (NOT in this file):  npx wrangler secret put CHARGILY_SECRET_KEY
+#                              npx wrangler secret put FIREBASE_SA     (service-account JSON, role: Cloud Datastore User)
+FIREBASE_PROJECT_ID = "daftari-app-e4e8d"
+WORKER_URL          = "PASTE_WORKER_URL"      # e.g. https://daftari-push.<your-subdomain>.workers.dev (no trailing slash)
+PRO_PRICE_DZD       = "1000"                  # DZD (integer). Keep equal to PRO_PRICE_DZD in index.html
+CHARGILY_LIVE       = "false"                 # "true" only when using live keys
+CHARGILY_API_BASE   = "https://pay.chargily.net/test/api/v2"   # test base (from the docs). Live base: confirm in Chargily docs
