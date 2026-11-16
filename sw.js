@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daftari-cache-v19';
+const CACHE_NAME = 'daftari-cache-v20';
 const APP_SHELL = [
   './',
   './index.html',
@@ -7,7 +7,8 @@ const APP_SHELL = [
   './icon-192.png',
   './icon-512.png',
   './icon-192-maskable.png',
-  './icon-512-maskable.png'
+  './icon-512-maskable.png',
+  './badge-96.png'
 ];
 
 // Files that should always be fetched fresh from the network first
@@ -148,7 +149,7 @@ self.addEventListener('push', (event) => {
     const data = { tab: debtIds.length ? 'tabDebts' : (parts.length ? 'tabSettings' : '') };
     const opts = {
       body: parts.length ? parts.join(' \u00b7 ') : ((snap && snap.generic) || '\u0644\u062f\u064a\u0643 \u0645\u0633\u062a\u062d\u0642\u0627\u062a \u0642\u0631\u064a\u0628\u0629'),
-      icon: './icon-192.png', badge: './icon-192.png', tag: 'daftari-due', dir: 'auto', lang: (snap && snap.lang) || 'ar', data
+      icon: './icon-192.png', badge: './badge-96.png', tag: 'daftari-due', dir: 'auto', lang: (snap && snap.lang) || 'ar', data
     };
     if (debtIds.length === 1) {
       data.settle = debtIds[0];
