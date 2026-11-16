@@ -171,7 +171,6 @@
   .cat-chip.sel{border-color:var(--gold); background:rgba(201,162,74,0.12);}
   .cat-chip.sel .lbl{color:var(--gold);}
   .save-btn{width:100%; background:var(--gold); color:#191308; border:none; padding:15px; border-radius:12px; font-family:'Tajawal'; font-weight:900; font-size:15px; margin-top:20px; cursor:pointer;}
-.pro-lock::after{content:'PRO'; display:inline-block; margin-inline-start:8px; padding:2px 7px; border-radius:6px; background:var(--gold); color:#191308; font-size:10px; font-weight:900; letter-spacing:.5px; vertical-align:middle; line-height:1.4;}
   .cancel-link{display:block; text-align:center; margin-top:10px; color:var(--muted); font-size:12.5px; background:none; border:none; width:100%; padding:6px; cursor:pointer; font-family:'Tajawal';}
 
   /* log filters */
@@ -770,7 +769,7 @@
     <div class="card-box"><div class="chart-box"><canvas id="chartMonthly"></canvas></div></div>
     <div class="section-title" data-i18n="yearlyCompare">مقارنة سنوية</div>
     <div class="card-box"><div class="chart-box"><canvas id="chartYearly"></canvas></div></div>
-    <button class="save-btn pro-lock" data-pro="1" id="exportPDFBtn" style="margin-top:16px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="exportPDF">🖨️ تصدير التقرير كملف PDF</button>
+    <button class="save-btn" id="exportPDFBtn" style="margin-top:16px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="exportPDF">🖨️ تصدير التقرير كملف PDF</button>
   </main>
 
   <main id="tabSettings">
@@ -854,11 +853,10 @@
       <div class="info-note" id="shortcutHowTo" style="display:none;"></div>
     </div>
 
-    <div class="section-title pro-lock" data-pro="1" data-i18n="cloudSection">☁️ المزامنة السحابية</div>
+    <div class="section-title" data-i18n="cloudSection">☁️ المزامنة السحابية</div>
     <div class="card-box">
       <div class="info-note" style="margin-top:0; margin-bottom:10px;" data-i18n="cloudHint">سجّل حساباً لمزامنة بياناتك تلقائياً بين كل أجهزتك عبر الإنترنت.</div>
       <div id="cloudLoggedOutBox">
-        <div class="sub" id="proInfoOut" style="margin-bottom:10px;"></div>
         <input type="email" id="cloudEmailInput" placeholder="البريد الإلكتروني" data-i18n-ph="cloudEmailPh" autocomplete="email" style="width:100%; margin-bottom:8px;">
         <input type="password" id="cloudPasswordInput" placeholder="كلمة المرور (6 أحرف على الأقل)" data-i18n-ph="cloudPasswordPh" autocomplete="current-password" style="width:100%; margin-bottom:10px;">
         <button class="save-btn" id="cloudSignInBtn" style="margin-top:0;" data-i18n="cloudSignIn">تسجيل الدخول</button>
@@ -868,10 +866,6 @@
       <div id="cloudLoggedInBox" style="display:none;">
         <div class="set-row">
           <div><div class="lab"><span data-i18n="cloudLoggedInAs">مسجّل الدخول باسم:</span> <span id="cloudUserEmail" style="font-weight:600;"></span></div><div class="sub" id="cloudSyncStatus"></div></div>
-        </div>
-        <div id="proBox" style="margin-top:12px;">
-          <div class="sub" id="proStatus" style="margin-bottom:8px;"></div>
-          <button class="save-btn" id="proBuyBtn" style="margin-top:0;"></button>
         </div>
         <div style="margin-top:12px;">
           <input type="password" id="cloudCurPwInput" autocomplete="current-password" style="width:100%; margin-bottom:8px;">
@@ -903,7 +897,7 @@
       <div style="height:14px;"></div>
       <div class="set-row"><div class="lab" data-i18n="exportBackup">⬇️ تصدير نسخة احتياطية</div></div>
       <div style="height:8px;"></div>
-      <button class="save-btn pro-lock" data-pro="1" id="exportBtn" style="margin-top:0;" data-i18n="downloadBackup">تنزيل نسخة احتياطية</button>
+      <button class="save-btn" id="exportBtn" style="margin-top:0;" data-i18n="downloadBackup">تنزيل نسخة احتياطية</button>
       <button class="save-btn" id="importBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="restoreBackup">استعادة من نسخة احتياطية</button>
       <input type="file" id="importFile" accept="application/json,.json" style="display:none;">
     </div>
@@ -1738,7 +1732,7 @@ function switchTab(name){
     if(name==='tabDebts') renderDebtsList();
     if(name==='tabLog') renderLog();
     if(name==='tabReports') renderReports();
-    if(name==='tabSettings'){ renderSettings(); updateProUI(); }
+    if(name==='tabSettings') renderSettings();
   }catch(e){
     console.error('render failed for', name, e);
     showToast(LX('حدث خطأ أثناء عرض هذا القسم','Something went wrong while displaying this section','Une erreur est survenue lors de l\'affichage de cette section'));
@@ -3328,7 +3322,6 @@ function showPdfOverlay(msg, blob){
 }
 
 document.getElementById('exportPDFBtn').addEventListener('click', async ()=>{
-  if(!requirePro()) return;
   if(transactions.length===0){ showToast(t('toastNoDataExport')); return; }
   buildPrintReport();
   if(!isIOSDevice()){ setTimeout(()=>window.print(), 50); return; }   // Android / desktop: unchanged
@@ -3400,82 +3393,6 @@ let unsubscribeCloud=null;   // active Firestore listener unsubscribe fn
 let cloudPushTimer=null;
 let applyingRemote=false;    // guard so we don't push right after applying a remote update
 
-/* ======================= Pro (one-time purchase via Chargily) =======================
-   Server-enforced: cloud sync (Firestore rules require entitlements/{uid}.pro == true).
-   Client-side only (soft gate, a technical user can bypass it): PDF export and backup download. */
-const PRO_API_URL='PASTE_WORKER_URL';   // the Cloudflare Worker URL, no trailing slash
-const PRO_CACHE_KEY='daftari_pro_v1';
-let isPro=false;
-try{ const c=JSON.parse(localStorage.getItem(PRO_CACHE_KEY)||'null'); isPro=!!(c && c.pro); }catch(e){}
-
-const PRO_PRICE_DZD=1000;   // display only — must equal PRO_PRICE_DZD in wrangler.toml (the server decides the real amount)
-function proPrice(){ return LX(PRO_PRICE_DZD+' دج', PRO_PRICE_DZD+' DZD', PRO_PRICE_DZD+' DZD'); }
-function updateProBadges(){   // no translation needed: the "PRO" badge is a CSS pseudo-element
-  document.querySelectorAll('[data-pro]').forEach(el=>el.classList.toggle('pro-lock', !isPro));
-}
-function updateProUI(){
-  updateProBadges();
-  const out=document.getElementById('proInfoOut');
-  if(out) out.textContent=LX(
-    '🔒 المزامنة السحابية وتصدير PDF والنسخ الاحتياطي ضمن نسخة Pro — '+proPrice()+' (دفعة واحدة، مدى الحياة). سجّل الدخول للترقية.',
-    '🔒 Cloud sync, PDF export and backup are Pro features — '+proPrice()+' (one-time, lifetime). Sign in to upgrade.',
-    '🔒 La synchronisation cloud, l\'export PDF et la sauvegarde sont des fonctions Pro — '+proPrice()+' (paiement unique, à vie). Connectez-vous pour passer à Pro.');
-  const st=document.getElementById('proStatus'), btn=document.getElementById('proBuyBtn');
-  if(!st || !btn) return;
-  if(isPro){
-    st.textContent=LX('✅ نسخة Pro مفعّلة','✅ Pro is active','✅ Pro activé');
-    btn.style.display='none';
-  } else {
-    const items=[
-      LX('المزامنة السحابية بين الأجهزة','Cloud sync across devices','Synchronisation cloud entre appareils'),
-      LX('تصدير التقرير كملف PDF','PDF report export','Export du rapport en PDF'),
-      LX('تنزيل نسخة احتياطية','Backup download','Téléchargement de la sauvegarde')
-    ];
-    st.innerHTML='<div style="font-weight:700; margin-bottom:6px;">'+LX('🔒 ميزات نسخة Pro','🔒 Pro features','🔒 Fonctions Pro')+'</div>'+items.map(x=>'<div>• '+x+'</div>').join('');
-    btn.style.display='';
-    btn.textContent=LX('ترقية إلى Pro — '+proPrice()+' (دفعة واحدة)','Upgrade to Pro — '+proPrice()+' (one-time)','Passer à Pro — '+proPrice()+' (paiement unique)');
-  }
-}
-function setPro(v){
-  isPro=!!v;
-  try{
-    if(isPro && cloudUser) localStorage.setItem(PRO_CACHE_KEY, JSON.stringify({uid:cloudUser.uid, pro:true, ts:Date.now()}));
-    else if(!isPro) localStorage.removeItem(PRO_CACHE_KEY);
-  }catch(e){}
-  updateProUI();
-}
-async function refreshPro(){
-  if(!CloudAPI || !cloudUser) return isPro;
-  try{ setPro(await CloudAPI.getEntitlement(cloudUser.uid)); }       // on network failure keep the cached value
-  catch(e){ console.error('pro check failed:', e); }
-  return isPro;
-}
-function requirePro(){
-  if(isPro) return true;
-  showToast(LX('هذه الميزة ضمن نسخة Pro ('+proPrice()+') — سجّل الدخول ثم رقِّ حسابك من الإعدادات','This is a Pro feature ('+proPrice()+') — sign in and upgrade from Settings','Fonction Pro ('+proPrice()+') — connectez-vous et passez à Pro depuis les Réglages'));
-  try{ switchTab('tabSettings'); }catch(e){}
-  return false;
-}
-async function startProCheckout(){
-  if(!CloudAPI || !cloudUser){ showToast(LX('سجّل الدخول أولاً لشراء Pro','Sign in first to buy Pro','Connectez-vous d\'abord pour acheter Pro')); return; }
-  if(PRO_API_URL.indexOf('https://')!==0){ showToast(LX('خادم الدفع غير مُعدّ بعد','Payment server is not configured yet','Serveur de paiement non configuré')); return; }
-  const btn=document.getElementById('proBuyBtn'); if(btn) btn.disabled=true;
-  try{
-    const tok=await CloudAPI.getIdToken();
-    const r=await fetch(PRO_API_URL+'/checkout',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({locale:settings.lang})});
-    if(!r.ok) throw new Error('checkout '+r.status);
-    const j=await r.json();
-    if(!j.url || !/^https:\/\/pay\.chargily\.(dz|net)\//.test(j.url)) throw new Error('unexpected checkout url');
-    location.href=j.url;
-  }catch(e){
-    console.error('checkout failed:', e);
-    showToast(t('cloudErrNetwork'));
-    if(btn) btn.disabled=false;
-  }
-}
-document.addEventListener('click', function(ev){ if(ev.target && ev.target.id==='proBuyBtn') startProCheckout(); });
-updateProBadges();
-
 function buildCloudPayload(){
   // Same as buildBackupPayload() but also includes savingsGoals (the local
   // export/import feature is missing this field — cloud sync includes it).
@@ -3506,7 +3423,6 @@ function updateCloudUI(){
     loggedOutBox.style.display='none';
     loggedInBox.style.display='';
     document.getElementById('cloudUserEmail').textContent=cloudUser.email||'';
-    updateProUI();
   } else {
     loggedOutBox.style.display='';
     loggedInBox.style.display='none';
@@ -3519,7 +3435,7 @@ function setCloudStatus(text){
 }
 
 async function pushCloudNow(){
-  if(!cloudUser || !CloudAPI || !isPro) return;
+  if(!cloudUser || !CloudAPI) return;
   try{
     setCloudStatus(t('cloudSyncing'));
     const payload=buildCloudPayload();
@@ -3538,7 +3454,7 @@ async function pushCloudNow(){
 }
 
 function scheduleCloudPush(){
-  if(!cloudUser || !CloudAPI || !isPro || applyingRemote) return;
+  if(!cloudUser || !CloudAPI || applyingRemote) return;
   clearTimeout(cloudPushTimer);
   cloudPushTimer=setTimeout(pushCloudNow, 1500);
 }
@@ -3591,16 +3507,6 @@ async function handleSignedIn(user){
   cloudUser=user;
   updateCloudUI();
   setCloudStatus(t('cloudSyncing'));
-  await refreshPro();
-  if(!isPro && /[?&]pro=success/.test(location.search)){          // back from Chargily: the webhook may take a few seconds
-    setCloudStatus(LX('جارٍ تأكيد الدفع…','Confirming payment…','Confirmation du paiement…'));
-    for(let i=0;i<8 && !isPro;i++){ await new Promise(r=>setTimeout(r,2500)); await refreshPro(); }
-  }
-  if(/[?&]pro=(success|failed)/.test(location.search)){ try{ history.replaceState(null,'',location.pathname); }catch(e){} }
-  if(!isPro){
-    setCloudStatus(LX('المزامنة السحابية متاحة في نسخة Pro','Cloud sync is a Pro feature','La synchronisation cloud est une fonction Pro'));
-    return;
-  }
   try{
     const remote=await CloudAPI.pullData(user.uid);
     let lastUid=null; try{ lastUid=localStorage.getItem(CLOUD_UID_KEY); }catch(e){}
@@ -3638,7 +3544,6 @@ async function handleSignedIn(user){
 
 function handleSignedOut(){
   cloudUser=null;
-  setPro(false);
   if(unsubscribeCloud){ unsubscribeCloud(); unsubscribeCloud=null; }
   updateCloudUI();
 }
@@ -3710,7 +3615,6 @@ function downloadBackupFile(){
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 document.getElementById('exportBtn').addEventListener('click', ()=>{
-  if(!requirePro()) return;
   if(transactions.length===0){ showToast(t('toastNoDataExport')); return; }
   downloadBackupFile();
   showToast(t('toastBackupCreated'));
@@ -4602,8 +4506,6 @@ init();
       const snap = await getDoc(doc(db, 'users', uid));
       return snap.exists() ? snap.data() : null;
     },
-    getEntitlement: async (uid) => { const s = await getDoc(doc(db, 'entitlements', uid)); return s.exists() && s.data().pro === true; },
-    getIdToken: () => { const u = auth.currentUser; if(!u) throw { code: 'auth/no-user' }; return u.getIdToken(); },
     pushData: (uid, payload) => setDoc(doc(db, 'users', uid), payload),
     listenData: (uid, cb) => onSnapshot(doc(db, 'users', uid), (snap) => {
       if (!snap.exists()) return;
