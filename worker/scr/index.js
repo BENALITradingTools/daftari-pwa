@@ -15,6 +15,14 @@ export function nextDate(s, freq) {
 }
 const diff = (a, b) => Math.round((new Date(a + 'T00:00:00Z') - new Date(b + 'T00:00:00Z')) / 864e5);
 
+// Local date + hour (0-23) in a given IANA time zone (handles DST).
+export function localParts(tz, now) {
+  const f = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' });
+  const p = Object.fromEntries(f.formatToParts(now).map((x) => [x.type, x.value]));
+  return { date: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) % 24 };
+}
+const validTz = (s) => { if (typeof s !== 'string' || !s || s.length > 64) return false; try { new Intl.DateTimeFormat('en-CA', { timeZone: s }); return true; } catch { return false; } };
+
 export function isDue(rec, today) {
   const debt = (rec.debts || []).some((d) => { const k = diff(d, today); return k <= 1 && k >= -30; });
   const recur = (rec.rec || []).some((r) => {
@@ -53,6 +61,8 @@ async function handle(req, env) {
   if (req.method === 'DELETE') { await env.SUBS.delete(key); return new Response('ok', { headers: h }); }
   const rec = {
     endpoint: b.endpoint, t: Date.now(),
+    hr: Number.isInteger(b.hr) && b.hr >= 0 && b.hr <= 23 ? b.hr : 9,   // reminder hour chosen in the app (device-local)
+    tz: validTz(b.tz) ? b.tz : TZ,
     debts: (Array.isArray(b.debts) ? b.debts : []).filter((d) => DATE.test(d)).slice(0, 200),
     rec: (Array.isArray(b.rec) ? b.rec : []).filter((r) => r && DATE.test(r.l) && ['weekly', 'monthly', 'yearly'].includes(r.f)).map((r) => ({ l: r.l, f: r.f })).slice(0, 200)
   };
@@ -60,8 +70,9 @@ async function handle(req, env) {
   return new Response('ok', { headers: h });
 }
 
-async function daily(env) {
-  const today = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date());
+// Runs every hour (cron "0 * * * *"): a device gets its reminder only when ITS local hour equals the hour it chose.
+async function hourly(env) {
+  const now = new Date();
   let cursor, sent = 0, total = 0;
   do {
     const page = await env.SUBS.list({ prefix: 's:', cursor });
@@ -69,7 +80,9 @@ async function daily(env) {
       const rec = JSON.parse((await env.SUBS.get(k.name)) || 'null'); if (!rec) continue;
       total++;
       if (Date.now() - rec.t > 120 * 864e5) { await env.SUBS.delete(k.name); continue; } // abandoned device
-      if (!isDue(rec, today)) continue;
+      const lp = localParts(rec.tz || TZ, now);               // records saved before this feature: 09:00 Algiers
+      if (lp.hour !== (Number.isInteger(rec.hr) ? rec.hr : 9)) continue;
+      if (!isDue(rec, lp.date)) continue;
       try {
         const r = await sendPush(rec.endpoint, env);
         if (r.status === 404 || r.status === 410) await env.SUBS.delete(k.name); else if (r.ok) sent++;
@@ -77,7 +90,7 @@ async function daily(env) {
     }
     cursor = page.list_complete ? undefined : page.cursor;
   } while (cursor);
-  console.log(`daily: ${total} devices, ${sent} pushes`);
+  console.log(`hourly: ${total} devices, ${sent} pushes`);
 }
 
 export default {
@@ -85,5 +98,5 @@ export default {
     try { return await handle(req, env); }
     catch (e) { return new Response('worker error: ' + e.message, { status: 500, headers: cors(env) }); }
   },
-  scheduled: (_e, env, ctx) => ctx.waitUntil(daily(env))
+  scheduled: (_e, env, ctx) => ctx.waitUntil(hourly(env))
 };
