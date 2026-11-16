@@ -2438,6 +2438,24 @@ function maybeNotifyDueRecurring(){
   fire();
   try{ localStorage.setItem('daftari_last_notif_date', today); }catch(e){}
 }
+
+// System notification fired at the moment an event happens (budget, goal, backup, sync, recurring recorded).
+// Uses the same master switch as the due-date alerts (settings.notifEnabled) and the browser permission.
+function notifyNow(title, body, tab, tag){
+  try{
+    if(!settings || !settings.notifEnabled) return;
+    if(typeof Notification==='undefined' || Notification.permission!=='granted') return;
+    const opts={body:body, icon:'./icon-192.png', badge:'./icon-192.png', tag:tag||('daftari-'+Date.now()), dir:'auto', lang:locale(), data:{tab:tab||''}};
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistration().then(reg=>{
+        if(reg && reg.showNotification) reg.showNotification(title, opts);
+        else new Notification(title, opts);
+      }).catch(()=>{ try{ new Notification(title, opts); }catch(e){} });
+    }else{
+      new Notification(title, opts);
+    }
+  }catch(e){}
+}
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible'){ try{ maybeNotifyDueRecurring(); }catch(e){} } });
 
 /* ---------- Wallets management ---------- */
@@ -2625,7 +2643,11 @@ document.getElementById('savModalConfirmBtn').addEventListener('click', ()=>{
   if(isNaN(raw) || raw<=0){ showToast(t('toastInvalidAmount')); return; }
   if(savModalMode==='withdraw' && raw>(g.saved||0)){ showToast(t('toastInvalidAmount')); return; }
   const delta = savModalMode==='add' ? raw : -raw;
+  const _before=g.saved||0;
   g.saved=Math.max(0, (g.saved||0)+delta);
+  if(savModalMode==='add' && (g.target||0)>0 && _before<g.target && g.saved>=g.target){
+    notifyNow(LX('🎉 دفتري — هدف الادخار','🎉 Daftari — Savings goal','🎉 Daftari — Objectif d\'épargne'), (g.name||'')+' — '+t('savingsGoalReached'), '', 'daftari-goal-'+g.id);
+  }
   saveSavings(); renderSavingsCards();
   showToast(savModalMode==='add' ? t('toastFundsAdded') : t('toastFundsWithdrawn'));
   closeSavingsFundModal();
@@ -2991,16 +3013,28 @@ function freqLabel(f){ return f==='weekly'?t('freqWeekly'):(f==='yearly'?t('freq
 function processRecurring(){
   const today=new Date().toISOString().slice(0,10);
   let changedTx=false, changedRec=false;
+  const _created=[];
   recurring.forEach(r=>{
     let guard=0, next=nextDate(r.lastDate, r.freq);
     while(next<=today && guard<36){
-      transactions.push({id:'rt_'+r.id+'_'+next, type:r.type, category:r.category, amount:r.amount, note:r.note, date:next, wallet:r.wallet||wallets[0].id, billType:r.billType||null});
+      const _tx={id:'rt_'+r.id+'_'+next, type:r.type, category:r.category, amount:r.amount, note:r.note, date:next, wallet:r.wallet||wallets[0].id, billType:r.billType||null};
+      transactions.push(_tx); _created.push(_tx);
       r.lastDate=next; changedTx=true; changedRec=true;
       next=nextDate(r.lastDate, r.freq); guard++;
     }
   });
   if(changedTx) saveTx();
   if(changedRec) saveRecurring();
+  if(_created.length){
+    try{
+      const n=_created.length;
+      const det=_created.slice(0,3).map(x=>{ const c=findCat(x.category); return c.icon+' '+trLabel(c)+': '+fmt(x.amount); }).join(' · ')+(n>3?' …':'');
+      notifyNow(LX('🔁 دفتري — معاملات متكررة','🔁 Daftari — Recurring','🔁 Daftari — Récurrentes'),
+        LX('تم تسجيل '+n+' معاملة متكررة تلقائيًا: '+det,'Recorded '+n+' recurring transaction(s) automatically: '+det,n+' opération(s) récurrente(s) enregistrée(s) automatiquement : '+det),
+        '', 'daftari-recurring');
+      _created.forEach(x=>{ if(x.type==='expense') checkBudgetAlert(x); });   // auto-created expenses were never checked against budgets
+    }catch(e){ console.error(e); }
+  }
 }
 function renderRecurringSettings(){
   const el=document.getElementById('recurManageList');
@@ -3077,6 +3111,7 @@ function checkBudgetAlert(tx){
       ? LX('🚨 تجاوزت ميزانية '+name+' بمقدار '+fmt(spent-budget), '🚨 You exceeded the '+name+' budget by '+fmt(spent-budget),'🚨 Vous avez dépassé le budget '+name+' de '+fmt(spent-budget))
       : LX('⚠️ وصلت إلى '+Math.round(pct)+'% من ميزانية '+name+' ('+fmt(spent)+' من '+fmt(budget)+')', '⚠️ You have used '+Math.round(pct)+'% of the '+name+' budget ('+fmt(spent)+' of '+fmt(budget)+')','⚠️ Vous avez atteint '+Math.round(pct)+'\u00a0% du budget '+name+' ('+fmt(spent)+' sur '+fmt(budget)+')');
     showBudgetBanner(msg, level>=100);
+    notifyNow(LX('🔔 دفتري — الميزانية','🔔 Daftari — Budget','🔔 Daftari — Budget'), msg, '', 'daftari-budget-'+tx.category);
     if(navigator.vibrate) try{ navigator.vibrate(level>=100?[80,60,80]:60); }catch(e){}
   }catch(e){ console.error(e); }
 }
@@ -3451,6 +3486,7 @@ async function pushCloudNow(){
   }catch(e){
     console.error('cloud push failed:', e);
     setCloudStatus(cloudErrorMessage(e));
+    if(navigator.onLine!==false) notifyNow(LX('⚠️ دفتري — فشلت المزامنة','⚠️ Daftari — Sync failed','⚠️ Daftari — Échec de synchro'), cloudErrorMessage(e), '', 'daftari-sync-err');   // not while simply offline
   }
 }
 
@@ -3485,6 +3521,7 @@ function applyCloudPayload(data){
     localStorage.setItem(DEBT_KEY, JSON.stringify(data.debts||[]));
     localStorage.setItem(CLOUD_TS_KEY, String(data.updatedAt||Date.now()));
     showToast(t('cloudUpdateToast'));
+    notifyNow(LX('☁️ دفتري — المزامنة','☁️ Daftari — Sync','☁️ Daftari — Synchro'), t('cloudUpdateToast'), '', 'daftari-sync');
     if(_formBusy()){ _applyRemoteSoft(); } else { setTimeout(()=>window.location.reload(), 900); }
   }catch(e){ console.error('apply cloud payload failed:', e); }
 }
@@ -3650,6 +3687,7 @@ function maybeAutoBackup(){
     saveSettings();
     renderLastBackupInfo();
     showToast(t('toastAutoBackupCreated'));
+    notifyNow(LX('💾 دفتري — نسخة احتياطية','💾 Daftari — Backup','💾 Daftari — Sauvegarde'), t('toastAutoBackupCreated'), '', 'daftari-backup');
   }
   // On failure, stay silent — the user's data is still safe in the app's normal
   // storage; they can always create a manual, downloadable backup from Settings.
