@@ -909,7 +909,7 @@
         <div class="switch" id="notifSwitch"><div class="knob"></div></div>
       </div>
       <div class="set-row" id="reminderHourRow">
-        <div><div class="lab" data-i18n="reminderHourLab">ساعة التذكير</div><div class="sub" data-i18n="reminderHourSub">الساعة التي يصلك فيها تذكير الاستحقاق (بتوقيت جهازك)</div></div>
+        <div><div class="lab" data-i18n="reminderHourLab">ساعة التذكير</div><div class="sub" data-i18n="reminderHourSub">الساعة التي يصلك فيها تذكير الاستحقاق (بتوقيت جهازك)</div><div class="sub" id="pushStatus" style="margin-top:4px;"></div></div>
         <select id="reminderHour" style="width:auto;"></select>
       </div>
       <div class="info-note" data-i18n="notifInfo">ℹ️ يصلك التنبيه صباح يوم الاستحقاق حتى لو كان التطبيق مغلقًا، عبر خادم مجاني لا يحفظ سوى تواريخ الاستحقاق (دون أسماء أو مبالغ). كما يظهر عند فتح التطبيق.</div>
@@ -4316,9 +4316,13 @@ async function _writeDueSnapshot(){
   const c=await caches.open('daftari-due');
   await c.put(new URL('./__due.json', document.baseURI).href, new Response(JSON.stringify(snap),{headers:{'Content-Type':'application/json'}}));
 }
+function _pushStatus(msg){ try{ const el=document.getElementById('pushStatus'); if(el) el.textContent=msg; }catch(e){} }
 async function _pushSync(){
   try{
-    if(!PUSH_API || !('serviceWorker' in navigator) || !('PushManager' in window) || typeof Notification==='undefined') return;
+    if(!PUSH_API){ _pushStatus(LX('إشعارات الخادم: غير مضبوطة','Server push: not configured','Push serveur : non configuré')); return; }
+    if(!('serviceWorker' in navigator) || !('PushManager' in window) || typeof Notification==='undefined'){
+      _pushStatus(LX('هذا المتصفح لا يدعم إشعارات الخادم','This browser does not support server push','Ce navigateur ne gère pas le push serveur')); return;
+    }
     const reg=await navigator.serviceWorker.ready;
     let sub=await reg.pushManager.getSubscription();
     if(!settings.notifEnabled || Notification.permission!=='granted'){
@@ -4327,20 +4331,29 @@ async function _pushSync(){
         try{ await fetch(PUSH_API,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:ep})}); }catch(e){}
       }
       try{ localStorage.removeItem('daftari_push_sig'); }catch(e){}
+      _pushStatus(settings.notifEnabled ? LX('إذن الإشعارات غير ممنوح ('+Notification.permission+')','Notification permission not granted ('+Notification.permission+')','Autorisation non accordée ('+Notification.permission+')') : '');
       return;
     }
     if(!sub){
       try{ sub=await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:_b64uToU8(VAPID_PUBLIC)}); }
-      catch(e){ console.warn('push subscribe failed', e); return; }
+      catch(e){ console.warn('push subscribe failed', e); _pushStatus(LX('فشل الاشتراك: ','Subscribe failed: ','Échec de l\'abonnement : ')+((e&&e.name)||'')+' '+((e&&e.message)||'')); return; }
     }
+    const hh=String(settings.reminderHour==null?9:settings.reminderHour).padStart(2,'0');
     const items=_dueItems();
     const sig=JSON.stringify({endpoint:sub.endpoint, debts:items.filter(i=>i.k==='d').map(i=>i.due), rec:items.filter(i=>i.k==='r').map(i=>({l:i.l,f:i.f})), hr:(settings.reminderHour==null?9:settings.reminderHour), tz:(function(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){ return ''; } })()});
     let last=null; try{ last=JSON.parse(localStorage.getItem('daftari_push_sig')||'null'); }catch(e){}
     // free KV plan: write only when something changed, or once a week as a keep-alive (the Worker drops devices silent for 120 days)
-    if(last && last.sig===sig && Date.now()-last.t < 7*864e5) return;
+    if(last && last.sig===sig && Date.now()-last.t < 7*864e5){
+      _pushStatus(LX('✓ الجهاز مسجّل في الخادم — التذكير الساعة '+hh+':00','✓ Device registered on the server — reminder at '+hh+':00','✓ Appareil enregistré sur le serveur — rappel à '+hh+':00')); return;
+    }
     const r=await fetch(PUSH_API,{method:'POST',headers:{'Content-Type':'application/json'},body:sig});
-    if(r.ok){ try{ localStorage.setItem('daftari_push_sig', JSON.stringify({sig, t:Date.now()})); }catch(e){} }
-  }catch(e){ console.warn('push sync failed', e); }
+    if(r.ok){
+      try{ localStorage.setItem('daftari_push_sig', JSON.stringify({sig, t:Date.now()})); }catch(e){}
+      _pushStatus(LX('✓ الجهاز مسجّل في الخادم — التذكير الساعة '+hh+':00','✓ Device registered on the server — reminder at '+hh+':00','✓ Appareil enregistré sur le serveur — rappel à '+hh+':00'));
+    }else{
+      _pushStatus(LX('الخادم رفض الطلب (رمز '+r.status+')','The server rejected the request (code '+r.status+')','Le serveur a refusé la requête (code '+r.status+')'));
+    }
+  }catch(e){ console.warn('push sync failed', e); _pushStatus(LX('تعذر الاتصال بالخادم','Could not reach the server','Serveur injoignable')); }
 }
 function schedulePushSync(){
   try{ if(settings.notifEnabled) _writeDueSnapshot().catch(()=>{}); }catch(e){}
