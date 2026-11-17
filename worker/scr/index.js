@@ -17,9 +17,9 @@ const diff = (a, b) => Math.round((new Date(a + 'T00:00:00Z') - new Date(b + 'T0
 
 // Local date + hour (0-23) in a given IANA time zone (handles DST).
 export function localParts(tz, now) {
-  const f = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' });
+  const f = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
   const p = Object.fromEntries(f.formatToParts(now).map((x) => [x.type, x.value]));
-  return { date: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) % 24 };
+  return { date: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) % 24, minute: Number(p.minute) };
 }
 const validTz = (s) => { if (typeof s !== 'string' || !s || s.length > 64) return false; try { new Intl.DateTimeFormat('en-CA', { timeZone: s }); return true; } catch { return false; } };
 
@@ -61,7 +61,8 @@ async function handle(req, env) {
   if (req.method === 'DELETE') { await env.SUBS.delete(key); return new Response('ok', { headers: h }); }
   const rec = {
     endpoint: b.endpoint, t: Date.now(),
-    hr: Number.isInteger(b.hr) && b.hr >= 0 && b.hr <= 23 ? b.hr : 9,   // reminder hour chosen in the app (device-local)
+    hr: Number.isInteger(b.hr) && b.hr >= 0 && b.hr <= 23 ? b.hr : 9,   // reminder time chosen in the app (device-local)
+    mn: Number.isInteger(b.mn) && b.mn >= 0 && b.mn <= 59 ? Math.floor(b.mn / 5) * 5 : 0,   // minutes, in 5-minute steps (the cron runs every 5 minutes)
     tz: validTz(b.tz) ? b.tz : TZ,
     debts: (Array.isArray(b.debts) ? b.debts : []).filter((d) => DATE.test(d)).slice(0, 200),
     rec: (Array.isArray(b.rec) ? b.rec : []).filter((r) => r && DATE.test(r.l) && ['weekly', 'monthly', 'yearly'].includes(r.f)).map((r) => ({ l: r.l, f: r.f })).slice(0, 200)
@@ -70,7 +71,7 @@ async function handle(req, env) {
   return new Response('ok', { headers: h });
 }
 
-// Runs every hour (cron "0 * * * *"): a device gets its reminder only when ITS local hour equals the hour it chose.
+// Runs every 5 minutes (cron "*/5 * * * *"): a device gets its reminder in the 5-minute slot that contains the time it chose (local time).
 async function hourly(env) {
   const now = new Date();
   let cursor, sent = 0, total = 0;
@@ -81,8 +82,9 @@ async function hourly(env) {
       total++;
       if (Date.now() - rec.t > 120 * 864e5) { await env.SUBS.delete(k.name); continue; } // abandoned device
       const lp = localParts(rec.tz || TZ, now);               // records saved before this feature: 09:00 Algiers
-      const want = Number.isInteger(rec.hr) ? rec.hr : 9;
-      if (lp.hour !== want) { console.log(`skip: local hour ${lp.hour} (${rec.tz || TZ}) != chosen ${want}`); continue; }
+      const wantMin = (Number.isInteger(rec.hr) ? rec.hr : 9) * 60 + (Number.isInteger(rec.mn) ? Math.floor(rec.mn / 5) * 5 : 0);
+      const nowMin = lp.hour * 60 + lp.minute;
+      if (nowMin - (nowMin % 5) !== wantMin - (wantMin % 5)) { console.log(`skip: local ${lp.hour}:${String(lp.minute).padStart(2, '0')} (${rec.tz || TZ}) is not the chosen slot ${Math.floor(wantMin / 60)}:${String(wantMin % 60).padStart(2, '0')}`); continue; }
       if (!isDue(rec, lp.date)) { console.log(`skip: nothing due on ${lp.date} (debts ${(rec.debts || []).length}, recurring ${(rec.rec || []).length})`); continue; }
       try {
         const r = await sendPush(rec.endpoint, env);
@@ -93,7 +95,7 @@ async function hourly(env) {
     }
     cursor = page.list_complete ? undefined : page.cursor;
   } while (cursor);
-  console.log(`hourly: ${total} devices, ${sent} pushes`);
+  console.log(`run: ${total} devices, ${sent} pushes`);
 }
 
 export default {
