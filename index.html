@@ -4297,7 +4297,7 @@ setTimeout(()=>{
 
 /* ===== Web Push (free Cloudflare Worker, see wrangler.toml) ===== */
 var PUSH_API = 'https://daftari-push.bentrade.workers.dev/sync';   // SET THIS to your deployed Worker, e.g. 'https://daftari-push.<account>.workers.dev/sync' (empty = server push stays off)
-var VAPID_PUBLIC = 'BKiMhNj1s_cOnR6jinLfrSye087vOjQs1oqtta2KbJJxhyYo9pwd9OERCyVVNQk4GvGo3eWU04qKsPl3dziHr-g';
+var VAPID_PUBLIC = 'BOsFum8zKM4KHwLnrhVoRV1osLAKvA3RVAnF85XasmMG8O-0TeYHS2mLdnsJVJ4TfcYN2VoiVa7WKksXLIacBOo';
 var _pushT = null;
 function _b64uToU8(s){ const p='='.repeat((4-s.length%4)%4); const b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/')); return Uint8Array.from(b,c=>c.charCodeAt(0)); }
 function _dueItems(){
@@ -4341,6 +4341,18 @@ async function _pushSync(){
       _pushStatus(settings.notifEnabled ? LX('إذن الإشعارات غير ممنوح ('+Notification.permission+')','Notification permission not granted ('+Notification.permission+')','Autorisation non accordée ('+Notification.permission+')') : '');
       return;
     }
+    // a subscription made with a different (old) VAPID key can never receive pushes: drop it and subscribe again
+    try{
+      const cur=sub && sub.options && sub.options.applicationServerKey;
+      if(cur){
+        const want=_b64uToU8(VAPID_PUBLIC), have=new Uint8Array(cur);
+        if(have.length!==want.length || have.some((v,i)=>v!==want[i])){
+          const oldEp=sub.endpoint; await sub.unsubscribe(); sub=null;
+          try{ localStorage.removeItem('daftari_push_sig'); }catch(e){}
+          try{ await fetch(PUSH_API,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:oldEp})}); }catch(e){}
+        }
+      }
+    }catch(e){ console.warn('key check failed', e); }
     if(!sub){
       try{ sub=await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:_b64uToU8(VAPID_PUBLIC)}); }
       catch(e){ console.warn('push subscribe failed', e); _pushStatus(LX('فشل الاشتراك: ','Subscribe failed: ','Échec de l\'abonnement : ')+((e&&e.name)||'')+' '+((e&&e.message)||'')); return; }
