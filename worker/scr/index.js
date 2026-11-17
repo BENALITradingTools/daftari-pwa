@@ -81,11 +81,14 @@ async function hourly(env) {
       total++;
       if (Date.now() - rec.t > 120 * 864e5) { await env.SUBS.delete(k.name); continue; } // abandoned device
       const lp = localParts(rec.tz || TZ, now);               // records saved before this feature: 09:00 Algiers
-      if (lp.hour !== (Number.isInteger(rec.hr) ? rec.hr : 9)) continue;
-      if (!isDue(rec, lp.date)) continue;
+      const want = Number.isInteger(rec.hr) ? rec.hr : 9;
+      if (lp.hour !== want) { console.log(`skip: local hour ${lp.hour} (${rec.tz || TZ}) != chosen ${want}`); continue; }
+      if (!isDue(rec, lp.date)) { console.log(`skip: nothing due on ${lp.date} (debts ${(rec.debts || []).length}, recurring ${(rec.rec || []).length})`); continue; }
       try {
         const r = await sendPush(rec.endpoint, env);
-        if (r.status === 404 || r.status === 410) await env.SUBS.delete(k.name); else if (r.ok) sent++;
+        if (r.status === 404 || r.status === 410) { await env.SUBS.delete(k.name); console.log('push: subscription gone, deleted', r.status); }
+        else if (r.ok) { sent++; console.log('push accepted', r.status); }
+        else console.log('push REJECTED', r.status, (await r.text()).slice(0, 200));
       } catch (e) { console.log('push failed', e.message); }
     }
     cursor = page.list_complete ? undefined : page.cursor;
