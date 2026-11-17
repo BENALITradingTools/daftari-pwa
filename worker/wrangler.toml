@@ -3,11 +3,11 @@ main = "src/index.js"          # CHECK: this file must exist at src/index.js in 
 compatibility_date = "2024-11-01"
 
 [triggers]
-crons = ["0 * * * *"]          # every hour: each device is reminded at the hour it chose in the app
+crons = ["*/5 * * * *"]          # every hour: each device is reminded at the hour it chose in the app
 
 [[kv_namespaces]]
 binding = "SUBS"
-id = "PASTE_KV_NAMESPACE_ID"   # from: npx wrangler kv namespace create SUBS
+id = "9cb7e65401b74691a70371f3f6a6f6d6"   # from: npx wrangler kv namespace create SUBS
 
 [vars]
 # Origin only (no path). The app is served from https://benalitradingtools.github.io/daftari-pwa/
