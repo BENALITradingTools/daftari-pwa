@@ -12,5 +12,5 @@ id = "9cb7e65401b74691a70371f3f6a6f6d6"   # from: npx wrangler kv namespace crea
 [vars]
 # Origin only (no path). The app is served from https://benalitradingtools.github.io/daftari-pwa/
 ALLOWED_ORIGIN = "https://benalitradingtools.github.io"
-VAPID_PUBLIC   = "BKiMhNj1s_cOnR6jinLfrSye087vOjQs1oqtta2KbJJxhyYo9pwd9OERCyVVNQk4GvGo3eWU04qKsPl3dziHr-g"
+VAPID_PUBLIC   = "BOsFum8zKM4KHwLnrhVoRV1osLAKvA3RVAnF85XasmMG8O-0TeYHS2mLdnsJVJ4TfcYN2VoiVa7WKksXLIacBOo"
 VAPID_SUBJECT  = "mailto:abooodi0712197107@gmail.com"
