@@ -450,6 +450,11 @@
   .add-debt-form{display:flex; gap:6px; flex-wrap:wrap; margin-top:0;}
   .add-debt-form input, .add-debt-form select{flex:1; min-width:100px;}
   .add-debt-form input.icon-in{max-width:54px; flex:none; text-align:center;}
+.add-debt-form input[type="number"]{flex:1 1 110px; min-width:0;}
+.add-debt-form .date-wrap{flex:1 1 150px; min-width:140px; width:auto;}
+.debt-card-due{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 6px; line-height:1.6;}
+.debt-card-due .dd{direction:ltr; unicode-bidi:isolate; white-space:nowrap; font-variant-numeric:tabular-nums;}
+.debt-card-due .sep{opacity:.6;}
 
   /* ---- language switch pill (settings) ---- */
   .lang-pill{display:flex; background:var(--card-2); border-radius:99px; padding:3px; gap:2px;}
@@ -912,6 +917,14 @@
         <div><div class="lab" data-i18n="reminderHourLab">ساعة التذكير</div><div class="sub" data-i18n="reminderHourSub">الساعة التي يصلك فيها تذكير الاستحقاق (بتوقيت جهازك)</div><div class="sub" id="pushStatus" style="margin-top:4px;"></div></div>
         <span style="display:flex;gap:6px;align-items:center;direction:ltr;"><select id="reminderHour" style="width:auto;"></select><span>:</span><select id="reminderMin" style="width:auto;"></select></span>
       </div>
+      <div id="extraRemBox">
+        <div class="set-row"><div><div class="lab" data-i18n="evWeeklyLab">مراجعة الميزانية الأسبوعية</div><div class="sub" data-i18n="evWeeklySub">تذكير أسبوعي لمراجعة مصاريفك وميزانيتك</div></div><div class="switch" id="evWeeklySwitch"><div class="knob"></div></div></div>
+        <div class="set-row" id="evWeekdayRow"><div><div class="lab" data-i18n="evWeekdayLab">يوم المراجعة الأسبوعية</div></div><select id="evWeekday" style="width:auto;"></select></div>
+        <div class="set-row"><div><div class="lab" data-i18n="evDailyLab">تسجيل مصاريف اليوم</div><div class="sub" data-i18n="evDailySub">تذكير يومي بتسجيل ما صرفته</div></div><div class="switch" id="evDailySwitch"><div class="knob"></div></div></div>
+        <div class="set-row"><div><div class="lab" data-i18n="evBackupLab">تذكير النسخ الاحتياطي</div><div class="sub" data-i18n="evBackupSub">عندما تتأخر النسخة الاحتياطية عن المدة المحددة</div></div><div class="switch" id="evBackupSwitch"><div class="knob"></div></div></div>
+        <div class="set-row"><div><div class="lab" data-i18n="evMonthlyLab">ملخص الشهر</div><div class="sub" data-i18n="evMonthlySub">في أول كل شهر: راجع تقرير الشهر الماضي</div></div><div class="switch" id="evMonthlySwitch"><div class="knob"></div></div></div>
+        <div class="set-row"><div><div class="lab" data-i18n="evTimeLab">وقت هذه التذكيرات</div><div class="sub" data-i18n="evTimeSub">بتوقيت جهازك، بخطوات 5 دقائق</div></div><span style="display:flex;gap:6px;align-items:center;direction:ltr;"><select id="evHour" style="width:auto;"></select><span>:</span><select id="evMin" style="width:auto;"></select></span></div>
+      </div>
       <div class="info-note" data-i18n="notifInfo">ℹ️ يصلك التنبيه صباح يوم الاستحقاق حتى لو كان التطبيق مغلقًا، عبر خادم مجاني لا يحفظ سوى تواريخ الاستحقاق (دون أسماء أو مبالغ). كما يظهر عند فتح التطبيق.</div>
     </div>
 
@@ -1100,6 +1113,7 @@ const I18N={
     notifSection:'🔔 الإشعارات', notifRow:'تنبيه المعاملات المستحقة', notifSub:'تنبيه إن وُجدت ديون أو معاملات متكررة مستحقة خلال يوم أو يومين، حتى والتطبيق مغلق',
     notifInfo:'ℹ️ يصلك التنبيه في الوقت الذي تختاره يوم الاستحقاق حتى لو كان التطبيق مغلقًا، عبر خادم مجاني لا يحفظ سوى تواريخ الاستحقاق ووقت التذكير (دون أسماء أو مبالغ). كما يظهر عند فتح التطبيق بعد ذلك الوقت.',
     reminderHourLab:'وقت التذكير', reminderHourSub:'الوقت الذي يصلك فيه تذكير الاستحقاق (بتوقيت جهازك، بخطوات 5 دقائق)',
+    evWeeklyLab:'مراجعة الميزانية الأسبوعية', evWeeklySub:'تذكير أسبوعي لمراجعة مصاريفك وميزانيتك', evWeekdayLab:'يوم المراجعة الأسبوعية', evDailyLab:'تسجيل مصاريف اليوم', evDailySub:'تذكير يومي بتسجيل ما صرفته', evBackupLab:'تذكير النسخ الاحتياطي', evBackupSub:'عندما تتأخر النسخة الاحتياطية عن المدة المحددة', evMonthlyLab:'ملخص الشهر', evMonthlySub:'في أول كل شهر: راجع تقرير الشهر الماضي', evTimeLab:'وقت هذه التذكيرات', evTimeSub:'بتوقيت جهازك، بخطوات 5 دقائق',
     securitySection:'الأمان', pinRow:'قفل بالرمز (PIN)', pinSub:'يحمي فتح التطبيق برمز من 4 أرقام',
     pinInfo:'ℹ️ Face ID / Touch ID غير مدعوم بشكل موثوق لتطبيقات الويب مثل هذا. الرمز (PIN) يحمي الواجهة فقط، والبيانات نفسها غير مشفّرة داخل تخزين المتصفح.',
     categoriesSection:'الفئات', newCatPh:'اسم الفئة الجديدة',
@@ -1217,6 +1231,7 @@ const I18N={
     notifSection:'🔔 Notifications', notifRow:'Due Transaction Alerts', notifSub:'Alert when a debt or recurring transaction is due within a day or two, even if the app is closed',
     notifInfo:'ℹ️ You get the alert at the time you choose on the due day, even when the app is closed, via a free server that stores only due dates and the reminder time (no names or amounts). It also shows when you open the app after that time.',
     reminderHourLab:'Reminder time', reminderHourSub:'The time you receive due-date reminders (your device time, 5-minute steps)',
+    evWeeklyLab:"Weekly budget review", evWeeklySub:"A weekly nudge to review your spending and budget", evWeekdayLab:"Weekly review day", evDailyLab:"Log today's expenses", evDailySub:"A daily reminder to record what you spent", evBackupLab:"Backup reminder", evBackupSub:"When your backup is older than the chosen interval", evMonthlyLab:"Month summary", evMonthlySub:"On the 1st of each month: review last month's report", evTimeLab:"Time of these reminders", evTimeSub:"Your device time, 5-minute steps",
     securitySection:'Security', pinRow:'PIN Lock', pinSub:'Protects app opening with a 4-digit code',
     pinInfo:'ℹ️ Face ID / Touch ID isn\'t reliably supported for web apps like this. The PIN protects the interface only; the data itself isn\'t encrypted inside browser storage.',
     categoriesSection:'Categories', newCatPh:'New category name',
@@ -1444,6 +1459,7 @@ const I18N={
     notifSub:"Alerte si une dette ou une opération récurrente arrive à échéance dans un jour ou deux, même application fermée",
     notifInfo:"ℹ️ L'alerte arrive à l'heure choisie le jour de l'échéance, même application fermée, via un serveur gratuit qui ne stocke que les dates d'échéance et l'heure du rappel (sans noms ni montants). Elle s'affiche aussi à l'ouverture de l'application après cette heure.",
     reminderHourLab:"Heure du rappel", reminderHourSub:"L'heure à laquelle vous recevez les rappels d'échéance (heure de l'appareil, par pas de 5 minutes)",
+    evWeeklyLab:"Revue budgétaire hebdomadaire", evWeeklySub:"Un rappel hebdomadaire pour revoir vos dépenses et votre budget", evWeekdayLab:"Jour de la revue hebdomadaire", evDailyLab:"Enregistrer les dépenses du jour", evDailySub:"Un rappel quotidien pour noter vos dépenses", evBackupLab:"Rappel de sauvegarde", evBackupSub:"Quand la sauvegarde dépasse l'intervalle choisi", evMonthlyLab:"Résumé du mois", evMonthlySub:"Le 1er de chaque mois : consultez le rapport du mois dernier", evTimeLab:"Heure de ces rappels", evTimeSub:"Heure de l'appareil, par pas de 5 minutes",
     securitySection:"Sécurité",
     pinRow:"Verrouillage par code PIN",
     pinSub:"Protège l'ouverture de l'application avec un code à 4 chiffres",
@@ -2348,11 +2364,11 @@ function renderSettings(){
   csel.innerHTML=Object.keys(CURRENCIES).map(k=>`<option value="${k}">${k} — ${currencyName(k)} (${currencySymbol(k)})</option>`).join('');
   csel.value=settings.currency;
   document.getElementById('pinSwitch').classList.toggle('on', settings.pinEnabled);
-  document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled); document.getElementById('reminderHourRow').style.display=settings.notifEnabled?'':'none';
+  document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled); document.getElementById('reminderHourRow').style.display=settings.notifEnabled?'':'none'; document.getElementById('extraRemBox').style.display=settings.notifEnabled?'':'none';
   document.getElementById('autoBackupSwitch').classList.toggle('on', settings.autoBackupEnabled);
   document.getElementById('autoBackupInterval').value=String(settings.autoBackupDays||7);
   { const rh=document.getElementById('reminderHour'); rh.innerHTML=Array.from({length:24},(_,h)=>`<option value="${h}">${String(h).padStart(2,'0')}:00</option>`).join(''); rh.value=String(settings.reminderHour==null?9:settings.reminderHour);
-    const rm=document.getElementById('reminderMin'); rm.innerHTML=Array.from({length:12},(_,i)=>`<option value="${i*5}">${String(i*5).padStart(2,'0')}</option>`).join(''); rm.value=String(Math.floor((settings.reminderMin||0)/5)*5); }
+    const rm=document.getElementById('reminderMin'); rm.innerHTML=Array.from({length:12},(_,i)=>`<option value="${i*5}">${String(i*5).padStart(2,'0')}</option>`).join(''); rm.value=String(Math.floor((settings.reminderMin||0)/5)*5); renderEvSettings(); }
   document.getElementById('autoBackupIntervalRow').style.display=settings.autoBackupEnabled?'':'none';
   renderLastBackupInfo();
   applyLangDirection();
@@ -2394,7 +2410,7 @@ document.getElementById('notifSwitch').addEventListener('click', async ()=>{
   }
   saveSettings();
   try{ schedulePushSync(); }catch(e){}
-  document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled); document.getElementById('reminderHourRow').style.display=settings.notifEnabled?'':'none';
+  document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled); document.getElementById('reminderHourRow').style.display=settings.notifEnabled?'':'none'; document.getElementById('extraRemBox').style.display=settings.notifEnabled?'':'none';
 });
 document.getElementById('autoBackupSwitch').addEventListener('click', ()=>{
   settings.autoBackupEnabled=!settings.autoBackupEnabled;
@@ -2419,6 +2435,16 @@ document.getElementById('reminderMin').addEventListener('change', (e)=>{
   saveSettings();
   try{ schedulePushSync(); }catch(err){}
 });
+[['evWeeklySwitch','evWeekly',true],['evDailySwitch','evDaily',false],['evBackupSwitch','evBackup',true],['evMonthlySwitch','evMonthly',true]].forEach(([id,key,def])=>{
+  document.getElementById(id).addEventListener('click',()=>{
+    settings[key]=!_evOn(key,def);
+    saveSettings(); renderEvSettings();
+    try{ schedulePushSync(); }catch(err){}
+  });
+});
+document.getElementById('evWeekday').addEventListener('change',(e)=>{ const v=parseInt(e.target.value,10); settings.evWeekday=(v>=0&&v<=6)?v:0; saveSettings(); try{ schedulePushSync(); }catch(err){} });
+document.getElementById('evHour').addEventListener('change',(e)=>{ const v=parseInt(e.target.value,10); settings.evHour=(v>=0&&v<=23)?v:20; saveSettings(); try{ schedulePushSync(); }catch(err){} });
+document.getElementById('evMin').addEventListener('change',(e)=>{ const v=parseInt(e.target.value,10); settings.evMin=(v>=0&&v<=55)?Math.floor(v/5)*5:0; saveSettings(); try{ schedulePushSync(); }catch(err){} });
 function renderLastBackupInfo(){
   const el=document.getElementById('lastBackupInfo');
   if(!settings.lastAutoBackup){ el.textContent=t('lastBackupNever'); return; }
@@ -2439,14 +2465,14 @@ function maybeNotifyDueRecurring(){
   const dueDebts=debts.filter(d=>d.dueDate && (+d.paid||0)<(+d.amount||0)).map(d=>({d,k:dayDiff(d.dueDate)})).filter(x=>x.k<=1 && x.k>=-30);
   if(!dueRec.length && !dueDebts.length) return;
   const parts=[];
-  dueRec.forEach(x=>parts.push(`${findCat(x.r.category).icon} ${trLabel(findCat(x.r.category))}: ${fmt(x.r.amount)}`));
+  dueRec.forEach(x=>parts.push(`${findCat(x.r.category).icon} ${nIso(trLabel(findCat(x.r.category)))}: ${fmt(x.r.amount)}`));
   dueDebts.forEach(x=>{
     const left=(+x.d.amount||0)-(+x.d.paid||0);
     const dir=x.d.direction==='owed_to_me' ? LX('لك عند','Owed by','À recevoir de') : LX('عليك لـ','You owe','Vous devez à');
-    parts.push(`${x.d.icon||'👤'} ${dir} ${x.d.person}: ${fmt(left)}`);
+    parts.push(`${x.d.icon||'👤'} ${dir} ${nIso(x.d.person)}: ${fmt(left)}`);
   });
-  const title=LX('دفتري — مستحقات قريبة','Daftari — upcoming dues','Daftari — échéances à venir');
-  const opts={body:parts.join(' · '), icon:'./icon-192.png', badge:'./badge-96.png', tag:'daftari-due', dir:'auto', lang:locale(), data:{tab:dueDebts.length?'tabDebts':'tabSettings'}};
+  const title=nRtl(LX('دفتري — مستحقات قريبة','Daftari — upcoming dues','Daftari — échéances à venir'));
+  const opts={body:nRtl(parts.join(' · ')), icon:'./icon-192.png', badge:'./badge-96.png', tag:'daftari-due', dir:_nAr()?'rtl':'ltr', lang:locale(), data:{tab:dueDebts.length?'tabDebts':'tabSettings'}};
   const fire=()=>{
     if('serviceWorker' in navigator){
       navigator.serviceWorker.getRegistration().then(reg=>{
@@ -2461,13 +2487,47 @@ function maybeNotifyDueRecurring(){
   try{ localStorage.setItem('daftari_last_notif_date', today); }catch(e){}
 }
 
+// Arabic notifications: start with a right-to-left mark so the whole text is laid out right-to-left,
+// and isolate user-typed text (names, categories) so Latin words or digits cannot reorder the sentence.
+function _nAr(){ try{ return LX('a','b','c')==='a'; }catch(e){ return false; } }
+function nRtl(s){ return _nAr() ? '\u200F'+s : s; }
+function nIso(s){ return _nAr() ? '\u2068'+s+'\u2069' : s; }
+
+// Extra reminders (weekly budget review, daily logging, backup, month start). The server only learns the time, weekday,
+// on/off flags and the last-backup DATE - never names or amounts.
+function _evOn(k,def){ return settings[k]==null ? def : !!settings[k]; }
+function _evCfg(){
+  return { h:(settings.evHour==null?20:settings.evHour), m:Math.floor((settings.evMin||0)/5)*5,
+    wd:_evOn('evWeekly',true) ? (settings.evWeekday==null?0:settings.evWeekday) : -1,
+    dl:_evOn('evDaily',false), mo:_evOn('evMonthly',true), bk:_evOn('evBackup',true) };
+}
+function _lastBackupISO(){
+  const a=[settings.lastAutoBackup, settings.lastManualBackup].filter(Boolean).map(x=>new Date(x)).filter(d=>!isNaN(d.getTime()));
+  return a.length ? _localISO(new Date(Math.max.apply(null,a.map(d=>d.getTime())))) : '';
+}
+function _evPayload(){
+  const c=_evCfg();
+  return { h:c.h, m:c.m, wd:c.wd, dl:c.dl, mo:c.mo, bk:c.bk ? {last:_lastBackupISO(), ivl:(settings.autoBackupDays||7)} : null };
+}
+function renderEvSettings(){
+  const sw=(id,on)=>{ const e=document.getElementById(id); if(e) e.classList.toggle('on',!!on); };
+  sw('evWeeklySwitch',_evOn('evWeekly',true)); sw('evDailySwitch',_evOn('evDaily',false)); sw('evBackupSwitch',_evOn('evBackup',true)); sw('evMonthlySwitch',_evOn('evMonthly',true));
+  const wd=document.getElementById('evWeekday');
+  wd.innerHTML=Array.from({length:7},(_,i)=>`<option value="${i}">${new Date(2024,0,7+i).toLocaleDateString(locale(),{weekday:'long'})}</option>`).join('');
+  wd.value=String(settings.evWeekday==null?0:settings.evWeekday);
+  document.getElementById('evWeekdayRow').style.display=_evOn('evWeekly',true)?'':'none';
+  const eh=document.getElementById('evHour'); eh.innerHTML=Array.from({length:24},(_,h)=>`<option value="${h}">${String(h).padStart(2,'0')}</option>`).join(''); eh.value=String(settings.evHour==null?20:settings.evHour);
+  const em=document.getElementById('evMin'); em.innerHTML=Array.from({length:12},(_,i)=>`<option value="${i*5}">${String(i*5).padStart(2,'0')}</option>`).join(''); em.value=String(Math.floor((settings.evMin||0)/5)*5);
+}
+
 // System notification fired at the moment an event happens (budget, goal, backup, sync, recurring recorded).
 // Uses the same master switch as the due-date alerts (settings.notifEnabled) and the browser permission.
 function notifyNow(title, body, tab, tag){
   try{
     if(!settings || !settings.notifEnabled) return;
     if(typeof Notification==='undefined' || Notification.permission!=='granted') return;
-    const opts={body:body, icon:'./icon-192.png', badge:'./badge-96.png', tag:tag||('daftari-'+Date.now()), dir:'auto', lang:locale(), data:{tab:tab||''}};
+    title=nRtl(title);
+    const opts={body:nRtl(body), icon:'./icon-192.png', badge:'./badge-96.png', tag:tag||('daftari-'+Date.now()), dir:_nAr()?'rtl':'ltr', lang:locale(), data:{tab:tab||''}};
     if('serviceWorker' in navigator){
       navigator.serviceWorker.getRegistration().then(reg=>{
         if(reg && reg.showNotification) reg.showNotification(title, opts);
@@ -2730,7 +2790,7 @@ function debtCardHtml(d){
   const badgeClass = d.direction==='owed_to_me' ? 'owed' : 'iowe';
   const badgeLabel = d.direction==='owed_to_me' ? t('debtOwedToMe') : t('debtIOwe');
   const status=debtDueStatusText(d, overdue);
-  const dueHtml = d.dueDate ? `<div class="debt-card-due ${status.cls}">${status.text? status.text+' • ' : ''}${t('debtDueLabel')}${_c()} ${escapeHtml(d.dueDate)}</div>` : '';
+  const dueHtml = d.dueDate ? `<div class="debt-card-due ${status.cls}">${status.text? `<span>${status.text}</span><span class="sep">•</span>` : ''}<span>${t('debtDueLabel')}${_c()} <bdi class="dd">${escapeHtml(d.dueDate)}</bdi></span></div>` : '';
   const noteHtml = d.note ? `<div class="debt-card-note">${escapeHtml(d.note)}</div>` : '';
   const statusHtml = settled ? `<div class="debt-card-done">${escapeHtml(t('debtSettledBadge'))}</div>` : '';
   const pct = (d.amount||0)>0 ? Math.max(0, Math.min(100, ((d.paid||0)/d.amount)*100)) : 0;
@@ -3678,6 +3738,8 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
   if(transactions.length===0){ showToast(t('toastNoDataExport')); return; }
   downloadBackupFile();
   showToast(t('toastBackupCreated'));
+  settings.lastManualBackup=new Date().toISOString(); saveSettings();
+  try{ schedulePushSync(); }catch(e){}
 });
 // Silent, on-device snapshot: no download, no "Save As" dialog, no tap required.
 // This is stored inside the app's own local storage (same mechanism that already
@@ -3987,6 +4049,8 @@ function enhanceDateInput(el){
   upd();
 }
 enhanceDateInput(document.getElementById('dateInput'));
+enhanceDateInput(document.getElementById('newDebtDueDate'));
+enhanceDateInput(document.getElementById('editDebtDueDate'));
 
 async function init(){
   try{
@@ -4306,20 +4370,29 @@ function _dueItems(){
     if(d.dueDate && (+d.paid||0)<(+d.amount||0)){
       const left=(+d.amount||0)-(+d.paid||0);
       const dir=d.direction==='owed_to_me' ? LX('لك عند','Owed by','À recevoir de') : LX('عليك لـ','You owe','Vous devez à');
-      items.push({k:'d', id:d.id, due:d.dueDate, text:`${d.icon||'👤'} ${dir} ${d.person}: ${fmt(left)}`});
+      items.push({k:'d', id:d.id, due:d.dueDate, text:`${d.icon||'👤'} ${dir} ${nIso(d.person)}: ${fmt(left)}`});
     }
   });
   recurring.forEach(r=>{
-    if(r.lastDate) items.push({k:'r', l:r.lastDate, f:r.freq, text:`${findCat(r.category).icon} ${trLabel(findCat(r.category))}: ${fmt(r.amount)}`});
+    if(r.lastDate) items.push({k:'r', l:r.lastDate, f:r.freq, text:`${findCat(r.category).icon} ${nIso(trLabel(findCat(r.category)))}: ${fmt(r.amount)}`});
   });
   return items;
 }
 async function _writeDueSnapshot(){
   if(!('caches' in window)) return;
-  const snap={v:1, lang:locale(),
-    title:LX('دفتري — مستحقات قريبة','Daftari — upcoming dues','Daftari — échéances à venir'),
+  const snap={v:2, lang:locale(),
+    title:nRtl(LX('دفتري — مستحقات قريبة','Daftari — upcoming dues','Daftari — échéances à venir')),
     generic:LX('لديك مستحقات قريبة','You have upcoming dues','Vous avez des échéances à venir'),
-    settleLabel:LX('تسديد','Settle','Régler'), items:_dueItems()};
+    settleLabel:LX('تسديد','Settle','Régler'), items:_dueItems(),
+    dueTime:{h:(settings.reminderHour==null?9:settings.reminderHour), m:Math.floor((settings.reminderMin||0)/5)*5},
+    ev:_evCfg(), lastBackup:_lastBackupISO(), ivl:(settings.autoBackupDays||7),
+    t:{ title:nRtl(LX('🔔 دفتري — تذكير','🔔 Daftari — Reminder','🔔 Daftari — Rappel')),
+        generic:LX('لديك تذكير من دفتري','You have a reminder from Daftari','Vous avez un rappel de Daftari'),
+        weekly:LX('📊 حان وقت مراجعة ميزانيتك الأسبوعية','📊 Time for your weekly budget review','📊 C\'est l\'heure de votre revue budgétaire hebdomadaire'),
+        daily:LX('✍️ هل سجّلت مصاريف اليوم؟','✍️ Did you log today\'s expenses?','✍️ Avez-vous enregistré les dépenses du jour ?'),
+        monthly:LX('📅 شهر جديد: راجع تقرير الشهر الماضي وحدّث ميزانيتك','📅 New month: review last month\'s report and update your budget','📅 Nouveau mois : consultez le rapport du mois dernier et mettez à jour votre budget'),
+        backup:LX('💾 مرّت {n} يومًا على آخر نسخة احتياطية','💾 {n} days since your last backup','💾 {n} jours depuis votre dernière sauvegarde'),
+        backupNever:LX('💾 لم تُنشئ أي نسخة احتياطية بعد','💾 You have not made any backup yet','💾 Vous n\'avez encore fait aucune sauvegarde') } };
   const c=await caches.open('daftari-due');
   await c.put(new URL('./__due.json', document.baseURI).href, new Response(JSON.stringify(snap),{headers:{'Content-Type':'application/json'}}));
 }
@@ -4360,7 +4433,7 @@ async function _pushSync(){
     const hh=String(settings.reminderHour==null?9:settings.reminderHour).padStart(2,'0');
     const mm=String(Math.floor((settings.reminderMin||0)/5)*5).padStart(2,'0');
     const items=_dueItems();
-    const sig=JSON.stringify({endpoint:sub.endpoint, debts:items.filter(i=>i.k==='d').map(i=>i.due), rec:items.filter(i=>i.k==='r').map(i=>({l:i.l,f:i.f})), hr:(settings.reminderHour==null?9:settings.reminderHour), mn:Math.floor((settings.reminderMin||0)/5)*5, tz:(function(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){ return ''; } })()});
+    const sig=JSON.stringify({endpoint:sub.endpoint, debts:items.filter(i=>i.k==='d').map(i=>i.due), rec:items.filter(i=>i.k==='r').map(i=>({l:i.l,f:i.f})), hr:(settings.reminderHour==null?9:settings.reminderHour), mn:Math.floor((settings.reminderMin||0)/5)*5, ev:_evPayload(), tz:(function(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){ return ''; } })()});
     let last=null; try{ last=JSON.parse(localStorage.getItem('daftari_push_sig')||'null'); }catch(e){}
     // free KV plan: write only when something changed, or once a week as a keep-alive (the Worker drops devices silent for 120 days)
     if(last && last.sig===sig && Date.now()-last.t < 7*864e5){

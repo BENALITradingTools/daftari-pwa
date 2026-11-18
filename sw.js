@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daftari-cache-v20';
+const CACHE_NAME = 'daftari-cache-v21';
 const APP_SHELL = [
   './',
   './index.html',
@@ -127,13 +127,38 @@ async function readDue() {
   } catch (e) { return null; }
 }
 
+// True when "now" is within 2 hours after the chosen slot (a push can arrive late when the phone is dozing).
+function inSlot(h, m, now) {
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  return (((nowMin - (h * 60 + m)) % 1440) + 1440) % 1440 <= 120;
+}
+// Extra reminders that apply today (weekly review, month start, daily logging, backup). Device-local calendar.
+function evLines(snap, now, today) {
+  const ev = snap.ev, t = snap.t || {}, out = [];
+  if (!ev) return out;
+  if (ev.wd >= 0 && ev.wd === now.getDay() && t.weekly) out.push({ text: t.weekly, tab: 'tabReports' });
+  if (ev.mo && now.getDate() === 1 && t.monthly) out.push({ text: t.monthly, tab: 'tabReports' });
+  if (ev.dl && t.daily) out.push({ text: t.daily, tab: 'tabAdd' });
+  if (ev.bk && t.backup) {
+    const iv = snap.ivl || 7;
+    if (!snap.lastBackup) out.push({ text: t.backupNever || t.backup.replace('{n}', iv), tab: 'tabSettings' });
+    else { const days = sDiff(today, snap.lastBackup); if (days >= iv) out.push({ text: t.backup.replace('{n}', String(days)), tab: 'tabSettings' }); }
+  }
+  return out;
+}
+
 self.addEventListener('push', (event) => {
   // A notification MUST be shown for every push (userVisibleOnly), so there is always a fallback text.
   event.waitUntil((async () => {
     const snap = await readDue();
-    const today = localToday();
+    const now = new Date(), today = localToday();
+    const rlm = (!snap || /^ar/i.test(snap.lang || '')) ? '\u200F' : '';   // right-to-left mark for Arabic (also the Arabic fallback text)
+    const dir = rlm ? 'rtl' : 'ltr';
+    const lang = (snap && snap.lang) || 'ar';
+    const dueActive = !snap || !snap.dueTime || inSlot(snap.dueTime.h, snap.dueTime.m, now);
+    const evActive = !!(snap && snap.ev && inSlot(snap.ev.h, snap.ev.m, now));
     const parts = [], debtIds = [];
-    if (snap && Array.isArray(snap.items)) {
+    if (dueActive && snap && Array.isArray(snap.items)) {
       for (const it of snap.items) {
         if (it.k === 'd') {
           const k = sDiff(it.due, today);
@@ -146,16 +171,28 @@ self.addEventListener('push', (event) => {
         }
       }
     }
-    const data = { tab: debtIds.length ? 'tabDebts' : (parts.length ? 'tabSettings' : '') };
-    const opts = {
-      body: parts.length ? parts.join(' \u00b7 ') : ((snap && snap.generic) || '\u0644\u062f\u064a\u0643 \u0645\u0633\u062a\u062d\u0642\u0627\u062a \u0642\u0631\u064a\u0628\u0629'),
-      icon: './icon-192.png', badge: './badge-96.png', tag: 'daftari-due', dir: 'auto', lang: (snap && snap.lang) || 'ar', data
-    };
-    if (debtIds.length === 1) {
-      data.settle = debtIds[0];
-      opts.actions = [{ action: 'settle', title: (snap && snap.settleLabel) || '\u062a\u0633\u062f\u064a\u062f' }];
+    const evs = evActive ? evLines(snap, now, today) : [];
+    const jobs = [];
+    if (parts.length || !evs.length) {            // due-date notification (also the fallback when nothing else matches)
+      const data = { tab: debtIds.length ? 'tabDebts' : (parts.length ? 'tabSettings' : '') };
+      const fallback = (evActive && !dueActive && snap.t && snap.t.generic) ? snap.t.generic : ((snap && snap.generic) || '\u0644\u062f\u064a\u0643 \u0645\u0633\u062a\u062d\u0642\u0627\u062a \u0642\u0631\u064a\u0628\u0629');
+      const opts = {
+        body: rlm + (parts.length ? parts.join(' \u00b7 ') : fallback),
+        icon: './icon-192.png', badge: './badge-96.png', tag: 'daftari-due', dir, lang, data
+      };
+      if (debtIds.length === 1) {
+        data.settle = debtIds[0];
+        opts.actions = [{ action: 'settle', title: (snap && snap.settleLabel) || '\u062a\u0633\u062f\u064a\u062f' }];
+      }
+      jobs.push([(snap && snap.title) || '\u062f\u0641\u062a\u0631\u064a', opts]);
     }
-    await self.registration.showNotification((snap && snap.title) || '\u062f\u0641\u062a\u0631\u064a', opts);
+    if (evs.length) {
+      jobs.push([(snap.t && snap.t.title) || '\u062f\u0641\u062a\u0631\u064a', {
+        body: rlm + evs.map((e) => e.text).join('\n'),
+        icon: './icon-192.png', badge: './badge-96.png', tag: 'daftari-ev', dir, lang, data: { tab: evs[0].tab }
+      }]);
+    }
+    for (const [title, opts] of jobs) await self.registration.showNotification(title, opts);
   })());
 });
 
