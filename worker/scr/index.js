@@ -50,26 +50,9 @@ async function sendPush(endpoint, env) {
 
 const cors = (env) => ({ 'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN, 'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', Vary: 'Origin' });
 
-
-// "Test notification" button in the app: POST /test {endpoint} -> pushes to that registered device now, replies {ok, status}.
-async function testPush(req, env, h) {
-  const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { ...h, 'Content-Type': 'application/json' } });
-  let b; try { b = await req.json(); } catch { return json({ ok: false, error: 'bad json' }, 400); }
-  let host; try { const u = new URL(b.endpoint); if (u.protocol !== 'https:') throw 0; host = u.hostname; } catch { return json({ ok: false, error: 'bad endpoint' }, 400); }
-  if (!PUSH_HOSTS.test(host) || b.endpoint.length > 1200) return json({ ok: false, error: 'endpoint not allowed' }, 400);
-  const key = 's:' + (await sha(b.endpoint));
-  if (!(await env.SUBS.get(key))) return json({ ok: false, error: 'not registered' }, 404);   // device must be registered through /sync first
-  const rl = 't:' + key.slice(2);
-  if (await env.SUBS.get(rl)) return json({ ok: false, error: 'rate limited' }, 429);          // one test per minute per device
-  await env.SUBS.put(rl, '1', { expirationTtl: 60 });
-  try { const r = await sendPush(b.endpoint, env); return json({ ok: r.ok, status: r.status }); }
-  catch (e) { return json({ ok: false, status: 0, error: e.message }); }
-}
-
 async function handle(req, env) {
   const h = cors(env);
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: h });
-  if (new URL(req.url).pathname === '/test' && req.method === 'POST') return testPush(req, env, h);
   if (new URL(req.url).pathname !== '/sync' || !['POST', 'DELETE'].includes(req.method)) return new Response('not found', { status: 404, headers: h });
   let b; try { b = await req.json(); } catch { return new Response('bad json', { status: 400, headers: h }); }
   let host; try { const u = new URL(b.endpoint); if (u.protocol !== 'https:') throw 0; host = u.hostname; } catch { return new Response('bad endpoint', { status: 400, headers: h }); }
