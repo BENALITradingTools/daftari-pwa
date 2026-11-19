@@ -218,6 +218,9 @@
   /* lock screen */
   #lockScreen{position:fixed; inset:0; background:var(--bg); z-index:100; display:none; flex-direction:column; align-items:center; justify-content:center; padding:20px;}
   #lockScreen.open{display:flex;}
+#privacyCover{position:fixed; inset:0; z-index:101; background:var(--bg); display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px;}
+#privacyCover.open{display:flex;}
+.bio-btn{margin-top:18px; background:var(--card); border:1px solid var(--line); color:var(--ink); border-radius:14px; padding:12px 18px; font-size:15px; font-family:'Tajawal'; cursor:pointer;}
   #lockScreen h2{font-size:16px; margin-bottom:22px;}
   .pin-dots{display:flex; gap:14px; margin-bottom:30px;}
   .pin-dot{width:14px; height:14px; border-radius:50%; border:1.5px solid var(--muted);}
@@ -520,8 +523,11 @@
   <div class="pin-dots" id="pinDots"></div>
   <div class="pin-err" id="pinErr"></div>
   <div class="pin-pad" id="pinPad"></div>
+  <button class="bio-btn" id="bioBtn" style="display:none;"></button>
   <button class="pin-forgot" id="forgotBtn" data-i18n="forgotPin">نسيت الرمز؟</button>
+  <button class="pin-forgot" id="pinCancelBtn" style="display:none; color:var(--muted);">✕</button>
 </div>
+<div id="privacyCover"><div style="font-size:46px;">💰</div><div style="font-size:16px; font-weight:700;">دفتري</div></div>
 
 <div class="wrap" id="appRoot">
   <header>
@@ -937,7 +943,13 @@
         <div><div class="lab" data-i18n="pinRow">قفل بالرمز (PIN)</div><div class="sub" data-i18n="pinSub">يحمي فتح التطبيق برمز من 4 أرقام</div></div>
         <div class="switch" id="pinSwitch"><div class="knob"></div></div>
       </div>
-      <div class="info-note" data-i18n="pinInfo">ℹ️ Face ID / Touch ID غير مدعوم بشكل موثوق لتطبيقات الويب مثل هذا. الرمز (PIN) يحمي الواجهة فقط، والبيانات نفسها غير مشفّرة داخل تخزين المتصفح.</div>
+      <div id="lockExtra" style="display:none;">
+        <div class="set-row"><div><div class="lab" data-i18n="bioRow">🔐 الفتح بالبصمة / Face ID / قفل الجهاز</div><div class="sub" id="bioSub"></div></div><div class="switch" id="bioSwitch"><div class="knob"></div></div></div>
+        <div class="set-row"><div><div class="lab" data-i18n="lockDelayLab">القفل التلقائي</div><div class="sub" data-i18n="lockDelaySub">يُقفل التطبيق بعد مغادرته لهذه المدة</div></div><select id="lockDelay" style="width:auto;"></select></div>
+        <div class="set-row"><div><div class="lab" data-i18n="hideNotifLab">إخفاء تفاصيل الإشعارات</div><div class="sub" data-i18n="hideNotifSub">لا تظهر الأسماء والمبالغ على شاشة القفل</div></div><div class="switch" id="hideNotifSwitch"><div class="knob"></div></div></div>
+        <button class="save-btn" id="changePinBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="changePinBtn">تغيير الرمز</button>
+      </div>
+      <div class="info-note" data-i18n="pinInfo">ℹ️ القفل يحمي واجهة التطبيق فقط، أما البيانات فغير مشفّرة داخل تخزين المتصفح. الفتح بالبصمة أو Face ID أو قفل الجهاز يعتمد على جهازك ومتصفحك وقد لا يتوفر في كل الأجهزة. الرمز والبصمة خاصان بهذا الجهاز ولا يُرفعان للسحابة.</div>
     </div>
 
     <div class="section-title" data-i18n="categoriesSection">الفئات</div>
@@ -1119,8 +1131,9 @@ const I18N={
     evWeeklyLab:'مراجعة الميزانية الأسبوعية', evWeeklySub:'تذكير أسبوعي لمراجعة مصاريفك وميزانيتك', evWeekdayLab:'يوم المراجعة الأسبوعية', evDailyLab:'تسجيل مصاريف اليوم', evDailySub:'تذكير يومي بتسجيل ما صرفته', evBackupLab:'تذكير النسخ الاحتياطي', evBackupSub:'عندما تتأخر النسخة الاحتياطية عن المدة المحددة', evMonthlyLab:'ملخص الشهر', evMonthlySub:'في أول كل شهر: راجع تقرير الشهر الماضي', evTimeLab:'وقت هذه التذكيرات', evTimeSub:'بتوقيت جهازك، بخطوات 5 دقائق',
     debtRemLab:'🔔 تذكير هذا الدين', debtRemDefault:'حسب الوقت العام', debtRemCustom:'وقت مخصص', debtRemOff:'بدون تذكير',
     testPushBtn:'🔔 اختبار إشعار الخادم',
+    bioRow:'🔐 الفتح بالبصمة / Face ID / قفل الجهاز', lockDelayLab:'القفل التلقائي', lockDelaySub:'يُقفل التطبيق بعد مغادرته لهذه المدة', hideNotifLab:'إخفاء تفاصيل الإشعارات', hideNotifSub:'لا تظهر الأسماء والمبالغ على شاشة القفل', changePinBtn:'تغيير الرمز',
     securitySection:'الأمان', pinRow:'قفل بالرمز (PIN)', pinSub:'يحمي فتح التطبيق برمز من 4 أرقام',
-    pinInfo:'ℹ️ Face ID / Touch ID غير مدعوم بشكل موثوق لتطبيقات الويب مثل هذا. الرمز (PIN) يحمي الواجهة فقط، والبيانات نفسها غير مشفّرة داخل تخزين المتصفح.',
+    pinInfo:'ℹ️ القفل يحمي واجهة التطبيق فقط، أما البيانات فغير مشفّرة داخل تخزين المتصفح. الفتح بالبصمة أو Face ID أو قفل الجهاز يعتمد على جهازك ومتصفحك وقد لا يتوفر في كل الأجهزة. الرمز والبصمة خاصان بهذا الجهاز ولا يُرفعان للسحابة.',
     categoriesSection:'الفئات', newCatPh:'اسم الفئة الجديدة',
     clearAllSection:'إعادة ضبط التطبيق', clearAllBtn:'🗑️ حذف كل شيء وإعادة الضبط',
     widgetInfo:'ℹ️ عن الـ Widget: تعذّر إضافة ودجت حقيقي على الشاشة الرئيسية لأن ذلك يتطلب تطبيق iOS أصلي (Swift/WidgetKit عبر Xcode) — تطبيقات الويب لا تدعم هذه الميزة على iOS إطلاقًا. لكن يمكنك إضافة اختصار أيقونة يفتح مباشرة على صفحة "تسجيل دفعة" (انظر أعلاه).',
@@ -1143,7 +1156,7 @@ const I18N={
     confirmStopRecur:'إيقاف هذه المعاملة المتكررة؟ الحركات السابقة التي أُنشئت منها ستبقى محفوظة.',
     confirmReplaceOrMerge:'اضغط "موافق" لاستبدال بياناتك الحالية بالكامل، أو "إلغاء" لدمجها مع بياناتك الحالية.',
     confirmClearAll:'سيتم حذف كل شيء نهائيًا من هذا الجهاز: الحركات، الفئات، المحافظ، المدخرات، الديون، والإعدادات — وسيعود التطبيق كأنه مثبّت لأول مرة. إذا كنت مسجّلاً دخولك للمزامنة السحابية سيتم تسجيل خروجك أولاً (بيانات حسابك السحابي تبقى محفوظة على الخادم ولن تُحذف). ننصح بأخذ نسخة احتياطية أولاً. متابعة؟',
-    confirmDeleteWallet:'حذف هذه المحفظة؟ ستُنقل عملياتها إلى المحفظة الرئيسية المتبقية.', confirmForgotPin:'لا توجد وسيلة لاستعادة الرمز المنسي. المتابعة ستوقف قفل الرمز فقط (بياناتك المالية تبقى محفوظة كما هي). هل تريد المتابعة؟',
+    confirmDeleteWallet:'حذف هذه المحفظة؟ ستُنقل عملياتها إلى المحفظة الرئيسية المتبقية.', confirmForgotPin:'لا توجد طريقة لاسترجاع رمز منسي. المتابعة ستمسح بيانات دفتري من هذا الجهاز (يمكنك استعادتها من نسخة احتياطية أو من حسابك السحابي إن كنت قد فعّلته). هل تريد المتابعة؟',
     confirmDeleteSavings:'حذف هدف الادخار هذا؟ سيُفقد المبلغ المُدخر المسجّل ضمنه.',
 
     debtsHint:'تتبّع الأموال التي لك عند الآخرين والأموال التي عليك لهم. هذه الأرقام منفصلة تمامًا عن رصيدك ولا تُحتسب ضمنه.',
@@ -1239,8 +1252,9 @@ const I18N={
     evWeeklyLab:"Weekly budget review", evWeeklySub:"A weekly nudge to review your spending and budget", evWeekdayLab:"Weekly review day", evDailyLab:"Log today's expenses", evDailySub:"A daily reminder to record what you spent", evBackupLab:"Backup reminder", evBackupSub:"When your backup is older than the chosen interval", evMonthlyLab:"Month summary", evMonthlySub:"On the 1st of each month: review last month's report", evTimeLab:"Time of these reminders", evTimeSub:"Your device time, 5-minute steps",
     debtRemLab:"🔔 Reminder for this debt", debtRemDefault:"Use the general time", debtRemCustom:"Custom time", debtRemOff:"No reminder",
     testPushBtn:"🔔 Test server notification",
+    bioRow:"🔐 Fingerprint / Face ID / device lock", lockDelayLab:"Auto-lock", lockDelaySub:"The app locks after you leave it for this long", hideNotifLab:"Hide notification details", hideNotifSub:"Names and amounts are not shown on the lock screen", changePinBtn:"Change code",
     securitySection:'Security', pinRow:'PIN Lock', pinSub:'Protects app opening with a 4-digit code',
-    pinInfo:'ℹ️ Face ID / Touch ID isn\'t reliably supported for web apps like this. The PIN protects the interface only; the data itself isn\'t encrypted inside browser storage.',
+    pinInfo:'ℹ️ The lock protects the app screen only; the data itself is not encrypted in browser storage. Fingerprint / Face ID / device lock depends on your device and browser and may not be available everywhere. The code and biometrics are specific to this device and are never uploaded to the cloud.',
     categoriesSection:'Categories', newCatPh:'New category name',
     clearAllSection:'Reset App', clearAllBtn:'🗑️ Erase everything & reset',
     widgetInfo:'ℹ️ About the Widget: a real home screen widget isn\'t possible because that requires a native iOS app (Swift/WidgetKit via Xcode) — web apps don\'t support this on iOS at all. But you can add a shortcut icon that opens straight to the "Log Payment" page (see above).',
@@ -1263,7 +1277,7 @@ const I18N={
     confirmStopRecur:'Stop this recurring transaction? Previously created transactions will stay saved.',
     confirmReplaceOrMerge:'Press "OK" to fully replace your current data, or "Cancel" to merge with your current data.',
     confirmClearAll:'This will permanently delete everything on this device: transactions, categories, wallets, savings, debts, and settings — the app will reset as if freshly installed. If you are signed in for cloud sync you will be signed out first (your cloud account data stays safe on the server and will not be deleted). We recommend taking a backup first. Continue?',
-    confirmDeleteWallet:'Delete this wallet? Its transactions will move to the remaining main wallet.', confirmForgotPin:'There\'s no way to recover a forgotten code. Continuing will only disable the PIN lock (your financial data stays intact). Continue?',
+    confirmDeleteWallet:'Delete this wallet? Its transactions will move to the remaining main wallet.', confirmForgotPin:'There is no way to recover a forgotten code. Continuing will ERASE the Daftari data on this device (you can restore it from a backup or from your cloud account if enabled). Continue?',
     confirmDeleteSavings:'Delete this savings goal? Its recorded saved amount will be lost.',
 
     debtsHint:'Track money others owe you and money you owe others. These amounts are kept fully separate from your balance and are not counted in it.',
@@ -1469,10 +1483,11 @@ const I18N={
     evWeeklyLab:"Revue budgétaire hebdomadaire", evWeeklySub:"Un rappel hebdomadaire pour revoir vos dépenses et votre budget", evWeekdayLab:"Jour de la revue hebdomadaire", evDailyLab:"Enregistrer les dépenses du jour", evDailySub:"Un rappel quotidien pour noter vos dépenses", evBackupLab:"Rappel de sauvegarde", evBackupSub:"Quand la sauvegarde dépasse l'intervalle choisi", evMonthlyLab:"Résumé du mois", evMonthlySub:"Le 1er de chaque mois : consultez le rapport du mois dernier", evTimeLab:"Heure de ces rappels", evTimeSub:"Heure de l'appareil, par pas de 5 minutes",
     debtRemLab:"🔔 Rappel pour cette dette", debtRemDefault:"Selon l'heure générale", debtRemCustom:"Heure personnalisée", debtRemOff:"Sans rappel",
     testPushBtn:"🔔 Tester la notification du serveur",
+    bioRow:"🔐 Empreinte / Face ID / verrouillage de l'appareil", lockDelayLab:"Verrouillage automatique", lockDelaySub:"L'application se verrouille après cette durée hors de l'application", hideNotifLab:"Masquer les détails des notifications", hideNotifSub:"Les noms et montants ne s'affichent pas sur l'écran verrouillé", changePinBtn:"Changer le code",
     securitySection:"Sécurité",
     pinRow:"Verrouillage par code PIN",
     pinSub:"Protège l'ouverture de l'application avec un code à 4 chiffres",
-    pinInfo:"ℹ️ Face ID / Touch ID n'est pas pris en charge de façon fiable pour les applications web comme celle-ci. Le code PIN protège uniquement l'interface ; les données elles-mêmes ne sont pas chiffrées dans le stockage du navigateur.",
+    pinInfo:"ℹ️ Le verrouillage protège uniquement l'écran de l'application ; les données ne sont pas chiffrées dans le stockage du navigateur. L'empreinte / Face ID / verrouillage de l'appareil dépend de votre appareil et navigateur. Le code et la biométrie sont propres à cet appareil et ne sont jamais envoyés au cloud.",
     categoriesSection:"Catégories",
     newCatPh:"Nom de la nouvelle catégorie",
     clearAllSection:"Réinitialiser l'application",
@@ -1538,7 +1553,7 @@ const I18N={
     confirmReplaceOrMerge:"Appuyez sur «\u00a0OK\u00a0» pour remplacer entièrement vos données actuelles, ou sur «\u00a0Annuler\u00a0» pour les fusionner avec vos données actuelles.",
     confirmClearAll:"Cela supprimera définitivement tout sur cet appareil\u00a0: opérations, catégories, portefeuilles, épargne, dettes et paramètres — l'application sera réinitialisée comme si elle venait d'être installée. Si vous êtes connecté à la synchronisation cloud, vous serez d'abord déconnecté (les données de votre compte cloud restent en sécurité sur le serveur et ne seront pas supprimées). Nous vous recommandons de faire d'abord une sauvegarde. Continuer\u00a0?",
     confirmDeleteWallet:"Supprimer ce portefeuille\u00a0? Ses opérations seront transférées vers le portefeuille principal restant.",
-    confirmForgotPin:"Il n'existe aucun moyen de récupérer un code oublié. En continuant, vous ne ferez que désactiver le verrouillage par PIN (vos données financières restent intactes). Continuer\u00a0?",
+    confirmForgotPin:"Il n'existe aucun moyen de récupérer un code oublié. Continuer EFFACERA les données de Daftari sur cet appareil (vous pourrez les restaurer depuis une sauvegarde ou votre compte cloud s'il est activé). Continuer\u00a0?",
     confirmDeleteSavings:"Supprimer cet objectif d'épargne\u00a0? Le montant épargné enregistré sera perdu.",
     debtsHint:"Suivez l'argent que les autres vous doivent et celui que vous leur devez. Ces montants sont totalement séparés de votre solde et n'y sont pas comptés.",
     debtsTotalOwedToMe:"On me doit",
@@ -2372,7 +2387,7 @@ function renderSettings(){
   const csel=document.getElementById('currencySelect');
   csel.innerHTML=Object.keys(CURRENCIES).map(k=>`<option value="${k}">${k} — ${currencyName(k)} (${currencySymbol(k)})</option>`).join('');
   csel.value=settings.currency;
-  document.getElementById('pinSwitch').classList.toggle('on', settings.pinEnabled);
+  document.getElementById('pinSwitch').classList.toggle('on', settings.pinEnabled); try{ renderLockSettings(); }catch(e){}
   document.getElementById('notifSwitch').classList.toggle('on', settings.notifEnabled); document.getElementById('reminderHourRow').style.display=settings.notifEnabled?'':'none'; document.getElementById('extraRemBox').style.display=settings.notifEnabled?'':'none';
   document.getElementById('autoBackupSwitch').classList.toggle('on', settings.autoBackupEnabled);
   document.getElementById('autoBackupInterval').value=String(settings.autoBackupDays||7);
@@ -2475,11 +2490,11 @@ function maybeNotifyDueRecurring(){
   const dueDebts=debts.filter(d=>d.dueDate && (+d.paid||0)<(+d.amount||0) && d.remMode!=='off' && nowMinLocal>=_debtRemMin(d)).map(d=>({d,k:dayDiff(d.dueDate)})).filter(x=>x.k<=1 && x.k>=-7);
   if(!dueRec.length && !dueDebts.length) return;
   const parts=[];
-  dueRec.forEach(x=>parts.push(`${findCat(x.r.category).icon} ${nIso(trLabel(findCat(x.r.category)))}: ${fmt(x.r.amount)}`));
+  dueRec.forEach(x=>parts.push(_hideDetails() ? ('🔁 '+LX('معاملة متكررة مستحقة','A recurring transaction is due','Une opération récurrente arrive à échéance')) : `${findCat(x.r.category).icon} ${nIso(trLabel(findCat(x.r.category)))}: ${fmt(x.r.amount)}`));
   dueDebts.forEach(x=>{
     const left=(+x.d.amount||0)-(+x.d.paid||0);
     const dir=x.d.direction==='owed_to_me' ? LX('لك عند','Owed by','À recevoir de') : LX('عليك لـ','You owe','Vous devez à');
-    parts.push(`${x.d.icon||'👤'} ${dir} ${nIso(x.d.person)}: ${fmt(left)}`);
+    parts.push(_hideDetails() ? ((x.d.icon||'👤')+' '+LX('لديك دين مستحق','You have a debt due','Vous avez une dette à échéance')) : `${x.d.icon||'👤'} ${dir} ${nIso(x.d.person)}: ${fmt(left)}`);
   });
   const title=nRtl(LX('دفتري — مستحقات قريبة','Daftari — upcoming dues','Daftari — échéances à venir'));
   const opts={body:nRtl(parts.join(' · ')), icon:'./icon-192.png', badge:'./badge-96.png', tag:'daftari-due', dir:_nAr()?'rtl':'ltr', lang:locale(), data:{tab:dueDebts.length?'tabDebts':'tabSettings'}};
@@ -2564,6 +2579,12 @@ function notifyNow(title, body, tab, tag){
   try{
     if(!settings || !settings.notifEnabled) return;
     if(typeof Notification==='undefined' || Notification.permission!=='granted') return;
+    if(_hideDetails()){   // keep names/amounts off the lock screen
+      const tg=tag||'';
+      if(/^daftari-budget-/.test(tg)) body=LX('تنبيه ميزانية: افتح دفتري للتفاصيل','Budget alert: open Daftari for details','Alerte budget : ouvrez Daftari pour les détails');
+      else if(/^daftari-goal-/.test(tg)) body=LX('🎉 تحقق هدف ادخار، افتح دفتري','🎉 A savings goal was reached','🎉 Un objectif d\'épargne est atteint');
+      else if(tg==='daftari-recurring') body=LX('تم تسجيل معاملات متكررة تلقائيًا','Recurring transactions were recorded','Des opérations récurrentes ont été enregistrées');
+    }
     title=nRtl(title);
     const opts={body:nRtl(body), icon:'./icon-192.png', badge:'./badge-96.png', tag:tag||('daftari-'+Date.now()), dir:_nAr()?'rtl':'ltr', lang:locale(), data:{tab:tab||''}};
     if('serviceWorker' in navigator){
@@ -3544,7 +3565,7 @@ document.getElementById('addCatBtn').addEventListener('click', ()=>{
 
 /* ---------- backup ---------- */
 function buildBackupPayload(){
-  return {app:'daftari', version:4, exportedAt:new Date().toISOString(), transactions, categories, settings, recurring, wallets, debts, savingsGoals};
+  return {app:'daftari', version:4, exportedAt:new Date().toISOString(), transactions, categories, settings:_withoutLock(settings), recurring, wallets, debts, savingsGoals};
 }
 
 /* ---------- cloud sync (Firebase) ---------- */
@@ -3558,7 +3579,7 @@ let applyingRemote=false;    // guard so we don't push right after applying a re
 function buildCloudPayload(){
   // Same as buildBackupPayload() but also includes savingsGoals (the local
   // export/import feature is missing this field — cloud sync includes it).
-  return {app:'daftari', version:4, transactions, categories, settings, recurring, wallets, debts, savingsGoals, updatedAt:Date.now()};
+  return {app:'daftari', version:4, transactions, categories, settings:_withoutLock(settings), recurring, wallets, debts, savingsGoals, updatedAt:Date.now()};
 }
 
 function cloudErrorMessage(err){
@@ -3640,7 +3661,7 @@ function applyCloudPayload(data){
     applyingRemote=true;
     localStorage.setItem(TX_KEY, JSON.stringify(data.transactions||[]));
     localStorage.setItem(CAT_KEY, JSON.stringify(data.categories||[]));
-    localStorage.setItem(SET_KEY, JSON.stringify(data.settings||settings));
+    localStorage.setItem(SET_KEY, JSON.stringify(Object.assign({}, _withoutLock(data.settings||settings), _lockFields(settings))));   // the lock stays device-local
     localStorage.setItem(REC_KEY, JSON.stringify(data.recurring||[]));
     localStorage.setItem(WAL_KEY, JSON.stringify(data.wallets||[]));
     localStorage.setItem(SAV_KEY, JSON.stringify(data.savingsGoals||[]));
@@ -3944,11 +3965,24 @@ async function onPinKey(k){
     }else if(pinMode==='verify-disable'){
       const h=await sha256(pinBuffer);
       if(h===settings.pinHash){
-        settings.pinEnabled=false; settings.pinHash=''; saveSettings();
+        settings.pinEnabled=false; settings.pinHash=''; saveSettings(); try{ localStorage.removeItem(BIO_KEY); }catch(e){}
         document.getElementById('lockScreen').classList.remove('open');
         pinBuffer=''; renderSettings(); showToast(t('toastPinOff'));
       }else{
         document.getElementById('pinErr').textContent=t('pinErrWrong'); pinBuffer=''; renderPinDots();
+      }
+    }else if(pinMode==='verify-change'){
+      const wait=_pinWait();
+      if(wait>0){ document.getElementById('pinErr').textContent=LX('محاولات كثيرة، انتظر '+wait+' ثانية','Too many attempts, wait '+wait+'s','Trop de tentatives, patientez '+wait+' s'); pinBuffer=''; renderPinDots(); return; }
+      const h=await sha256(pinBuffer);
+      if(h===settings.pinHash){
+        _pinReset(); pinBuffer=''; pinMode='set-first';
+        document.getElementById('lockTitle').textContent=t('lockSetFirst');
+        renderPinDots();
+      }else{
+        const w=_pinFail();
+        document.getElementById('pinErr').textContent= w>0 ? LX('محاولات كثيرة، انتظر '+w+' ثانية','Too many attempts, wait '+w+'s','Trop de tentatives, patientez '+w+' s') : t('pinErrWrong');
+        pinBuffer=''; renderPinDots();
       }
     }else if(pinMode==='set-first'){
       pinFirstEntry=pinBuffer; pinBuffer='';
@@ -3972,24 +4006,178 @@ async function onPinKey(k){
 function openLock(mode){
   pinMode=mode; pinBuffer=''; pinFirstEntry='';
   document.getElementById('pinErr').textContent='';
-  document.getElementById('lockTitle').textContent = mode==='set-first' ? t('lockSetFirst') : (mode==='verify-disable' ? t('lockVerifyDisable') : t('lockUnlock'));
+  document.getElementById('lockTitle').textContent = mode==='set-first' ? t('lockSetFirst') : (mode==='verify-disable' ? t('lockVerifyDisable') : (mode==='verify-change' ? LX('🔒 أدخل الرمز الحالي','🔒 Enter your current code','🔒 Entrez le code actuel') : t('lockUnlock')));
   document.getElementById('forgotBtn').style.display = mode==='unlock' ? 'block' : 'none';
+  document.getElementById('pinCancelBtn').style.display = mode==='unlock' ? 'none' : 'block';
   renderPinDots(); renderPinPad();
   document.getElementById('lockScreen').classList.add('open');
+  try{ _afterOpenLock(mode); }catch(e){}
 }
 document.getElementById('pinSwitch').addEventListener('click', ()=>{
   if(settings.pinEnabled){ openLock('verify-disable'); }
   else{ openLock('set-first'); }
 });
-document.getElementById('forgotBtn').addEventListener('click', async ()=>{
-  if(confirm(t('confirmForgotPin'))){
-    settings.pinEnabled=false; settings.pinHash='';
-    await saveSettings();
-    document.getElementById('lockScreen').classList.remove('open');
-    unlockedThisSession=true;
-    showToast(t('toastPinDisabled'));
-  }
+/* ---------- App lock extras: biometric unlock (WebAuthn), auto-lock, privacy cover ---------- */
+// Lock settings are device-local: never uploaded to the cloud, never written into backups, never overwritten by a sync.
+var LOCK_ONLY=['pinEnabled','pinHash','pinSalt','lockDelay','hideNotifDetails'];
+function _withoutLock(st){ const o=Object.assign({},st); LOCK_ONLY.forEach(k=>delete o[k]); return o; }
+function _lockFields(st){ const o={}; LOCK_ONLY.forEach(k=>{ if(st[k]!==undefined) o[k]=st[k]; }); return o; }
+function _hideDetails(){ return settings.hideNotifDetails==null ? !!settings.pinEnabled : !!settings.hideNotifDetails; }
+
+var BIO_KEY='daftari_bio_cred';          // { id, pk } of the device credential - local only
+function _b64u(buf){ let s=''; new Uint8Array(buf).forEach(b=>{ s+=String.fromCharCode(b); }); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function _unb64u(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; const bin=atob(s); const u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u; }
+function _bioGet(){ try{ return JSON.parse(localStorage.getItem(BIO_KEY)||'null'); }catch(e){ return null; } }
+async function _bioSupported(){
+  try{ return !!(window.isSecureContext && window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable && await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()); }
+  catch(e){ return false; }
+}
+function _derToRaw(der){   // ECDSA signature DER -> r||s (64 bytes) as WebCrypto expects
+  let i=2; if(der[1]&0x80) i+=(der[1]&0x7f);
+  if(der[i]!==0x02) throw new Error('bad signature');
+  const rl=der[i+1]; const r=der.slice(i+2,i+2+rl); i=i+2+rl;
+  if(der[i]!==0x02) throw new Error('bad signature');
+  const sl=der[i+1]; const sg=der.slice(i+2,i+2+sl);
+  const fix=(x)=>{ while(x.length>32 && x[0]===0) x=x.slice(1); const o=new Uint8Array(32); o.set(x,32-x.length); return o; };
+  const out=new Uint8Array(64); out.set(fix(r),0); out.set(fix(sg),32); return out;
+}
+// Checks a WebAuthn assertion locally: our challenge, this origin, our rpId, user present + user VERIFIED (biometric / device PIN), signature.
+async function _bioVerify(cred, challenge){
+  const r=cred.response, cd=new Uint8Array(r.clientDataJSON), ad=new Uint8Array(r.authenticatorData);
+  const data=JSON.parse(new TextDecoder().decode(cd));
+  if(data.type!=='webauthn.get' || data.challenge!==_b64u(challenge) || data.origin!==location.origin) return false;
+  const rpHash=new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(location.hostname)));
+  for(let i=0;i<32;i++) if(ad[i]!==rpHash[i]) return false;
+  if((ad[32]&0x05)!==0x05) return false;
+  const st=_bioGet();
+  if(!st || !st.pk) return true;     // browser did not expose the public key: the checks above still apply
+  const key=await crypto.subtle.importKey('spki', _unb64u(st.pk), {name:'ECDSA',namedCurve:'P-256'}, false, ['verify']);
+  const h=new Uint8Array(await crypto.subtle.digest('SHA-256', cd));
+  const signed=new Uint8Array(ad.length+32); signed.set(ad,0); signed.set(h,ad.length);
+  return await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'}, key, _derToRaw(new Uint8Array(r.signature)), signed);
+}
+async function bioEnroll(){
+  const cred=await navigator.credentials.create({publicKey:{
+    challenge:crypto.getRandomValues(new Uint8Array(32)),
+    rp:{name:'Daftari', id:location.hostname},
+    user:{id:crypto.getRandomValues(new Uint8Array(16)), name:'daftari', displayName:'Daftari'},
+    pubKeyCredParams:[{type:'public-key',alg:-7}],
+    authenticatorSelection:{authenticatorAttachment:'platform', userVerification:'required', residentKey:'discouraged'},
+    attestation:'none', timeout:60000 }});
+  const pk=cred.response.getPublicKey ? cred.response.getPublicKey() : null;
+  localStorage.setItem(BIO_KEY, JSON.stringify({id:_b64u(cred.rawId), pk:pk?_b64u(pk):''}));
+}
+async function bioUnlock(){
+  const st=_bioGet(); if(!st) return false;
+  const challenge=crypto.getRandomValues(new Uint8Array(32));
+  const cred=await navigator.credentials.get({publicKey:{challenge, rpId:location.hostname,
+    allowCredentials:[{type:'public-key', id:_unb64u(st.id), transports:['internal']}], userVerification:'required', timeout:60000 }});
+  return !!cred && await _bioVerify(cred, challenge);
+}
+var _bioBusy=false;
+function _doUnlock(){
+  unlockedThisSession=true; pinBuffer='';
+  document.getElementById('lockScreen').classList.remove('open');
+  _showCover(false);
+}
+async function tryBio(auto){
+  if(_bioBusy || !_bioGet() || pinMode!=='unlock' || !document.getElementById('lockScreen').classList.contains('open')) return;
+  _bioBusy=true;
+  try{
+    if(await bioUnlock()){ _pinReset(); _doUnlock(); }
+    else if(!auto) document.getElementById('pinErr').textContent=LX('تعذر التحقق، استخدم الرمز','Verification failed, use your code','Échec de la vérification, utilisez votre code');
+  }catch(e){
+    if(!auto) document.getElementById('pinErr').textContent=LX('تم إلغاء التحقق، استخدم الرمز','Verification cancelled, use your code','Vérification annulée, utilisez votre code');
+  }finally{ _bioBusy=false; }
+}
+function _afterOpenLock(mode){
+  const bb=document.getElementById('bioBtn');
+  const show = mode==='unlock' && !!_bioGet();
+  bb.style.display = show ? 'inline-block' : 'none';
+  bb.textContent = LX('🔐 فتح بالبصمة / الوجه','🔐 Unlock with biometrics','🔐 Déverrouiller par biométrie');
+  if(show) setTimeout(()=>tryBio(true), 300);   // one automatic attempt; the button stays for retries
+}
+document.getElementById('bioBtn').addEventListener('click',()=>tryBio(false));
+document.getElementById('pinCancelBtn').addEventListener('click',()=>{
+  document.getElementById('lockScreen').classList.remove('open'); pinBuffer=''; pinFirstEntry=''; pinMode='unlock';
+  try{ renderSettings(); }catch(e){}
 });
+
+// Auto-lock + privacy cover (hides the screen in the app switcher while the app is in the background)
+var _hiddenAt=0, _lockGraceUntil=0;
+function _lockDelayMs(){ return (settings.lockDelay==null ? 30 : settings.lockDelay)*1000; }
+function _showCover(on){ const c=document.getElementById('privacyCover'); if(c) c.classList.toggle('open', !!on); }
+function _onVisibility(){
+  if(!settings.pinEnabled) return;
+  if(document.visibilityState==='hidden'){ _hiddenAt=Date.now(); _showCover(true); return; }
+  _showCover(false);
+  if(document.getElementById('lockScreen').classList.contains('open')) return;
+  if(unlockedThisSession && _hiddenAt && Date.now()>_lockGraceUntil && Date.now()-_hiddenAt >= _lockDelayMs()){
+    unlockedThisSession=false; openLock('unlock');
+  }
+}
+document.addEventListener('visibilitychange', _onVisibility);
+window.addEventListener('pagehide',()=>{ if(settings.pinEnabled) _showCover(true); });
+window.addEventListener('pageshow',()=>{ _showCover(false); });
+// choosing a photo / file leaves the app for a moment: do not lock because of that
+document.addEventListener('click',(e)=>{
+  const el=e.target && e.target.closest ? e.target.closest('input[type="file"],label') : null;
+  if(!el) return;
+  const isFile = el.matches('input[type="file"]') || !!el.querySelector('input[type="file"]') || (el.htmlFor && (document.getElementById(el.htmlFor)||{}).type==='file');
+  if(isFile) _lockGraceUntil=Date.now()+120000;
+},true);
+
+async function renderLockSettings(){
+  const box=document.getElementById('lockExtra'); if(!box) return;
+  box.style.display=settings.pinEnabled?'':'none';
+  if(!settings.pinEnabled) return;
+  const sel=document.getElementById('lockDelay');
+  const opts=[[0,LX('فورًا','Immediately','Immédiatement')],[30,LX('بعد 30 ثانية','After 30 seconds','Après 30 secondes')],[60,LX('بعد دقيقة','After 1 minute','Après 1 minute')],[300,LX('بعد 5 دقائق','After 5 minutes','Après 5 minutes')],[900,LX('بعد 15 دقيقة','After 15 minutes','Après 15 minutes')]];
+  sel.innerHTML=opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('');
+  sel.value=String(settings.lockDelay==null?30:settings.lockDelay);
+  document.getElementById('hideNotifSwitch').classList.toggle('on', _hideDetails());
+  const sup=await _bioSupported(), has=!!_bioGet();
+  const sw=document.getElementById('bioSwitch');
+  sw.classList.toggle('on', has); sw.style.opacity = (sup||has) ? '' : '0.4';
+  document.getElementById('bioSub').textContent = !sup && !has ? LX('غير متاح على هذا الجهاز أو المتصفح','Not available on this device or browser','Indisponible sur cet appareil ou navigateur')
+    : (has ? LX('مفعّل على هذا الجهاز','Enabled on this device','Activé sur cet appareil') : LX('استخدم بصمتك أو وجهك أو قفل هاتفك بدل كتابة الرمز','Use your fingerprint, face or phone lock instead of typing the code','Utilisez empreinte, visage ou verrouillage du téléphone au lieu du code'));
+}
+document.getElementById('bioSwitch').addEventListener('click', async ()=>{
+  try{
+    if(_bioGet()){ localStorage.removeItem(BIO_KEY); showToast(LX('أُلغي الفتح بالبصمة','Biometric unlock disabled','Déverrouillage biométrique désactivé')); renderLockSettings(); return; }
+    if(!(await _bioSupported())){ showToast(LX('غير متاح على هذا الجهاز أو المتصفح','Not available on this device or browser','Indisponible sur cet appareil ou navigateur')); return; }
+    await bioEnroll();
+    if(await bioUnlock()) showToast(LX('✅ تم تفعيل الفتح بالبصمة','✅ Biometric unlock enabled','✅ Déverrouillage biométrique activé'));
+    else { localStorage.removeItem(BIO_KEY); showToast(LX('تعذر التحقق، لم يُفعّل','Verification failed, not enabled','Échec de la vérification, non activé')); }
+  }catch(e){
+    try{ localStorage.removeItem(BIO_KEY); }catch(e2){}
+    showToast(LX('لم يُفعّل الفتح بالبصمة','Biometric unlock was not enabled','Déverrouillage biométrique non activé'));
+  }
+  renderLockSettings();
+});
+document.getElementById('lockDelay').addEventListener('change',(e)=>{ const v=parseInt(e.target.value,10); settings.lockDelay=(v>=0)?v:30; saveSettings(); });
+document.getElementById('hideNotifSwitch').addEventListener('click',()=>{ settings.hideNotifDetails=!_hideDetails(); saveSettings(); renderLockSettings(); try{ schedulePushSync(); }catch(e){} });
+document.getElementById('changePinBtn').addEventListener('click',()=>{ openLock('verify-change'); });
+
+// "Forgot code": there is no recovery, so the only way back in is to erase this device's data (restorable from a backup / the cloud account).
+async function _wipeLocalData(){
+  try{ if(cloudUser && CloudAPI){ await CloudAPI.signOutUser(); } }catch(e){}
+  [TX_KEY, CAT_KEY, SET_KEY, REC_KEY, WAL_KEY, SAV_KEY, AUTO_KEY, DEBT_KEY, CLOUD_TS_KEY, CLOUD_UID_KEY, TPL_KEY, PF_KEY, BIO_KEY, 'daftari_push_sig', 'daftari_last_notif_date', 'daftari_quick_pending'].forEach(function(k){
+    try{ localStorage.removeItem(k); }catch(e){}
+  });
+  try{ await caches.delete('daftari-due'); }catch(e){}
+  try{ const reg=await navigator.serviceWorker.getRegistration(); const sub=reg && await reg.pushManager.getSubscription(); if(sub) await sub.unsubscribe(); }catch(e){}
+  window.location.reload();
+}
+document.getElementById('forgotBtn').addEventListener('click', async ()=>{
+  if(!confirm(t('confirmForgotPin'))) return;
+  const word=LX('مسح','ERASE','EFFACER');
+  const ans=prompt(LX('للتأكيد اكتب كلمة: مسح','To confirm, type: ERASE','Pour confirmer, tapez : EFFACER'));
+  if((ans||'').trim().toUpperCase()!==word.toUpperCase()) return;
+  await _wipeLocalData();
+});
+// show the lock immediately on startup (before the data finishes loading)
+try{ const st0=JSON.parse(localStorage.getItem(SET_KEY)||'{}'); if(st0.pinEnabled){ document.getElementById('lockScreen').classList.add('open'); } }catch(e){}
 
 /* ---------- init ---------- */
 /* ---------- custom date display (Android-safe) ---------- */
@@ -4328,13 +4516,13 @@ function _dueItems(){
     if(d.dueDate && (+d.paid||0)<(+d.amount||0) && d.remMode!=='off'){
       const left=(+d.amount||0)-(+d.paid||0);
       const dir=d.direction==='owed_to_me' ? LX('لك عند','Owed by','À recevoir de') : LX('عليك لـ','You owe','Vous devez à');
-      const it={k:'d', id:d.id, due:d.dueDate, text:`${d.icon||'👤'} ${dir} ${nIso(d.person)}: ${fmt(left)}`};
+      const it={k:'d', id:d.id, due:d.dueDate, text:(_hideDetails() ? ((d.icon||'👤')+' '+LX('لديك دين مستحق','You have a debt due','Vous avez une dette à échéance')) : `${d.icon||'👤'} ${dir} ${nIso(d.person)}: ${fmt(left)}`)};
       if(d.remMode==='custom' && d.remH!=null){ it.h=d.remH; it.m=Math.floor((d.remM||0)/5)*5; }
       items.push(it);
     }
   });
   recurring.forEach(r=>{
-    if(r.lastDate) items.push({k:'r', l:r.lastDate, f:r.freq, text:`${findCat(r.category).icon} ${nIso(trLabel(findCat(r.category)))}: ${fmt(r.amount)}`});
+    if(r.lastDate) items.push({k:'r', l:r.lastDate, f:r.freq, text:(_hideDetails() ? ('🔁 '+LX('معاملة متكررة مستحقة','A recurring transaction is due','Une opération récurrente arrive à échéance')) : `${findCat(r.category).icon} ${nIso(trLabel(findCat(r.category)))}: ${fmt(r.amount)}`)});
   });
   return items;
 }
