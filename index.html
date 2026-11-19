@@ -4212,24 +4212,46 @@ function _smsHash(str){ let h=5381; for(let i=0;i<str.length;i++){ h=((h*33)^str
 function handleSmsParam(params){
   if(!params.has('sms')) return;
   const raw=params.get('sms')||'';
+  const wantW=(params.get('w')||'').trim().toLowerCase();      // optional: &w=bank or &w=baridi picks the wallet by name
+  const confirmMode=params.get('confirm')==='1';               // optional: &confirm=1 only pre-fills the add form
   try{ history.replaceState(null,'',location.pathname); }catch(e){}   // so a refresh does not re-process it
-  switchTab('tabAdd');
   const p=parseBankSms(raw);
-  if(!p){ showToast(LX('تعذّر تحليل رسالة البنك','Could not parse the bank SMS','Impossible d\'analyser le SMS bancaire')); return; }
+  if(!p){ switchTab('tabAdd'); showToast(LX('تعذّر تحليل رسالة البنك','Could not parse the bank SMS','Impossible d\'analyser le SMS bancaire')); return; }
   const hash=_smsHash(raw.replace(/\s+/g,' ').trim());
   let seen=[]; try{ seen=JSON.parse(localStorage.getItem(SMS_SEEN_KEY)||'[]'); }catch(e){}
-  if(seen.includes(hash)){ showToast(LX('هذه الرسالة عولجت من قبل','This SMS was already processed','Ce SMS a déjà été traité')); return; }
+  if(seen.includes(hash)){ switchTab('tabHome'); showToast(LX('هذه الرسالة عولجت من قبل','This SMS was already processed','Ce SMS a déjà été traité')); return; }
   seen.push(hash); try{ localStorage.setItem(SMS_SEEN_KEY, JSON.stringify(seen.slice(-50))); }catch(e){}
-  currentType=p.type; selectedCategory=null; catGridExpanded=false; selectedBillType=null;
-  document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.type===p.type));
-  renderCatGrid();
-  document.getElementById('amountInput').value=String(p.amount);
-  document.getElementById('noteInput').value=LX('رسالة بنكية','Bank SMS','SMS bancaire');
-  document.getElementById('dateInput').value=_localISO(new Date());
-  populateWalletSelect();
-  const bw=wallets.find(w=>/bank|baridi|بنك|بريدي/i.test((w.label||'')+' '+(w.label_en||'')+' '+(w.label_fr||'')));
-  if(bw) document.getElementById('walletSelect').value=bw.id;
-  showToast(LX('تحقق من الفئة والمحفظة ثم احفظ','Check category and wallet, then save','Vérifiez la catégorie et le portefeuille, puis enregistrez'));
+  const lab=w=>((w.label||'')+' '+(w.label_en||'')+' '+(w.label_fr||'')+' '+(w.id||'')).toLowerCase();
+  let wal = wantW ? wallets.find(w=>lab(w).includes(wantW)) : null;
+  if(!wal) wal = wallets.find(w=>/bank|baridi|بنك|بريدي/.test(lab(w))) || wallets[0];
+  const cats=catsByType(p.type);
+  const cat=(cats.find(c=>c.id===(p.type==='expense'?'other_exp':'other_inc')) || cats[0] || {}).id;
+  const note=LX('رسالة بنكية','Bank SMS','SMS bancaire');
+  if(confirmMode || !cat || !wal){
+    switchTab('tabAdd');
+    currentType=p.type; selectedCategory=null; catGridExpanded=false; selectedBillType=null;
+    document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.type===p.type));
+    renderCatGrid();
+    document.getElementById('amountInput').value=String(p.amount);
+    document.getElementById('noteInput').value=note;
+    document.getElementById('dateInput').value=_localISO(new Date());
+    populateWalletSelect();
+    if(wal) document.getElementById('walletSelect').value=wal.id;
+    showToast(LX('تحقق من الفئة والمحفظة ثم احفظ','Check category and wallet, then save','Vérifiez la catégorie et le portefeuille, puis enregistrez'));
+    return;
+  }
+  const tx={id:Date.now().toString()+Math.random().toString(36).slice(2,6), type:p.type, category:cat, amount:p.amount, note:note, date:_localISO(new Date()), wallet:wal.id, receipt:null, billType:null};
+  transactions.push(tx);
+  // same safety net quick.html uses: if a newer cloud copy replaces local data before our push finishes, this id is re-added
+  try{ const pend=JSON.parse(localStorage.getItem('daftari_quick_pending')||'[]'); pend.push(tx.id); localStorage.setItem('daftari_quick_pending', JSON.stringify(pend)); }catch(e){}
+  saveTx();
+  switchTab('tabHome');
+  const sign=p.type==='expense'?'-':'+';
+  offerUndo(LX('سُجّلت من رسالة البنك: ','Recorded from bank SMS: ','Enregistré depuis le SMS : ')+sign+p.amount.toFixed(2), ()=>{
+    const i=transactions.findIndex(x=>x.id===tx.id); if(i>-1){ transactions.splice(i,1); saveTx(); }
+    switchTab('tabHome');
+  });
+  try{ checkBudgetAlert(tx); }catch(e){}
 }
 async function init(){
   try{
