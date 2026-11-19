@@ -4198,6 +4198,39 @@ enhanceDateInput(document.getElementById('newDebtDueDate'));
 enhanceDateInput(document.getElementById('editDebtDueDate'));
 initDebtRemSelects();
 
+/* ===== bank SMS -> prefilled add form (?sms=<text>) ===== */
+const SMS_SEEN_KEY='daftari_sms_seen';
+function parseBankSms(txt){
+  const s=String(txt||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const m=s.match(/\b(debite|credite)\s+de\s*(-?\s*\d+(?:[.,]\d+)?)\s*DA\b/i);
+  if(!m) return null;
+  const amount=Math.abs(parseFloat(m[2].replace(/\s+/g,'').replace(',','.')));
+  if(!isFinite(amount) || amount<=0) return null;
+  return { type: /^debite$/i.test(m[1]) ? 'expense' : 'income', amount: amount };
+}
+function _smsHash(str){ let h=5381; for(let i=0;i<str.length;i++){ h=((h*33)^str.charCodeAt(i))>>>0; } return h.toString(36); }
+function handleSmsParam(params){
+  if(!params.has('sms')) return;
+  const raw=params.get('sms')||'';
+  try{ history.replaceState(null,'',location.pathname); }catch(e){}   // so a refresh does not re-process it
+  switchTab('tabAdd');
+  const p=parseBankSms(raw);
+  if(!p){ showToast(LX('تعذّر تحليل رسالة البنك','Could not parse the bank SMS','Impossible d\'analyser le SMS bancaire')); return; }
+  const hash=_smsHash(raw.replace(/\s+/g,' ').trim());
+  let seen=[]; try{ seen=JSON.parse(localStorage.getItem(SMS_SEEN_KEY)||'[]'); }catch(e){}
+  if(seen.includes(hash)){ showToast(LX('هذه الرسالة عولجت من قبل','This SMS was already processed','Ce SMS a déjà été traité')); return; }
+  seen.push(hash); try{ localStorage.setItem(SMS_SEEN_KEY, JSON.stringify(seen.slice(-50))); }catch(e){}
+  currentType=p.type; selectedCategory=null; catGridExpanded=false; selectedBillType=null;
+  document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.type===p.type));
+  renderCatGrid();
+  document.getElementById('amountInput').value=String(p.amount);
+  document.getElementById('noteInput').value=LX('رسالة بنكية','Bank SMS','SMS bancaire');
+  document.getElementById('dateInput').value=_localISO(new Date());
+  populateWalletSelect();
+  const bw=wallets.find(w=>/bank|baridi|بنك|بريدي/i.test((w.label||'')+' '+(w.label_en||'')+' '+(w.label_fr||'')));
+  if(bw) document.getElementById('walletSelect').value=bw.id;
+  showToast(LX('تحقق من الفئة والمحفظة ثم احفظ','Check category and wallet, then save','Vérifiez la catégorie et le portefeuille, puis enregistrez'));
+}
 async function init(){
   try{
     await load();
@@ -4215,6 +4248,7 @@ async function init(){
     const params=new URLSearchParams(window.location.search);
     const startTab = params.get('action')==='add' ? 'tabAdd' : 'tabHome';
     switchTab(startTab);
+    handleSmsParam(params);
     if(settings.pinEnabled && !unlockedThisSession){ openLock('unlock'); }
   }catch(e){
     console.error('init failed:', e);
