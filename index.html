@@ -926,6 +926,7 @@
         <div class="set-row"><div><div class="lab" data-i18n="evBackupLab">تذكير النسخ الاحتياطي</div><div class="sub" data-i18n="evBackupSub">عندما تتأخر النسخة الاحتياطية عن المدة المحددة</div></div><div class="switch" id="evBackupSwitch"><div class="knob"></div></div></div>
         <div class="set-row"><div><div class="lab" data-i18n="evMonthlyLab">ملخص الشهر</div><div class="sub" data-i18n="evMonthlySub">في أول كل شهر: راجع تقرير الشهر الماضي</div></div><div class="switch" id="evMonthlySwitch"><div class="knob"></div></div></div>
         <div class="set-row"><div><div class="lab" data-i18n="evTimeLab">وقت هذه التذكيرات</div><div class="sub" data-i18n="evTimeSub">بتوقيت جهازك، بخطوات 5 دقائق</div></div><span style="display:flex;gap:6px;align-items:center;direction:ltr;"><select id="evHour" style="width:auto;"></select><span>:</span><select id="evMin" style="width:auto;"></select></span></div>
+        <button class="save-btn" id="testPushBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="testPushBtn">🔔 اختبار إشعار الخادم</button>
       </div>
       <div class="info-note" data-i18n="notifInfo">ℹ️ يصلك التنبيه صباح يوم الاستحقاق حتى لو كان التطبيق مغلقًا، عبر خادم مجاني لا يحفظ سوى تواريخ الاستحقاق (دون أسماء أو مبالغ). كما يظهر عند فتح التطبيق.</div>
     </div>
@@ -1117,6 +1118,7 @@ const I18N={
     reminderHourLab:'وقت التذكير', reminderHourSub:'الوقت الذي يصلك فيه تذكير الاستحقاق (بتوقيت جهازك، بخطوات 5 دقائق)',
     evWeeklyLab:'مراجعة الميزانية الأسبوعية', evWeeklySub:'تذكير أسبوعي لمراجعة مصاريفك وميزانيتك', evWeekdayLab:'يوم المراجعة الأسبوعية', evDailyLab:'تسجيل مصاريف اليوم', evDailySub:'تذكير يومي بتسجيل ما صرفته', evBackupLab:'تذكير النسخ الاحتياطي', evBackupSub:'عندما تتأخر النسخة الاحتياطية عن المدة المحددة', evMonthlyLab:'ملخص الشهر', evMonthlySub:'في أول كل شهر: راجع تقرير الشهر الماضي', evTimeLab:'وقت هذه التذكيرات', evTimeSub:'بتوقيت جهازك، بخطوات 5 دقائق',
     debtRemLab:'🔔 تذكير هذا الدين', debtRemDefault:'حسب الوقت العام', debtRemCustom:'وقت مخصص', debtRemOff:'بدون تذكير',
+    testPushBtn:'🔔 اختبار إشعار الخادم',
     securitySection:'الأمان', pinRow:'قفل بالرمز (PIN)', pinSub:'يحمي فتح التطبيق برمز من 4 أرقام',
     pinInfo:'ℹ️ Face ID / Touch ID غير مدعوم بشكل موثوق لتطبيقات الويب مثل هذا. الرمز (PIN) يحمي الواجهة فقط، والبيانات نفسها غير مشفّرة داخل تخزين المتصفح.',
     categoriesSection:'الفئات', newCatPh:'اسم الفئة الجديدة',
@@ -1236,6 +1238,7 @@ const I18N={
     reminderHourLab:'Reminder time', reminderHourSub:'The time you receive due-date reminders (your device time, 5-minute steps)',
     evWeeklyLab:"Weekly budget review", evWeeklySub:"A weekly nudge to review your spending and budget", evWeekdayLab:"Weekly review day", evDailyLab:"Log today's expenses", evDailySub:"A daily reminder to record what you spent", evBackupLab:"Backup reminder", evBackupSub:"When your backup is older than the chosen interval", evMonthlyLab:"Month summary", evMonthlySub:"On the 1st of each month: review last month's report", evTimeLab:"Time of these reminders", evTimeSub:"Your device time, 5-minute steps",
     debtRemLab:"🔔 Reminder for this debt", debtRemDefault:"Use the general time", debtRemCustom:"Custom time", debtRemOff:"No reminder",
+    testPushBtn:"🔔 Test server notification",
     securitySection:'Security', pinRow:'PIN Lock', pinSub:'Protects app opening with a 4-digit code',
     pinInfo:'ℹ️ Face ID / Touch ID isn\'t reliably supported for web apps like this. The PIN protects the interface only; the data itself isn\'t encrypted inside browser storage.',
     categoriesSection:'Categories', newCatPh:'New category name',
@@ -1465,6 +1468,7 @@ const I18N={
     reminderHourLab:"Heure du rappel", reminderHourSub:"L'heure à laquelle vous recevez les rappels d'échéance (heure de l'appareil, par pas de 5 minutes)",
     evWeeklyLab:"Revue budgétaire hebdomadaire", evWeeklySub:"Un rappel hebdomadaire pour revoir vos dépenses et votre budget", evWeekdayLab:"Jour de la revue hebdomadaire", evDailyLab:"Enregistrer les dépenses du jour", evDailySub:"Un rappel quotidien pour noter vos dépenses", evBackupLab:"Rappel de sauvegarde", evBackupSub:"Quand la sauvegarde dépasse l'intervalle choisi", evMonthlyLab:"Résumé du mois", evMonthlySub:"Le 1er de chaque mois : consultez le rapport du mois dernier", evTimeLab:"Heure de ces rappels", evTimeSub:"Heure de l'appareil, par pas de 5 minutes",
     debtRemLab:"🔔 Rappel pour cette dette", debtRemDefault:"Selon l'heure générale", debtRemCustom:"Heure personnalisée", debtRemOff:"Sans rappel",
+    testPushBtn:"🔔 Tester la notification du serveur",
     securitySection:"Sécurité",
     pinRow:"Verrouillage par code PIN",
     pinSub:"Protège l'ouverture de l'application avec un code à 4 chiffres",
@@ -2447,6 +2451,7 @@ document.getElementById('reminderMin').addEventListener('change', (e)=>{
     try{ schedulePushSync(); }catch(err){}
   });
 });
+document.getElementById('testPushBtn').addEventListener('click',()=>{ testServerPush(); });
 document.getElementById('evWeekday').addEventListener('change',(e)=>{ const v=parseInt(e.target.value,10); settings.evWeekday=(v>=0&&v<=6)?v:0; saveSettings(); try{ schedulePushSync(); }catch(err){} });
 document.getElementById('evHour').addEventListener('change',(e)=>{ const v=parseInt(e.target.value,10); settings.evHour=(v>=0&&v<=23)?v:20; saveSettings(); try{ schedulePushSync(); }catch(err){} });
 document.getElementById('evMin').addEventListener('change',(e)=>{ const v=parseInt(e.target.value,10); settings.evMin=(v>=0&&v<=55)?Math.floor(v/5)*5:0; saveSettings(); try{ schedulePushSync(); }catch(err){} });
@@ -4315,6 +4320,7 @@ setTimeout(()=>{
 var PUSH_API = 'https://daftari-push.bentrade.workers.dev/sync';   // SET THIS to your deployed Worker, e.g. 'https://daftari-push.<account>.workers.dev/sync' (empty = server push stays off)
 var VAPID_PUBLIC = 'BOsFum8zKM4KHwLnrhVoRV1osLAKvA3RVAnF85XasmMG8O-0TeYHS2mLdnsJVJ4TfcYN2VoiVa7WKksXLIacBOo';
 var _pushT = null;
+var _pushTestAt = 0;
 function _b64uToU8(s){ const p='='.repeat((4-s.length%4)%4); const b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/')); return Uint8Array.from(b,c=>c.charCodeAt(0)); }
 function _dueItems(){
   const items=[];
@@ -4339,7 +4345,9 @@ async function _writeDueSnapshot(){
     generic:LX('لديك مستحقات قريبة','You have upcoming dues','Vous avez des échéances à venir'),
     settleLabel:LX('تسديد','Settle','Régler'), items:_dueItems(),
     dueTime:{h:(settings.reminderHour==null?9:settings.reminderHour), m:Math.floor((settings.reminderMin||0)/5)*5},
-    ev:_evCfg(), lastBackup:_lastBackupISO(), ivl:(settings.autoBackupDays||7),
+    ev:_evCfg(), lastBackup:_lastBackupISO(), ivl:(settings.autoBackupDays||7), testAt:_pushTestAt,
+    testTitle:nRtl(LX('✅ دفتري — اختبار الإشعارات','✅ Daftari — notification test','✅ Daftari — test des notifications')),
+    testBody:LX('إشعارات الخادم تعمل على هذا الجهاز','Server notifications work on this device','Les notifications du serveur fonctionnent sur cet appareil'),
     t:{ title:nRtl(LX('🔔 دفتري — تذكير','🔔 Daftari — Reminder','🔔 Daftari — Rappel')),
         generic:LX('لديك تذكير من دفتري','You have a reminder from Daftari','Vous avez un rappel de Daftari'),
         weekly:LX('📊 حان وقت مراجعة ميزانيتك الأسبوعية','📊 Time for your weekly budget review','📊 C\'est l\'heure de votre revue budgétaire hebdomadaire'),
@@ -4401,6 +4409,24 @@ async function _pushSync(){
       _pushStatus(LX('الخادم رفض الطلب (رمز '+r.status+')','The server rejected the request (code '+r.status+')','Le serveur a refusé la requête (code '+r.status+')'));
     }
   }catch(e){ console.warn('push sync failed', e); _pushStatus(LX('تعذر الاتصال بالخادم','Could not reach the server','Serveur injoignable')); }
+}
+// Settings > "test server notification": asks the Worker to push to THIS device right now and reports the answer.
+async function testServerPush(){
+  const say=(m)=>{ _pushStatus(m); try{ showToast(m); }catch(e){} };
+  try{
+    if(!PUSH_API){ say(LX('إشعارات الخادم غير مضبوطة','Server push is not configured','Push serveur non configuré')); return; }
+    if(!settings.notifEnabled || typeof Notification==='undefined' || Notification.permission!=='granted'){ say(LX('فعّل الإشعارات وامنح الإذن أولًا','Enable notifications and grant permission first','Activez les notifications et accordez l\'autorisation d\'abord')); return; }
+    await _pushSync();
+    const reg=await navigator.serviceWorker.ready; const sub=await reg.pushManager.getSubscription();
+    if(!sub){ say(LX('الجهاز غير مشترك بعد، أعد المحاولة بعد قليل','Device not subscribed yet, try again shortly','Appareil pas encore abonné, réessayez')); return; }
+    _pushTestAt=Date.now(); await _writeDueSnapshot();
+    const r=await fetch(PUSH_API.replace(/\/sync$/,'/test'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:sub.endpoint})});
+    const j=await r.json().catch(()=>({}));
+    if(j.ok) say(LX('✅ أُرسل الاختبار ('+j.status+'). يجب أن يصل إشعار خلال ثوانٍ.','✅ Test sent ('+j.status+'). A notification should arrive within seconds.','✅ Test envoyé ('+j.status+'). Une notification doit arriver dans quelques secondes.'));
+    else if(r.status===404) say(LX('الجهاز غير مسجّل في الخادم. افتح التطبيق وانتظر ثوانٍ ثم أعد المحاولة.','Device not registered on the server. Reopen the app, wait a few seconds and retry.','Appareil non enregistré sur le serveur. Rouvrez l\'application, patientez et réessayez.'));
+    else if(r.status===429) say(LX('انتظر دقيقة ثم أعد المحاولة','Wait a minute and try again','Attendez une minute puis réessayez'));
+    else say(LX('خدمة الدفع رفضت الإرسال (رمز '+j.status+'). '+(j.status===403||j.status===401?'مفتاح VAPID السري لا يطابق المفتاح العام.':(j.status===404||j.status===410?'انتهى الاشتراك، أعد فتح التطبيق.':'')),'The push service refused the push (code '+j.status+').','Le service push a refusé l\'envoi (code '+j.status+').'));
+  }catch(e){ console.warn('test push failed', e); say(LX('تعذر الاتصال بالخادم','Could not reach the server','Serveur injoignable')); }
 }
 function schedulePushSync(){
   try{ if(settings.notifEnabled) _writeDueSnapshot().catch(()=>{}); }catch(e){}

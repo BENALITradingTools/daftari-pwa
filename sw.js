@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daftari-cache-v22';
+const CACHE_NAME = 'daftari-cache-v23';
 const APP_SHELL = [
   './',
   './index.html',
@@ -155,6 +155,12 @@ self.addEventListener('push', (event) => {
     const rlm = (!snap || /^ar/i.test(snap.lang || '')) ? '\u200F' : '';   // right-to-left mark for Arabic (also the Arabic fallback text)
     const dir = rlm ? 'rtl' : 'ltr';
     const lang = (snap && snap.lang) || 'ar';
+    if (snap && snap.testAt && Math.abs(Date.now() - snap.testAt) < 90000) {   // push requested by the "test" button in the settings
+      await self.registration.showNotification(snap.testTitle || '\u062f\u0641\u062a\u0631\u064a', {
+        body: rlm + (snap.testBody || '\u2705'), icon: './icon-192.png', badge: './badge-96.png', tag: 'daftari-test', dir, lang, data: { tab: '' }
+      });
+      return;
+    }
     const generalActive = !snap || !snap.dueTime || inSlot(snap.dueTime.h, snap.dueTime.m, now);
     const ownActive = !!(snap && Array.isArray(snap.items) && snap.items.some((it) => it.k === 'd' && it.h != null && inSlot(it.h, it.m || 0, now)));
     const dueActive = generalActive || ownActive;
