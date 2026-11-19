@@ -455,6 +455,9 @@
 .debt-card-due{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 6px; line-height:1.6;}
 .debt-card-due .dd{direction:ltr; unicode-bidi:isolate; white-space:nowrap; font-variant-numeric:tabular-nums;}
 .debt-card-due .sep{opacity:.6;}
+.debt-rem-chip{background:none; border:1px solid var(--line); color:var(--muted); border-radius:999px; font-size:11px; padding:2px 10px; margin-top:6px; cursor:pointer; font-family:inherit;}
+.debt-rem-chip.off{opacity:.7;}
+.debt-rem-row .lab{font-size:12px; color:var(--muted); margin-bottom:4px;}
 
   /* ---- language switch pill (settings) ---- */
   .lang-pill{display:flex; background:var(--card-2); border-radius:99px; padding:3px; gap:2px;}
@@ -554,12 +557,6 @@
   </main>
 
   <main id="tabAdd">
-    <div class="shortcut-banner" id="shortcutBanner" style="display:none;">
-      <span class="ic">📲</span>
-      <span style="flex:1;" data-i18n="shortcutBannerText">أضف اختصارًا على الشاشة الرئيسية يفتح هذه الصفحة مباشرة لتسجيل عملية دفع بضغطة واحدة. اضغط على ⋯ بالأسفل لمعرفة الطريقة.</span>
-      <button id="shortcutInfoBtn">ℹ️</button>
-      <button id="shortcutDismissBtn">✕</button>
-    </div>
     <div class="type-toggle">
       <button data-type="expense" class="active" data-i18n="expense">مصروف</button>
       <button data-type="income" data-i18n="income">دخل</button>
@@ -676,6 +673,13 @@
         <input type="number" id="newDebtAmount" placeholder="المبلغ" inputmode="decimal" min="0" step="1" data-i18n-ph="newDebtAmountPh">
         <input type="date" id="newDebtDueDate">
       </div>
+      <div class="debt-rem-row" style="margin-top:8px;">
+        <div class="lab" data-i18n="debtRemLab">🔔 تذكير هذا الدين</div>
+        <div class="add-debt-form">
+          <select id="newDebtRemMode"><option value="default" data-i18n="debtRemDefault">حسب الوقت العام</option><option value="custom" data-i18n="debtRemCustom">وقت مخصص</option><option value="off" data-i18n="debtRemOff">بدون تذكير</option></select>
+          <span id="newDebtRemBox" style="display:none; gap:6px; align-items:center; direction:ltr;"><select id="newDebtRemH" style="width:auto;"></select><span>:</span><select id="newDebtRemM" style="width:auto;"></select></span>
+        </div>
+      </div>
       <input type="text" id="newDebtNote" placeholder="ملاحظة (اختياري)" data-i18n-ph="newDebtNotePh" style="margin-top:8px; width:100%; box-sizing:border-box;">
       <button class="save-btn" id="addDebtBtn" style="margin-top:10px;" data-i18n="addDebtBtn">➕ إضافة الدين</button>
     </div>
@@ -708,6 +712,13 @@
       <div class="add-debt-form" style="margin-top:8px;">
         <input type="number" id="editDebtAmount" inputmode="decimal" min="0" step="1">
         <input type="date" id="editDebtDueDate">
+      </div>
+      <div class="debt-rem-row" style="margin-top:8px;">
+        <div class="lab" data-i18n="debtRemLab">🔔 تذكير هذا الدين</div>
+        <div class="add-debt-form">
+          <select id="editDebtRemMode"><option value="default" data-i18n="debtRemDefault">حسب الوقت العام</option><option value="custom" data-i18n="debtRemCustom">وقت مخصص</option><option value="off" data-i18n="debtRemOff">بدون تذكير</option></select>
+          <span id="editDebtRemBox" style="display:none; gap:6px; align-items:center; direction:ltr;"><select id="editDebtRemH" style="width:auto;"></select><span>:</span><select id="editDebtRemM" style="width:auto;"></select></span>
+        </div>
       </div>
       <input type="text" id="editDebtNote" style="margin-top:8px; width:100%; box-sizing:border-box;" data-i18n-ph="debtNoteLabel">
       <div class="sav-modal-actions">
@@ -847,15 +858,6 @@
     <div class="card-box">
       <div class="info-note" style="margin-top:0; margin-bottom:10px;" data-i18n="recurringHint">الحركات التي فعّلت لها التكرار من شاشة "إضافة" تظهر هنا. يتم إنشاء الحركة الجديدة تلقائيًا في كل مرة تفتح فيها التطبيق بعد حلول موعدها — لا حاجة لإنترنت أو خادم.</div>
       <div id="recurManageList"></div>
-    </div>
-
-    <div class="section-title" data-i18n="shortcutSection">اختصار الشاشة الرئيسية</div>
-    <div class="card-box">
-      <div class="set-row">
-        <div><div class="lab" data-i18n="shortcutRow">📲 اختصار "تسجيل دفعة"</div><div class="sub" data-i18n="shortcutSub">أضف أيقونة ثانية على شاشتك الرئيسية تفتح التطبيق مباشرة على صفحة الإضافة</div></div>
-      </div>
-      <button class="save-btn" id="howToShortcutBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="howToShortcut">كيف أضيف الاختصار؟</button>
-      <div class="info-note" id="shortcutHowTo" style="display:none;"></div>
     </div>
 
     <div class="section-title" data-i18n="cloudSection">☁️ المزامنة السحابية</div>
@@ -1114,6 +1116,7 @@ const I18N={
     notifInfo:'ℹ️ يصلك التنبيه في الوقت الذي تختاره يوم الاستحقاق حتى لو كان التطبيق مغلقًا، عبر خادم مجاني لا يحفظ سوى تواريخ الاستحقاق ووقت التذكير (دون أسماء أو مبالغ). كما يظهر عند فتح التطبيق بعد ذلك الوقت.',
     reminderHourLab:'وقت التذكير', reminderHourSub:'الوقت الذي يصلك فيه تذكير الاستحقاق (بتوقيت جهازك، بخطوات 5 دقائق)',
     evWeeklyLab:'مراجعة الميزانية الأسبوعية', evWeeklySub:'تذكير أسبوعي لمراجعة مصاريفك وميزانيتك', evWeekdayLab:'يوم المراجعة الأسبوعية', evDailyLab:'تسجيل مصاريف اليوم', evDailySub:'تذكير يومي بتسجيل ما صرفته', evBackupLab:'تذكير النسخ الاحتياطي', evBackupSub:'عندما تتأخر النسخة الاحتياطية عن المدة المحددة', evMonthlyLab:'ملخص الشهر', evMonthlySub:'في أول كل شهر: راجع تقرير الشهر الماضي', evTimeLab:'وقت هذه التذكيرات', evTimeSub:'بتوقيت جهازك، بخطوات 5 دقائق',
+    debtRemLab:'🔔 تذكير هذا الدين', debtRemDefault:'حسب الوقت العام', debtRemCustom:'وقت مخصص', debtRemOff:'بدون تذكير',
     securitySection:'الأمان', pinRow:'قفل بالرمز (PIN)', pinSub:'يحمي فتح التطبيق برمز من 4 أرقام',
     pinInfo:'ℹ️ Face ID / Touch ID غير مدعوم بشكل موثوق لتطبيقات الويب مثل هذا. الرمز (PIN) يحمي الواجهة فقط، والبيانات نفسها غير مشفّرة داخل تخزين المتصفح.',
     categoriesSection:'الفئات', newCatPh:'اسم الفئة الجديدة',
@@ -1232,6 +1235,7 @@ const I18N={
     notifInfo:'ℹ️ You get the alert at the time you choose on the due day, even when the app is closed, via a free server that stores only due dates and the reminder time (no names or amounts). It also shows when you open the app after that time.',
     reminderHourLab:'Reminder time', reminderHourSub:'The time you receive due-date reminders (your device time, 5-minute steps)',
     evWeeklyLab:"Weekly budget review", evWeeklySub:"A weekly nudge to review your spending and budget", evWeekdayLab:"Weekly review day", evDailyLab:"Log today's expenses", evDailySub:"A daily reminder to record what you spent", evBackupLab:"Backup reminder", evBackupSub:"When your backup is older than the chosen interval", evMonthlyLab:"Month summary", evMonthlySub:"On the 1st of each month: review last month's report", evTimeLab:"Time of these reminders", evTimeSub:"Your device time, 5-minute steps",
+    debtRemLab:"🔔 Reminder for this debt", debtRemDefault:"Use the general time", debtRemCustom:"Custom time", debtRemOff:"No reminder",
     securitySection:'Security', pinRow:'PIN Lock', pinSub:'Protects app opening with a 4-digit code',
     pinInfo:'ℹ️ Face ID / Touch ID isn\'t reliably supported for web apps like this. The PIN protects the interface only; the data itself isn\'t encrypted inside browser storage.',
     categoriesSection:'Categories', newCatPh:'New category name',
@@ -1460,6 +1464,7 @@ const I18N={
     notifInfo:"ℹ️ L'alerte arrive à l'heure choisie le jour de l'échéance, même application fermée, via un serveur gratuit qui ne stocke que les dates d'échéance et l'heure du rappel (sans noms ni montants). Elle s'affiche aussi à l'ouverture de l'application après cette heure.",
     reminderHourLab:"Heure du rappel", reminderHourSub:"L'heure à laquelle vous recevez les rappels d'échéance (heure de l'appareil, par pas de 5 minutes)",
     evWeeklyLab:"Revue budgétaire hebdomadaire", evWeeklySub:"Un rappel hebdomadaire pour revoir vos dépenses et votre budget", evWeekdayLab:"Jour de la revue hebdomadaire", evDailyLab:"Enregistrer les dépenses du jour", evDailySub:"Un rappel quotidien pour noter vos dépenses", evBackupLab:"Rappel de sauvegarde", evBackupSub:"Quand la sauvegarde dépasse l'intervalle choisi", evMonthlyLab:"Résumé du mois", evMonthlySub:"Le 1er de chaque mois : consultez le rapport du mois dernier", evTimeLab:"Heure de ces rappels", evTimeSub:"Heure de l'appareil, par pas de 5 minutes",
+    debtRemLab:"🔔 Rappel pour cette dette", debtRemDefault:"Selon l'heure générale", debtRemCustom:"Heure personnalisée", debtRemOff:"Sans rappel",
     securitySection:"Sécurité",
     pinRow:"Verrouillage par code PIN",
     pinSub:"Protège l'ouverture de l'application avec un code à 4 chiffres",
@@ -2454,15 +2459,15 @@ function renderLastBackupInfo(){
 function maybeNotifyDueRecurring(){
   if(!settings.notifEnabled) return;
   if(typeof Notification==='undefined' || Notification.permission!=='granted') return;
-  { const n0=new Date(); if(n0.getHours()*60+n0.getMinutes() < (settings.reminderHour==null?9:settings.reminderHour)*60+(settings.reminderMin||0)) return; }   // not before the chosen reminder time
+  const n0=new Date(), nowMinLocal=n0.getHours()*60+n0.getMinutes();   // each item is shown only after its own reminder time
   const now=new Date(); now.setHours(0,0,0,0);
   const today=toLocalISO(now);
   let lastNotified=null;
   try{ lastNotified=localStorage.getItem('daftari_last_notif_date'); }catch(e){}
   if(lastNotified===today) return;
   const dayDiff=s=>Math.round((new Date(s+'T00:00:00')-now)/86400000);
-  const dueRec=recurring.filter(r=>r.lastDate).map(r=>({r,k:dayDiff(nextDate(r.lastDate,r.freq))})).filter(x=>x.k>=0 && x.k<=1);
-  const dueDebts=debts.filter(d=>d.dueDate && (+d.paid||0)<(+d.amount||0)).map(d=>({d,k:dayDiff(d.dueDate)})).filter(x=>x.k<=1 && x.k>=-30);
+  const dueRec=recurring.filter(r=>r.lastDate).map(r=>({r,k:dayDiff(nextDate(r.lastDate,r.freq))})).filter(x=>x.k>=0 && x.k<=1 && nowMinLocal>=_debtRemMin({}));
+  const dueDebts=debts.filter(d=>d.dueDate && (+d.paid||0)<(+d.amount||0) && d.remMode!=='off' && nowMinLocal>=_debtRemMin(d)).map(d=>({d,k:dayDiff(d.dueDate)})).filter(x=>x.k<=1 && x.k>=-7);
   if(!dueRec.length && !dueDebts.length) return;
   const parts=[];
   dueRec.forEach(x=>parts.push(`${findCat(x.r.category).icon} ${nIso(trLabel(findCat(x.r.category)))}: ${fmt(x.r.amount)}`));
@@ -2492,6 +2497,34 @@ function maybeNotifyDueRecurring(){
 function _nAr(){ try{ return LX('a','b','c')==='a'; }catch(e){ return false; } }
 function nRtl(s){ return _nAr() ? '\u200F'+s : s; }
 function nIso(s){ return _nAr() ? '\u2068'+s+'\u2069' : s; }
+
+// Per-debt reminder: remMode 'custom' (own time remH:remM) | 'off' | undefined = use the general reminder time.
+function _debtRemMin(d){
+  if(d.remMode==='custom' && d.remH!=null) return d.remH*60 + Math.floor((d.remM||0)/5)*5;
+  return (settings.reminderHour==null?9:settings.reminderHour)*60 + Math.floor((settings.reminderMin||0)/5)*5;
+}
+function _setDebtRemControls(p, d){
+  const mode = d && d.remMode==='custom' ? 'custom' : (d && d.remMode==='off' ? 'off' : 'default');
+  const g=(settings.reminderHour==null?9:settings.reminderHour);
+  document.getElementById(p+'RemMode').value=mode;
+  document.getElementById(p+'RemH').value=String(d && d.remH!=null ? d.remH : g);
+  document.getElementById(p+'RemM').value=String(Math.floor(((d && d.remM!=null) ? d.remM : (settings.reminderMin||0))/5)*5);
+  document.getElementById(p+'RemBox').style.display = mode==='custom' ? 'flex' : 'none';
+}
+function _readDebtRemControls(p){
+  const mode=document.getElementById(p+'RemMode').value;
+  if(mode==='custom') return {remMode:'custom', remH:parseInt(document.getElementById(p+'RemH').value,10)||0, remM:Math.floor((parseInt(document.getElementById(p+'RemM').value,10)||0)/5)*5};
+  if(mode==='off') return {remMode:'off'};
+  return {};
+}
+function initDebtRemSelects(){
+  ['newDebt','editDebt'].forEach(p=>{
+    document.getElementById(p+'RemH').innerHTML=Array.from({length:24},(_,h)=>`<option value="${h}">${String(h).padStart(2,'0')}</option>`).join('');
+    document.getElementById(p+'RemM').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i*5}">${String(i*5).padStart(2,'0')}</option>`).join('');
+    document.getElementById(p+'RemMode').addEventListener('change',()=>{ document.getElementById(p+'RemBox').style.display = document.getElementById(p+'RemMode').value==='custom' ? 'flex' : 'none'; });
+    _setDebtRemControls(p, null);
+  });
+}
 
 // Extra reminders (weekly budget review, daily logging, backup, month start). The server only learns the time, weekday,
 // on/off flags and the last-backup DATE - never names or amounts.
@@ -2791,6 +2824,9 @@ function debtCardHtml(d){
   const badgeLabel = d.direction==='owed_to_me' ? t('debtOwedToMe') : t('debtIOwe');
   const status=debtDueStatusText(d, overdue);
   const dueHtml = d.dueDate ? `<div class="debt-card-due ${status.cls}">${status.text? `<span>${status.text}</span><span class="sep">•</span>` : ''}<span>${t('debtDueLabel')}${_c()} <bdi class="dd">${escapeHtml(d.dueDate)}</bdi></span></div>` : '';
+  const remMin=_debtRemMin(d);
+  const remTxt=String(Math.floor(remMin/60)).padStart(2,'0')+':'+String(remMin%60).padStart(2,'0');
+  const remHtml = (d.dueDate && !settled) ? `<button class="debt-rem-chip dt-edit ${d.remMode==='off'?'off':''}" data-id="${escapeHtml(d.id)}">${d.remMode==='off' ? '🔕 '+escapeHtml(t('debtRemOff')) : '🔔 <bdi dir="ltr">'+remTxt+'</bdi>'}</button>` : '';
   const noteHtml = d.note ? `<div class="debt-card-note">${escapeHtml(d.note)}</div>` : '';
   const statusHtml = settled ? `<div class="debt-card-done">${escapeHtml(t('debtSettledBadge'))}</div>` : '';
   const pct = (d.amount||0)>0 ? Math.max(0, Math.min(100, ((d.paid||0)/d.amount)*100)) : 0;
@@ -2807,7 +2843,7 @@ function debtCardHtml(d){
       ${!settled ? `<span class="pct">${Math.round(pct)}%</span>` : ''}
     </div>
     <div class="debt-progress"><div class="debt-progress-fill ${settled?'settled':''}" style="width:${pct}%"></div></div>
-    ${dueHtml}${noteHtml}${statusHtml}
+    ${dueHtml}${remHtml}${noteHtml}${statusHtml}
     <div class="debt-card-actions">
       ${settled ? '' : `<button class="debt-btn-settle dt-settle" data-id="${escapeHtml(d.id)}">${escapeHtml(t('debtSettleBtn'))}</button>`}
     </div>
@@ -2907,6 +2943,7 @@ function openDebtEditModal(id){
   document.getElementById('editDebtAmount').value=d.amount||0;
   document.getElementById('editDebtDueDate').value=d.dueDate||'';
   document.getElementById('editDebtNote').value=d.note||'';
+  _setDebtRemControls('editDebt', d);
   document.getElementById('debtEditModal').classList.add('open');
 }
 function closeDebtEditModal(){
@@ -2926,6 +2963,7 @@ document.getElementById('debtEditSaveBtn').addEventListener('click', ()=>{
   d.amount=amount;
   d.dueDate=document.getElementById('editDebtDueDate').value || '';
   d.note=document.getElementById('editDebtNote').value.trim();
+  delete d.remMode; delete d.remH; delete d.remM; Object.assign(d, _readDebtRemControls('editDebt'));
   saveDebts(); renderDebtsList();
   showToast(t('toastDebtUpdated'));
   closeDebtEditModal();
@@ -2946,13 +2984,14 @@ document.getElementById('addDebtBtn').addEventListener('click', ()=>{
   const note=document.getElementById('newDebtNote').value.trim();
   if(!person){ showToast(t('toastEnterDebtPerson')); return; }
   if(isNaN(amount) || amount<=0){ showToast(t('toastEnterDebtAmount')); return; }
-  debts.push({id:'dt_'+Date.now(), person, icon, direction, amount, paid:0, dueDate:dueDate||'', note, createdAt:new Date().toISOString()});
+  debts.push(Object.assign({id:'dt_'+Date.now(), person, icon, direction, amount, paid:0, dueDate:dueDate||'', note, createdAt:new Date().toISOString()}, _readDebtRemControls('newDebt')));
   saveDebts();
   document.getElementById('newDebtPerson').value='';
   document.getElementById('newDebtIcon').value='';
   document.getElementById('newDebtAmount').value='';
   document.getElementById('newDebtDueDate').value='';
   document.getElementById('newDebtNote').value='';
+  _setDebtRemControls('newDebt', null);
   renderDebtsList();
   showToast(t('toastDebtAdded'));
 });
@@ -3858,93 +3897,6 @@ document.getElementById('clearAllBtn').addEventListener('click', async ()=>{
   window.location.reload();
 });
 
-/* ---------- Home Screen shortcut (Add Payment) ---------- */
-function isStandalone(){
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-}
-function isIOS(){
-  return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
-}
-function shortcutURL(){
-  const url=new URL(window.location.href);
-  url.search=''; url.hash='';
-  url.searchParams.set('action','add');
-  return url.toString();
-}
-function quickURL(){ const u=new URL('quick.html', window.location.href); u.search=''; u.hash=''; return u.toString(); }
-function shortcutHowToHtml(){
-  const q=escapeHtml(quickURL());
-  const extra = settings.lang==='fr'
-    ? `<br><br><b>Ajout rapide (sans ouvrir l'application complète) :</b> une petite page avec uniquement le montant et la catégorie. Sur Android, elle apparaît dans le menu d'appui long de l'icône sous le nom « Ajout rapide ». Sur iOS, ouvrez ce lien dans Safari → Partager → Sur l'écran d'accueil : <span style="direction:ltr; display:inline-block; word-break:break-all;">${q}</span>`
-    : settings.lang==='en'
-    ? `<br><br><b>Quick add (without opening the full app):</b> a small page with only amount + category. On Android it appears in the icon's long-press menu as \"Quick add\". On iOS open this link in Safari → Share → Add to Home Screen: <span style=\"direction:ltr; display:inline-block; word-break:break-all;\">${q}</span>`
-    : `<br><br><b>التسجيل السريع (دون فتح التطبيق كاملًا):</b> صفحة صغيرة فيها المبلغ والفئة فقط. على أندرويد تظهر في قائمة الضغط المطوّل على الأيقونة باسم \"تسجيل سريع\". على iOS افتح هذا الرابط في Safari ← مشاركة ← إضافة إلى الشاشة الرئيسية: <span style=\"direction:ltr; display:inline-block; word-break:break-all;\">${q}</span>`;
-  return _shortcutHowToBase() + extra;
-}
-function _shortcutHowToBase(){
-  const url=escapeHtml(shortcutURL());
-  if(settings.lang==='fr'){
-    if(isIOS()){
-      return `Pour obtenir une icône indépendante qui s'ouvre directement sur « Ajouter un paiement » :<br>
-      1) Ouvrez ce lien dans Safari : <span style="direction:ltr; display:inline-block; word-break:break-all;">${url}</span><br>
-      2) Appuyez sur le bouton Partager.<br>
-      3) Choisissez « Sur l'écran d'accueil ».<br>
-      4) Nommez-la par exemple « Paiement rapide » puis appuyez sur « Ajouter ».<br>
-      Vous obtiendrez une deuxième icône à côté de Daftari qui ouvre directement l'écran d'ajout.`;
-    }
-    return `Appuyez longuement (ou faites un clic droit) sur l'icône Daftari de votre écran d'accueil ou de votre barre des tâches : une option de raccourci « Enregistrer un paiement » apparaîtra directement dans le menu.<br><br>
-    Si elle n'apparaît pas, vous pouvez aussi ajouter ce lien comme raccourci indépendant : <span style="direction:ltr; display:inline-block; word-break:break-all;">${url}</span>`;
-  }
-  if(settings.lang==='en'){
-    if(isIOS()){
-      return `To get a standalone icon that opens directly to "Add Payment":<br>
-      1) Open this link in Safari: <span style="direction:ltr; display:inline-block; word-break:break-all;">${url}</span><br>
-      2) Tap the Share button.<br>
-      3) Choose "Add to Home Screen".<br>
-      4) Name it e.g. "Quick Payment" and tap "Add".<br>
-      You'll get a second icon next to Daftari that opens straight to the add screen.`;
-    }
-    return `Long-press (or right-click) the Daftari icon on your home screen or taskbar, and a "Log Payment" shortcut option will appear directly in the menu.<br><br>
-    If it doesn't appear, you can also add this link as a standalone shortcut: <span style="direction:ltr; display:inline-block; word-break:break-all;">${url}</span>`;
-  }
-  if(isIOS()){
-    return `للحصول على أيقونة مستقلة تفتح مباشرة على "إضافة عملية دفع":<br>
-    1) افتح هذا الرابط في Safari: <span style="direction:ltr; display:inline-block; word-break:break-all;">${url}</span><br>
-    2) اضغط زر المشاركة (المربع بالسهم) بالأسفل.<br>
-    3) اختر "إضافة إلى الشاشة الرئيسية".<br>
-    4) سمِّها مثلاً "دفعة سريعة" واضغط "إضافة".<br>
-    ستحصل على أيقونة ثانية بجانب أيقونة دفتري تفتح مباشرة صفحة الإضافة. (iOS لا يدعم اختصارات الضغط المطوّل على أيقونة واحدة، لذلك هذه أيقونة مستقلة).`;
-  }
-  return `اضغط مطولًا (أو انقر بزر الفأرة الأيمن) على أيقونة دفتري على الشاشة الرئيسية أو شريط المهام، وسيظهر خيار "تسجيل دفعة" مباشرة ضمن قائمة الاختصارات — بفضل تسجيله في ملف التطبيق (manifest).<br><br>
-  إن لم تظهر القائمة، يمكنك أيضًا إضافة هذا الرابط كاختصار مستقل: <span style="direction:ltr; display:inline-block; word-break:break-all;">${url}</span>`;
-}
-document.getElementById('howToShortcutBtn').addEventListener('click', ()=>{
-  const box=document.getElementById('shortcutHowTo');
-  box.innerHTML=shortcutHowToHtml();
-  box.style.display = box.style.display==='none' ? 'block' : 'none';
-});
-document.getElementById('shortcutInfoBtn').addEventListener('click', ()=>{
-  switchTab('tabSettings');
-  setTimeout(()=>{
-    document.getElementById('shortcutHowTo').innerHTML=shortcutHowToHtml();
-    document.getElementById('shortcutHowTo').style.display='block';
-    document.getElementById('howToShortcutBtn').scrollIntoView({behavior:'smooth', block:'center'});
-  }, 30);
-});
-document.getElementById('shortcutDismissBtn').addEventListener('click', ()=>{
-  document.getElementById('shortcutBanner').style.display='none';
-  try{ localStorage.setItem('daftari_shortcut_banner_dismissed','1'); }catch(e){}
-});
-function maybeShowShortcutBanner(){
-  let dismissed=false;
-  try{ dismissed = localStorage.getItem('daftari_shortcut_banner_dismissed')==='1'; }catch(e){}
-  const params=new URLSearchParams(window.location.search);
-  const openedViaShortcut = params.get('action')==='add';
-  if(!dismissed && !openedViaShortcut && isStandalone()){
-    document.getElementById('shortcutBanner').style.display='flex';
-  }
-}
-
 /* ---------- PIN lock ---------- */
 async function sha256(str){
   const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -4051,6 +4003,7 @@ function enhanceDateInput(el){
 enhanceDateInput(document.getElementById('dateInput'));
 enhanceDateInput(document.getElementById('newDebtDueDate'));
 enhanceDateInput(document.getElementById('editDebtDueDate'));
+initDebtRemSelects();
 
 async function init(){
   try{
@@ -4069,7 +4022,6 @@ async function init(){
     const params=new URLSearchParams(window.location.search);
     const startTab = params.get('action')==='add' ? 'tabAdd' : 'tabHome';
     switchTab(startTab);
-    maybeShowShortcutBanner();
     if(settings.pinEnabled && !unlockedThisSession){ openLock('unlock'); }
   }catch(e){
     console.error('init failed:', e);
@@ -4367,10 +4319,12 @@ function _b64uToU8(s){ const p='='.repeat((4-s.length%4)%4); const b=atob((s+p).
 function _dueItems(){
   const items=[];
   debts.forEach(d=>{
-    if(d.dueDate && (+d.paid||0)<(+d.amount||0)){
+    if(d.dueDate && (+d.paid||0)<(+d.amount||0) && d.remMode!=='off'){
       const left=(+d.amount||0)-(+d.paid||0);
       const dir=d.direction==='owed_to_me' ? LX('لك عند','Owed by','À recevoir de') : LX('عليك لـ','You owe','Vous devez à');
-      items.push({k:'d', id:d.id, due:d.dueDate, text:`${d.icon||'👤'} ${dir} ${nIso(d.person)}: ${fmt(left)}`});
+      const it={k:'d', id:d.id, due:d.dueDate, text:`${d.icon||'👤'} ${dir} ${nIso(d.person)}: ${fmt(left)}`};
+      if(d.remMode==='custom' && d.remH!=null){ it.h=d.remH; it.m=Math.floor((d.remM||0)/5)*5; }
+      items.push(it);
     }
   });
   recurring.forEach(r=>{
@@ -4433,7 +4387,7 @@ async function _pushSync(){
     const hh=String(settings.reminderHour==null?9:settings.reminderHour).padStart(2,'0');
     const mm=String(Math.floor((settings.reminderMin||0)/5)*5).padStart(2,'0');
     const items=_dueItems();
-    const sig=JSON.stringify({endpoint:sub.endpoint, debts:items.filter(i=>i.k==='d').map(i=>i.due), rec:items.filter(i=>i.k==='r').map(i=>({l:i.l,f:i.f})), hr:(settings.reminderHour==null?9:settings.reminderHour), mn:Math.floor((settings.reminderMin||0)/5)*5, ev:_evPayload(), tz:(function(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){ return ''; } })()});
+    const sig=JSON.stringify({endpoint:sub.endpoint, debts:items.filter(i=>i.k==='d').map(i=>i.h!=null ? {d:i.due,h:i.h,m:i.m} : i.due), rec:items.filter(i=>i.k==='r').map(i=>({l:i.l,f:i.f})), hr:(settings.reminderHour==null?9:settings.reminderHour), mn:Math.floor((settings.reminderMin||0)/5)*5, ev:_evPayload(), tz:(function(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){ return ''; } })()});
     let last=null; try{ last=JSON.parse(localStorage.getItem('daftari_push_sig')||'null'); }catch(e){}
     // free KV plan: write only when something changed, or once a week as a keep-alive (the Worker drops devices silent for 120 days)
     if(last && last.sig===sig && Date.now()-last.t < 7*864e5){

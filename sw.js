@@ -1,4 +1,4 @@
-const CACHE_NAME = 'daftari-cache-v21';
+const CACHE_NAME = 'daftari-cache-v22';
 const APP_SHELL = [
   './',
   './index.html',
@@ -155,15 +155,18 @@ self.addEventListener('push', (event) => {
     const rlm = (!snap || /^ar/i.test(snap.lang || '')) ? '\u200F' : '';   // right-to-left mark for Arabic (also the Arabic fallback text)
     const dir = rlm ? 'rtl' : 'ltr';
     const lang = (snap && snap.lang) || 'ar';
-    const dueActive = !snap || !snap.dueTime || inSlot(snap.dueTime.h, snap.dueTime.m, now);
+    const generalActive = !snap || !snap.dueTime || inSlot(snap.dueTime.h, snap.dueTime.m, now);
+    const ownActive = !!(snap && Array.isArray(snap.items) && snap.items.some((it) => it.k === 'd' && it.h != null && inSlot(it.h, it.m || 0, now)));
+    const dueActive = generalActive || ownActive;
     const evActive = !!(snap && snap.ev && inSlot(snap.ev.h, snap.ev.m, now));
     const parts = [], debtIds = [];
     if (dueActive && snap && Array.isArray(snap.items)) {
       for (const it of snap.items) {
         if (it.k === 'd') {
           const k = sDiff(it.due, today);
-          if (k <= 1 && k >= -30) { parts.push(it.text); debtIds.push(it.id); }
-        } else if (it.k === 'r') {
+          const mine = it.h != null ? inSlot(it.h, it.m || 0, now) : generalActive;   // a debt with its own time follows that time
+          if (mine && k <= 1 && k >= -7) { parts.push(it.text); debtIds.push(it.id); }
+        } else if (it.k === 'r' && generalActive) {
           let n = sNext(it.l, it.f), g = 0;
           while (n < today && g++ < 40) n = sNext(n, it.f);
           const k = sDiff(n, today);
