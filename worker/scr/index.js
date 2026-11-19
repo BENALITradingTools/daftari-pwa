@@ -1,5 +1,7 @@
 // Free Web Push backend (Cloudflare Workers free plan + KV). No payload is sent, so no encryption is needed:
 // the service worker shows a generic notification. Only due-dates are stored (no names, no amounts).
+// OPTIONAL bank-SMS inbox (/sms, /inbox, /ack): when the user enables it, the parsed type, amount and date of a bank SMS
+// are kept in KV for up to 30 days (the SMS text itself and the balance are NOT stored) until the app fetches and acknowledges them.
 const enc = new TextEncoder();
 const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const PUSH_HOSTS = /(^|\.)(fcm\.googleapis\.com|push\.services\.mozilla\.com|push\.apple\.com|notify\.windows\.com)$/;
@@ -48,11 +50,58 @@ async function sendPush(endpoint, env) {
   return fetch(endpoint, { method: 'POST', headers: { Authorization: await vapidAuth(endpoint, env), TTL: '86400', Urgency: 'high', 'Content-Length': '0' } });
 }
 
-const cors = (env) => ({ 'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN, 'Access-Control-Allow-Methods': 'POST, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', Vary: 'Origin' });
+const cors = (env) => ({ 'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN, 'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-Token', Vary: 'Origin' });
+
+
+/* ---------------- Bank SMS inbox (optional) ---------------- */
+const SMS_TTL = 30 * 86400;   // seconds
+export function parseSms(txt) {
+  const s = String(txt || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const m = s.match(/\b(debite|credite)\s+de\s*(-?\s*\d+(?:[.,]\d+)?)\s*DA\b/i);
+  if (!m) return null;
+  const amount = Math.abs(parseFloat(m[2].replace(/\s+/g, '').replace(',', '.')));
+  if (!isFinite(amount) || amount <= 0 || amount > 1e9) return null;
+  return { type: /^debite$/i.test(m[1]) ? 'expense' : 'income', amount };
+}
+async function smsRoutes(req, env, h, path) {
+  const url = new URL(req.url);
+  const token = req.headers.get('X-Token') || url.searchParams.get('t') || '';
+  if (!/^[A-Za-z0-9_-]{16,128}$/.test(token)) return new Response('bad token', { status: 401, headers: h });
+  const prefix = 'm:' + (await sha('daftari-sms:' + token)).slice(0, 32) + ':';
+  if (path === '/sms') {
+    if (req.method !== 'POST') return new Response('not found', { status: 404, headers: h });
+    let text = (await req.text()).slice(0, 2000);
+    if (text.trim()[0] === '{') { try { const j = JSON.parse(text); if (typeof j.sms === 'string') text = j.sms; } catch { /* keep raw text */ } }
+    text = text.replace(/\s+/g, ' ').trim();
+    const p = parseSms(text);
+    if (!p) return new Response('unrecognized', { status: 422, headers: h });
+    const id = 'sms_' + (await sha(text)).slice(0, 16);
+    if (await env.SUBS.get(prefix + id)) return new Response('duplicate', { headers: h });
+    const w = (url.searchParams.get('w') || '').toLowerCase().replace(/[^a-z0-9\u0600-\u06ff _-]/g, '').slice(0, 32);
+    await env.SUBS.put(prefix + id, JSON.stringify({ id, type: p.type, amount: p.amount, date: localParts(TZ, new Date()).date, w }), { expirationTtl: SMS_TTL });
+    return new Response('ok', { headers: h });
+  }
+  if (path === '/inbox') {
+    if (req.method !== 'GET') return new Response('not found', { status: 404, headers: h });
+    const page = await env.SUBS.list({ prefix, limit: 100 });
+    const items = [];
+    for (const k of page.keys) { const v = JSON.parse((await env.SUBS.get(k.name)) || 'null'); if (v) items.push(v); }
+    return new Response(JSON.stringify({ items }), { headers: { ...h, 'Content-Type': 'application/json' } });
+  }
+  if (path === '/ack') {
+    if (req.method !== 'POST') return new Response('not found', { status: 404, headers: h });
+    let b; try { b = await req.json(); } catch { return new Response('bad json', { status: 400, headers: h }); }
+    for (const id of (Array.isArray(b.ids) ? b.ids : []).slice(0, 100)) if (/^sms_[0-9a-f]{16}$/.test(id)) await env.SUBS.delete(prefix + id);
+    return new Response('ok', { headers: h });
+  }
+  return new Response('not found', { status: 404, headers: h });
+}
 
 async function handle(req, env) {
   const h = cors(env);
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: h });
+  const path = new URL(req.url).pathname;
+  if (path === '/sms' || path === '/inbox' || path === '/ack') return smsRoutes(req, env, h, path);
   if (new URL(req.url).pathname !== '/sync' || !['POST', 'DELETE'].includes(req.method)) return new Response('not found', { status: 404, headers: h });
   let b; try { b = await req.json(); } catch { return new Response('bad json', { status: 400, headers: h }); }
   let host; try { const u = new URL(b.endpoint); if (u.protocol !== 'https:') throw 0; host = u.hostname; } catch { return new Response('bad endpoint', { status: 400, headers: h }); }
