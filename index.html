@@ -220,15 +220,6 @@
   #lockScreen.open{display:flex;}
 #privacyCover{position:fixed; inset:0; z-index:101; background:var(--bg); display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px;}
 #privacyCover.open{display:flex;}
-#smsPick{position:fixed; inset:0; z-index:90; background:rgba(0,0,0,.6); display:none; align-items:flex-end; justify-content:center;}
-#smsPick.open{display:flex;}
-.sms-pick-box{background:var(--card); border:1px solid var(--line); border-radius:18px 18px 0 0; padding:16px; width:100%; max-width:520px; max-height:85vh; overflow:auto;}
-.sms-pick-title{font-weight:700; margin-bottom:8px;}
-.sms-pick-text{background:var(--card-2); border:1px solid var(--line); border-radius:10px; padding:10px; font-size:12px; color:var(--muted); max-height:120px; overflow:auto; white-space:pre-wrap; word-break:break-word; margin-bottom:10px;}
-.sms-pick-row{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0;}
-.sms-pick-row button{background:var(--card-2); color:var(--ink); border:1px solid var(--line); border-radius:12px; padding:10px 14px; font-size:15px; font-family:inherit; cursor:pointer;}
-.sms-pick-row button.on{border-color:var(--accent,#d4a85a); box-shadow:0 0 0 1px var(--accent,#d4a85a) inset;}
-.sms-pick-row button.bal{opacity:.55;}
 .bio-btn{margin-top:18px; background:var(--card); border:1px solid var(--line); color:var(--ink); border-radius:14px; padding:12px 18px; font-size:15px; font-family:'Tajawal'; cursor:pointer;}
   #lockScreen h2{font-size:16px; margin-bottom:22px;}
   .pin-dots{display:flex; gap:14px; margin-bottom:30px;}
@@ -536,7 +527,6 @@
   <button class="pin-forgot" id="forgotBtn" data-i18n="forgotPin">نسيت الرمز؟</button>
   <button class="pin-forgot" id="pinCancelBtn" style="display:none; color:var(--muted);">✕</button>
 </div>
-<div id="smsPick"><div class="sms-pick-box"><div class="sms-pick-title" id="smsPickTitle"></div><div class="sms-pick-text" id="smsPickText" dir="auto"></div><div class="sms-pick-row" id="smsPickType"></div><div class="sms-pick-row" id="smsPickNums"></div><div class="sms-pick-row"><button type="button" id="smsPickCancel"></button></div></div></div>
 <div id="privacyCover"><div style="font-size:46px;">💰</div><div style="font-size:16px; font-weight:700;">دفتري</div></div>
 
 <div class="wrap" id="appRoot">
@@ -945,6 +935,18 @@
         <button class="save-btn" id="testPushBtn" style="margin-top:10px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);" data-i18n="testPushBtn">🔔 اختبار إشعار الخادم</button>
       </div>
       <div class="info-note" data-i18n="notifInfo">ℹ️ يصلك التنبيه صباح يوم الاستحقاق حتى لو كان التطبيق مغلقًا، عبر خادم مجاني لا يحفظ سوى تواريخ الاستحقاق (دون أسماء أو مبالغ). كما يظهر عند فتح التطبيق.</div>
+    </div>
+
+<div class="section-title" id="smsTitle"></div>
+    <div class="card-box">
+      <div class="set-row"><div><div class="lab" id="smsLab"></div><div class="sub" id="smsSub"></div></div></div>
+      <div class="set-row" style="flex-wrap:wrap; gap:8px;">
+        <input id="smsTokenInput" type="text" dir="ltr" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1; min-width:200px;">
+        <button class="save-btn" id="smsTokenSave" style="width:auto; padding:8px 14px;"></button>
+      </div>
+      <button class="save-btn" id="smsGenBtn" style="margin-top:8px; background:var(--card-2); color:var(--ink); border:1px solid var(--line);"></button>
+      <div class="sub" id="smsStatus" style="margin:8px 4px;"></div>
+      <div class="info-note" id="smsNote"></div>
     </div>
 
 <div class="section-title" data-i18n="securitySection">الأمان</div>
@@ -4189,141 +4191,6 @@ document.getElementById('forgotBtn').addEventListener('click', async ()=>{
 // show the lock immediately on startup (before the data finishes loading)
 try{ const st0=JSON.parse(localStorage.getItem(SET_KEY)||'{}'); if(st0.pinEnabled){ document.getElementById('lockScreen').classList.add('open'); } }catch(e){}
 
-/* ---------- Bank SMS parser (runs only on this device) ---------- */
-function _smsNorm(s){
-  return String(s||'')
-    .replace(/[\u0660-\u0669]/g,d=>String(d.charCodeAt(0)-0x0660))
-    .replace(/[\u06F0-\u06F9]/g,d=>String(d.charCodeAt(0)-0x06F0))
-    .replace(/\u066B/g,'.').replace(/\u066C/g,' ')
-    .replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g,'')
-    .replace(/\s+/g,' ').trim();
-}
-function _smsNum(tok){
-  let t=tok.replace(/[\s\u00a0\u202f]/g,'');
-  const hasDot=t.indexOf('.')>=0, hasCom=t.indexOf(',')>=0;
-  if(hasDot && hasCom){ const dec=t.lastIndexOf('.')>t.lastIndexOf(',')?'.':','; const th=dec==='.'?',':'.'; t=t.split(th).join('').replace(dec,'.'); }
-  else if(hasDot||hasCom){
-    const sep=hasDot?'.':','; const parts=t.split(sep);
-    if(parts.length>2) t=parts.join('');                                   // 1.234.567
-    else if(parts[1].length===3 && parts[0].length<=3 && parts[0]!=='0') t=parts.join('');   // 1,500 / 1.500 = thousands
-    else t=parts[0]+'.'+parts[1];                                           // 1500,50 / 15,5 = decimals
-  }
-  const n=parseFloat(t); return isFinite(n)?n:NaN;
-}
-function _smsClean(s){   // remove dates / times / masked cards / long digit runs so they are never mistaken for amounts
-  return s.replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g,' ').replace(/\b\d{4}-\d{2}-\d{2}\b/g,' ').replace(/\b\d{1,2}[:h]\d{2}(?::\d{2})?\b/g,' ')
-    .replace(/[*xX#]{2,}\s*\d{2,6}/g,' ').replace(/\b\d{8,}\b/g,' ');
-}
-var _SMS_BAL=/(?:solde|balance|disponible|available|plafond|limite|\u0631\u0635\u064a\u062f|\u0627\u0644\u0631\u0635\u064a\u062f)[^0-9]{0,25}$/i;
-// every plausible number in a message (used when the amount could not be recognised automatically); balance-like numbers last
-function smsCandidates(raw){
-  const s=_smsNorm(raw); if(!s) return [];
-  const w=_smsClean(s), re=/(\d{1,3}(?:[ \u00a0\u202f.,]\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?)/g;
-  const seen=new Set(), out=[]; let x;
-  while((x=re.exec(w))){
-    const v=_smsNum(x[1]); if(!(v>0) || seen.has(v)) continue; seen.add(v);
-    out.push({v:Math.round(v*100)/100, bal:_SMS_BAL.test(w.slice(Math.max(0,x.index-30),x.index)), label:x[1].trim()});
-  }
-  return out.sort((a,b)=>(a.bal-b.bal)).slice(0,8);
-}
-function parseBankSms(raw){
-  const out={amount:0,type:null,note:'',date:'',ok:false};
-  let s=_smsNorm(raw); if(!s) return out;
-  if(/\botp\b|one[- ]time|code (?:de )?(?:confirmation|v[ée]rification|s[ée]curit[ée])|verification code|\u0631\u0645\u0632 \u0627\u0644\u062a\u062d\u0642\u0642|\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631|\u0631\u0645\u0632 \u0627\u0644\u062a\u0641\u0639\u064a\u0644/i.test(s)){ out.otp=true; return out; }   // codes, not transactions
-  // date (day first), then remove dates/times/masked cards/long digit runs so they are never mistaken for amounts
-  let m=s.match(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4}|\d{2})\b/);
-  if(m){ let d=+m[1], mo=+m[2], y=+m[3]; if(y<100) y+=2000; if(d>=1&&d<=31&&mo>=1&&mo<=12) out.date=y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
-  else{ m=s.match(/\b(\d{4})-(\d{2})-(\d{2})\b/); if(m) out.date=m[1]+'-'+m[2]+'-'+m[3]; }
-  let w=_smsClean(s);
-  const NUM='(\\d{1,3}(?:[ \\u00a0\\u202f.,]\\d{3})+(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d{1,2})?)';
-  const CUR='(?:DZD|D\\.?A\\.?|DINARS?|EUR|USD|\\u20ac|\\$|\\u062f\\.?\\u062c|\\u062f\\u064a\\u0646\\u0627\\u0631(?:\\s*\\u062c\\u0632\\u0627\\u0626\\u0631\\u064a)?)';
-  const KW='(?:montant|amount|\\u0645\\u0628\\u0644\\u063a|\\u0628\\u0645\\u0628\\u0644\\u063a|\\u0628\\u0642\\u064a\\u0645\\u0629)';
-  const BAL=_SMS_BAL;
-  const cands=[];
-  const addAll=(re,grp)=>{ let x; while((x=re.exec(w))){ cands.push({i:x.index,tok:x[grp]}); if(x.index===re.lastIndex) re.lastIndex++; } };
-  addAll(new RegExp(NUM+'\\s*'+CUR+'(?![A-Za-z])','gi'),1);
-  addAll(new RegExp('(?:^|[^A-Za-z])'+CUR+'\\s*[:\\-]?\\s*'+NUM,'gi'),1);
-  cands.sort((a,b)=>a.i-b.i);
-  let pick=null;
-  for(const c of cands){ if(!BAL.test(w.slice(Math.max(0,c.i-30),c.i))){ pick=c; break; } }
-  if(!pick){ const r=new RegExp(KW+'\\s*(?:de|of|:)?\\s*'+NUM,'i'); const x=r.exec(w); if(x && !BAL.test(w.slice(Math.max(0,x.index-30),x.index))) pick={tok:x[1]}; }
-  if(!pick) return out;
-  const amount=_smsNum(pick.tok); if(!(amount>0)) return out;
-  out.amount=Math.round(amount*100)/100;
-  // direction: whichever strong keyword appears first
-  const EXP=/d[\u00e9e]bit[\u00e9e]?|retrait|paiement|pay[\u00e9e]|achat|pr[\u00e9e]l[\u00e8e]vement|facture|purchase|payment|withdraw(?:al)?|spent|\u062a\u0645 \u062e\u0635\u0645|\u062e\u0635\u0645|\u0633\u062d\u0628|\u062f\u0641\u0639|\u0634\u0631\u0627\u0621|\u0645\u0634\u062a\u0631\u064a\u0627\u062a|\u0633\u062f\u0627\u062f|\u0641\u0627\u062a\u0648\u0631\u0629|\u062a\u0645 \u062a\u062d\u0648\u064a\u0644|\u062a\u062d\u0648\u064a\u0644 \u0635\u0627\u062f\u0631/i;
-  const INC=/cr[\u00e9e]dit[\u00e9e]|\bcr[\u00e9e]dit\b|versement|virement re[\u00e7c]u|d[\u00e9e]p[\u00f4o]t|\bre[\u00e7c]u\b|salaire|credited|\bcredit\b|deposit|received|salary|\u0625\u064a\u062f\u0627\u0639|\u0627\u064a\u062f\u0627\u0639|\u062a\u0645 \u0625\u064a\u062f\u0627\u0639|\u0627\u0633\u062a\u0644\u0627\u0645|\u0648\u0627\u0631\u062f|\u0631\u0627\u062a\u0628|\u062a\u0645 \u0642\u064a\u062f/i;
-  const e=s.search(EXP), i=s.search(INC);
-  out.type = (e<0&&i<0) ? null : (i<0 ? 'expense' : (e<0 ? 'income' : (e<i?'expense':'income')));
-  // merchant
-  const STOP=/\s+(?:le|on|du|the|solde|balance|\u0628\u062a\u0627\u0631\u064a\u062e|\u0627\u0644\u0631\u0635\u064a\u062f|\u0631\u0635\u064a\u062f|ref|r[\u00e9e]f)\b|[.,;\u060c\n]|\d{1,2}[\/\-.]\d{1,2}/i;
-  let mm=s.match(/(?:chez|aupr[\u00e8e]s de|merchant|marchand|commer[\u00e7c]ant|\bat\b|\bto\b|\u0644\u062f\u0649|\u0639\u0646\u062f|\u0644\u0635\u0627\u0644\u062d)\s+([^\n]{2,60})/i);
-  if(mm){ let n=mm[1]; const k=n.search(STOP); if(k>0) n=n.slice(0,k); n=n.replace(/[*#]+/g,'').trim(); if(n.length>=2 && !/^(?:votre|your|\u062d\u0633\u0627\u0628|\u0628\u0637\u0627\u0642)/i.test(n)) out.note=n.slice(0,40); }
-  out.ok=true; return out;
-}
-
-/* ---------- Bank SMS -> prefilled transaction (the SMS is analysed on this device only; nothing is stored except a hash to spot repeats) ---------- */
-var SMS_SEEN_KEY='daftari_sms_seen';
-async function _smsHash(txt){ const d=new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt))); return Array.from(d.slice(0,12)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
-// Fallback when the amount was not recognised: show the numbers found in the message and let the user tap the right one.
-function pickSmsAmount(raw, cands, guessType){
-  return new Promise((resolve)=>{
-    const box=document.getElementById('smsPick'); let type=guessType||'expense';
-    document.getElementById('smsPickTitle').textContent=LX('لم أتعرف على المبلغ تلقائيًا. اختر النوع ثم المبلغ الصحيح:','The amount was not recognised. Choose the type, then the right amount:','Montant non reconnu. Choisissez le type puis le bon montant :');
-    document.getElementById('smsPickText').textContent=String(raw).slice(0,600);
-    const typeRow=document.getElementById('smsPickType');
-    const paint=()=>{ typeRow.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.t===type)); };
-    typeRow.innerHTML='<button type="button" data-t="expense">'+LX('مصروف','Expense','Dépense')+'</button><button type="button" data-t="income">'+LX('دخل','Income','Revenu')+'</button>';
-    typeRow.querySelectorAll('button').forEach(b=>b.onclick=()=>{ type=b.dataset.t; paint(); }); paint();
-    const nums=document.getElementById('smsPickNums');
-    nums.innerHTML=cands.map((c,i)=>'<button type="button" data-i="'+i+'" class="'+(c.bal?'bal':'')+'"><bdi dir="ltr">'+escapeHtml(c.label)+'</bdi></button>').join('');
-    const done=(v)=>{ box.classList.remove('open'); resolve(v); };
-    nums.querySelectorAll('button').forEach(b=>b.onclick=()=>done({amount:cands[+b.dataset.i].v, type}));
-    const cb=document.getElementById('smsPickCancel'); cb.textContent=LX('إلغاء','Cancel','Annuler'); cb.onclick=()=>done(null);
-    box.classList.add('open');
-  });
-}
-async function handleBankSms(raw, source){
-  let p=parseBankSms(raw);
-  try{ history.replaceState(null,'',location.pathname); }catch(e){}   // remove the message from the address bar / history entry
-  if(!p.amount && !p.otp){
-    const cands=smsCandidates(raw);
-    if(cands.length){
-      const pk=await pickSmsAmount(raw, cands, p.type);
-      if(!pk) return false;
-      p=Object.assign({}, p, {amount:pk.amount, type:pk.type, ok:true});
-    }
-  }
-  if(!p.amount){ showToast(LX('لم أتعرف على عملية مالية في الرسالة','No transaction found in the message','Aucune opération trouvée dans le message')); return false; }
-  let seen=[]; try{ seen=JSON.parse(localStorage.getItem(SMS_SEEN_KEY)||'[]'); }catch(e){}
-  const h=await _smsHash(_smsNorm(raw));
-  if(seen.includes(h) && !confirm(LX('سبق تحليل هذه الرسالة. هل تريد تحميلها مرة أخرى؟','This message was already processed. Load it again?','Ce message a déjà été traité. Le charger à nouveau ?'))) return false;
-  seen=seen.filter(x=>x!==h); seen.push(h);
-  try{ localStorage.setItem(SMS_SEEN_KEY, JSON.stringify(seen.slice(-100))); }catch(e){}
-  try{ switchTab('tabAdd'); }catch(e){}
-  resetAddForm();
-  currentType = p.type || 'expense';
-  document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.type===currentType));
-  // a note used before keeps its category (e.g. the same shop)
-  const prev = p.note ? transactions.slice().reverse().find(x=>x.type===currentType && x.note && x.note.toLowerCase()===p.note.toLowerCase()) : null;
-  selectedCategory = prev ? prev.category : null;
-  renderCatGrid();
-  document.getElementById('amountInput').value=String(p.amount);
-  document.getElementById('noteInput').value=p.note || LX('رسالة بنك','Bank SMS','SMS bancaire');
-  document.getElementById('dateInput').value=p.date || new Date().toISOString().slice(0,10);
-  const kind = currentType==='income' ? LX('دخل','income','revenu') : LX('مصروف','expense','dépense');
-  showToast(LX('تم التعرّف على '+kind+' بمبلغ '+fmt(p.amount)+(p.type?'':' (تحقق من النوع)')+'. اختر الفئة ثم احفظ.','Recognised '+kind+' of '+fmt(p.amount)+(p.type?'':' (check the type)')+'. Pick a category and save.','Reconnu : '+kind+' de '+fmt(p.amount)+(p.type?'':' (vérifiez le type)')+'. Choisissez la catégorie et enregistrez.'));
-  return true;
-}
-async function smsFromClipboard(){
-  let txt='';
-  try{ txt=await navigator.clipboard.readText(); }catch(e){}
-  if(!txt || !parseBankSms(txt).amount){
-    txt = prompt(LX('الصق نص رسالة البنك هنا','Paste the bank SMS text here','Collez le texte du SMS bancaire ici'), '') || '';
-  }
-  if(txt.trim()) await handleBankSms(txt,'paste');
-}
-
 /* ---------- init ---------- */
 /* ---------- custom date display (Android-safe) ---------- */
 function enhanceDateInput(el){
@@ -4343,6 +4210,139 @@ enhanceDateInput(document.getElementById('newDebtDueDate'));
 enhanceDateInput(document.getElementById('editDebtDueDate'));
 initDebtRemSelects();
 
+/* ===== bank SMS -> prefilled add form (?sms=<text>) ===== */
+const SMS_SEEN_KEY='daftari_sms_seen';
+function parseBankSms(txt){
+  const s=String(txt||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const m=s.match(/\b(debite|credite)\s+de\s*(-?\s*\d+(?:[.,]\d+)?)\s*DA\b/i);
+  if(!m) return null;
+  const amount=Math.abs(parseFloat(m[2].replace(/\s+/g,'').replace(',','.')));
+  if(!isFinite(amount) || amount<=0) return null;
+  return { type: /^debite$/i.test(m[1]) ? 'expense' : 'income', amount: amount };
+}
+function _smsHash(str){ let h=5381; for(let i=0;i<str.length;i++){ h=((h*33)^str.charCodeAt(i))>>>0; } return h.toString(36); }
+function handleSmsParam(params){
+  if(!params.has('sms')) return;
+  const raw=params.get('sms')||'';
+  const wantW=(params.get('w')||'').trim().toLowerCase();      // optional: &w=bank or &w=baridi picks the wallet by name
+  const confirmMode=params.get('confirm')==='1';               // optional: &confirm=1 only pre-fills the add form
+  try{ history.replaceState(null,'',location.pathname); }catch(e){}   // so a refresh does not re-process it
+  const p=parseBankSms(raw);
+  if(!p){ switchTab('tabAdd'); showToast(LX('تعذّر تحليل رسالة البنك','Could not parse the bank SMS','Impossible d\'analyser le SMS bancaire')); return; }
+  const hash=_smsHash(raw.replace(/\s+/g,' ').trim());
+  let seen=[]; try{ seen=JSON.parse(localStorage.getItem(SMS_SEEN_KEY)||'[]'); }catch(e){}
+  if(seen.includes(hash)){ switchTab('tabHome'); showToast(LX('هذه الرسالة عولجت من قبل','This SMS was already processed','Ce SMS a déjà été traité')); return; }
+  seen.push(hash); try{ localStorage.setItem(SMS_SEEN_KEY, JSON.stringify(seen.slice(-50))); }catch(e){}
+  const lab=w=>((w.label||'')+' '+(w.label_en||'')+' '+(w.label_fr||'')+' '+(w.id||'')).toLowerCase();
+  let wal = wantW ? wallets.find(w=>lab(w).includes(wantW)) : null;
+  if(!wal) wal = wallets.find(w=>/bank|baridi|بنك|بريدي/.test(lab(w))) || wallets[0];
+  const cats=catsByType(p.type);
+  const cat=(cats.find(c=>c.id===(p.type==='expense'?'other_exp':'other_inc')) || cats[0] || {}).id;
+  const note=LX('رسالة بنكية','Bank SMS','SMS bancaire');
+  if(confirmMode || !cat || !wal){
+    switchTab('tabAdd');
+    currentType=p.type; selectedCategory=null; catGridExpanded=false; selectedBillType=null;
+    document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.type===p.type));
+    renderCatGrid();
+    document.getElementById('amountInput').value=String(p.amount);
+    document.getElementById('noteInput').value=note;
+    document.getElementById('dateInput').value=_localISO(new Date());
+    populateWalletSelect();
+    if(wal) document.getElementById('walletSelect').value=wal.id;
+    showToast(LX('تحقق من الفئة والمحفظة ثم احفظ','Check category and wallet, then save','Vérifiez la catégorie et le portefeuille, puis enregistrez'));
+    return;
+  }
+  const tx={id:Date.now().toString()+Math.random().toString(36).slice(2,6), type:p.type, category:cat, amount:p.amount, note:note, date:_localISO(new Date()), wallet:wal.id, receipt:null, billType:null};
+  transactions.push(tx);
+  // same safety net quick.html uses: if a newer cloud copy replaces local data before our push finishes, this id is re-added
+  try{ const pend=JSON.parse(localStorage.getItem('daftari_quick_pending')||'[]'); pend.push(tx.id); localStorage.setItem('daftari_quick_pending', JSON.stringify(pend)); }catch(e){}
+  saveTx();
+  switchTab('tabHome');
+  const sign=p.type==='expense'?'-':'+';
+  offerUndo(LX('سُجّلت من رسالة البنك: ','Recorded from bank SMS: ','Enregistré depuis le SMS : ')+sign+p.amount.toFixed(2), ()=>{
+    const i=transactions.findIndex(x=>x.id===tx.id); if(i>-1){ transactions.splice(i,1); saveTx(); }
+    switchTab('tabHome');
+  });
+  try{ checkBudgetAlert(tx); }catch(e){}
+}
+/* ===== automatic bank-SMS inbox: phone automation -> Worker /sms -> this app pulls /inbox ===== */
+const SMS_TOKEN_KEY='daftari_sms_token', SMS_APPLIED_KEY='daftari_sms_applied';
+let _smsPulling=false, _smsMsg='';
+function _smsUrl(path){ return PUSH_API ? PUSH_API.replace(/\/sync$/, path) : ''; }
+function _smsToken(){ try{ return localStorage.getItem(SMS_TOKEN_KEY)||''; }catch(e){ return ''; } }
+function _smsPick(wantW, type){
+  const lab=w=>((w.label||'')+' '+(w.label_en||'')+' '+(w.label_fr||'')+' '+(w.id||'')).toLowerCase();
+  let wal = wantW ? wallets.find(w=>lab(w).includes(wantW)) : null;
+  if(!wal) wal = wallets.find(w=>/bank|baridi|بنك|بريدي/.test(lab(w))) || wallets[0];
+  const cats=catsByType(type);
+  const cat=(cats.find(c=>c.id===(type==='expense'?'other_exp':'other_inc')) || cats[0] || {}).id;
+  return (wal && cat) ? {wal:wal, cat:cat} : null;
+}
+function _smsCardRender(){
+  const set=(id,txt)=>{ const el=document.getElementById(id); if(el) el.textContent=txt; };
+  set('smsTitle', LX('رسائل البنك التلقائية','Automatic bank SMS','SMS bancaires automatiques'));
+  set('smsLab', LX('رمز الاستقبال','Inbox token','Jeton de réception'));
+  set('smsSub', LX('أنشئ رمزًا وضعه في أتمتة الهاتف. يسجّل التطبيق العمليات تلقائيًا كلما فُتح.','Create a token and put it in the phone automation. The app records the entries automatically whenever it is opened.','Créez un jeton et mettez-le dans l\'automatisation du téléphone. L\'app enregistre les opérations automatiquement à chaque ouverture.'));
+  set('smsTokenSave', LX('حفظ','Save','Enregistrer'));
+  set('smsGenBtn', LX('🔑 إنشاء رمز جديد','🔑 Generate a new token','🔑 Générer un nouveau jeton'));
+  set('smsNote', LX('ℹ️ عند التفعيل يحفظ الخادم نوع العملية والمبلغ والتاريخ فقط (دون نص الرسالة ولا الرصيد) لمدة أقصاها 30 يومًا حتى يسحبها التطبيق. الرمز يُحفظ على هذا الجهاز فقط، فأدخل الرمز نفسه في كل جهاز تستخدمه. اتركه فارغًا واحفظ للإيقاف.','ℹ️ When enabled, the server keeps only the type, amount and date (not the SMS text or balance) for up to 30 days until the app fetches them. The token is stored on this device only: enter the same token on every device you use. Leave it empty and save to turn off.','ℹ️ Une fois activé, le serveur ne garde que le type, le montant et la date (ni le texte du SMS ni le solde) pendant 30 jours maximum, jusqu\'à ce que l\'app les récupère. Le jeton est stocké sur cet appareil uniquement : saisissez le même jeton sur chaque appareil. Laissez vide et enregistrez pour désactiver.'));
+  const inp=document.getElementById('smsTokenInput'); if(inp && document.activeElement!==inp) inp.value=_smsToken();
+  set('smsStatus', _smsToken() ? (_smsMsg || LX('مفعّل — بانتظار الرسائل','Enabled — waiting for messages','Activé — en attente de messages')) : LX('غير مفعّل','Off','Désactivé'));
+}
+async function pullSmsInbox(){
+  const tok=_smsToken(), inbox=_smsUrl('/inbox');
+  if(!tok || !inbox || _smsPulling || navigator.onLine===false) return;
+  _smsPulling=true;
+  try{
+    const r=await fetch(inbox,{headers:{'X-Token':tok}});
+    if(!r.ok){ _smsMsg=LX('تعذّر جلب الرسائل (رمز '+r.status+')','Could not fetch messages (code '+r.status+')','Échec de la récupération (code '+r.status+')'); _smsCardRender(); return; }
+    const data=await r.json();
+    const items=Array.isArray(data.items) ? data.items : [];
+    let applied=[]; try{ applied=JSON.parse(localStorage.getItem(SMS_APPLIED_KEY)||'[]'); }catch(e){}
+    const have=new Set(transactions.map(x=>x.id));
+    const ackIds=[], newIds=[];
+    for(const it of items){
+      if(!it || !/^sms_[0-9a-f]{16}$/.test(it.id||'')) continue;
+      if(have.has(it.id) || applied.includes(it.id)){ ackIds.push(it.id); continue; }
+      const amount=Number(it.amount);
+      if((it.type!=='expense' && it.type!=='income') || !isFinite(amount) || amount<=0 || !/^\d{4}-\d{2}-\d{2}$/.test(it.date||'')){ ackIds.push(it.id); continue; }   // malformed: drop it
+      const pk=_smsPick(String(it.w||'').toLowerCase(), it.type);
+      if(!pk) continue;   // keep it on the server for a later attempt
+      transactions.push({id:it.id, type:it.type, category:pk.cat, amount:amount, note:LX('رسالة بنكية','Bank SMS','SMS bancaire'), date:it.date, wallet:pk.wal.id, receipt:null, billType:null});
+      newIds.push(it.id); ackIds.push(it.id);
+    }
+    if(newIds.length){
+      // same safety net quick.html uses against a newer cloud copy replacing local data before our push
+      try{ const pend=JSON.parse(localStorage.getItem('daftari_quick_pending')||'[]'); localStorage.setItem('daftari_quick_pending', JSON.stringify(pend.concat(newIds))); }catch(e){}
+      try{ localStorage.setItem(SMS_APPLIED_KEY, JSON.stringify(applied.concat(newIds).slice(-300))); }catch(e){}
+      await saveTx();
+      const m=document.querySelector('main.active'); if(m && m.id!=='tabAdd') switchTab(m.id);
+      showToast(LX('سُجّلت '+newIds.length+' عملية من رسائل البنك','Recorded '+newIds.length+' entries from bank SMS','Enregistré '+newIds.length+' opération(s) depuis les SMS bancaires'));
+    }
+    if(ackIds.length){ await fetch(_smsUrl('/ack'),{method:'POST',headers:{'X-Token':tok,'Content-Type':'application/json'},body:JSON.stringify({ids:ackIds})}); }
+    _smsMsg=LX('آخر فحص ناجح','Last check OK','Dernière vérification OK')+' '+new Date().toLocaleTimeString();
+    _smsCardRender();
+  }catch(e){
+    console.warn('sms inbox failed', e);
+    _smsMsg=LX('تعذّر الاتصال بالخادم','Could not reach the server','Serveur injoignable'); _smsCardRender();
+  }finally{ _smsPulling=false; }
+}
+(function(){
+  const inp=()=>document.getElementById('smsTokenInput');
+  const gen=document.getElementById('smsGenBtn'), save=document.getElementById('smsTokenSave');
+  if(gen) gen.addEventListener('click', ()=>{ const b=new Uint8Array(16); crypto.getRandomValues(b); inp().value=Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join(''); });
+  if(save) save.addEventListener('click', ()=>{
+    const v=inp().value.trim();
+    if(v && !/^[A-Za-z0-9_-]{16,128}$/.test(v)){ showToast(LX('الرمز غير صالح (16 إلى 128 حرفًا/رقمًا)','Invalid token (16 to 128 letters/digits)','Jeton invalide (16 à 128 lettres/chiffres)')); return; }
+    try{ if(v) localStorage.setItem(SMS_TOKEN_KEY, v); else localStorage.removeItem(SMS_TOKEN_KEY); }catch(e){}
+    _smsMsg=''; _smsCardRender(); showToast(LX('تم الحفظ','Saved','Enregistré'));
+    pullSmsInbox();
+  });
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') pullSmsInbox(); });
+  window.addEventListener('online', ()=>pullSmsInbox());
+  setInterval(()=>{ if(document.visibilityState==='visible') pullSmsInbox(); }, 60000);
+  { const _rs=renderSettings; renderSettings=function(){ const r=_rs.apply(this,arguments); try{ _smsCardRender(); }catch(e){} return r; }; }
+})();
 async function init(){
   try{
     await load();
@@ -4360,6 +4360,8 @@ async function init(){
     const params=new URLSearchParams(window.location.search);
     const startTab = params.get('action')==='add' ? 'tabAdd' : 'tabHome';
     switchTab(startTab);
+    handleSmsParam(params);
+    pullSmsInbox();
     if(settings.pinEnabled && !unlockedThisSession){ openLock('unlock'); }
   }catch(e){
     console.error('init failed:', e);
@@ -4498,8 +4500,7 @@ document.querySelector('#tabAdd .type-toggle').before(tplBox);
 function renderTpl(){
   tplBox.innerHTML=templates.map((p,i)=>{const c=categories.find(c=>c.id===p.category);
     return `<span class="tpl-chip" data-i="${i}">${c?c.icon:'🏷️'} ${escapeHtml(p.name)} · ${p.amount}<b data-del="${i}">×</b></span>`;}).join('')
-    +`<button type="button" class="tpl-chip" id="tplAdd">➕ ${LX('حفظ كقالب','Save as template','Enregistrer comme modèle')}</button>`
-    +`<button type="button" class="tpl-chip" id="smsAdd">📩 ${LX('من رسالة بنك','From bank SMS','Depuis un SMS bancaire')}</button>`;
+    +`<button type="button" class="tpl-chip" id="tplAdd">➕ ${LX('حفظ كقالب','Save as template','Enregistrer comme modèle')}</button>`;
   tplBox.querySelectorAll('.tpl-chip[data-i]').forEach(el=>el.onclick=(e)=>{
     if(e.target.dataset.del!==undefined){templates.splice(+e.target.dataset.del,1);tplSave();renderTpl();return;}
     const p=templates[+el.dataset.i]; currentType=p.type; selectedCategory=p.category;
@@ -4508,7 +4509,6 @@ function renderTpl(){
     if(p.wallet) document.getElementById('walletSelect').value=p.wallet;
     document.getElementById('amountInput').value=p.amount; document.getElementById('noteInput').value=p.note||'';
   });
-  document.getElementById('smsAdd').onclick=()=>{ smsFromClipboard(); };
   document.getElementById('tplAdd').onclick=()=>{
     const amount=parseFloat(document.getElementById('amountInput').value), note=document.getElementById('noteInput').value.trim();
     if(!(amount>0)||!selectedCategory){showToast(LX('أدخل المبلغ واختر الفئة أولًا','Enter amount and pick a category first','Saisissez le montant et choisissez d\'abord une catégorie'));return;}
@@ -4778,7 +4778,6 @@ if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('messa
   if(e.data&&e.data.type==='OPEN_SETTLE') setTimeout(()=>_openSettleById(e.data.id),200);
 });
 { const sid=new URLSearchParams(location.search).get('settle'); if(sid) setTimeout(()=>_openSettleById(sid),1600); }
-{ const sp0=new URLSearchParams(location.search); const rawSms=sp0.get('sms')||sp0.get('text'); if(rawSms) setTimeout(()=>{ handleBankSms(rawSms,'link'); },1200); }   // ?sms=... (automation apps) or the Android share sheet
 // open the tab requested by a notification tap
 if('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message',e=>{
   if(e.data&&e.data.type==='OPEN_TAB'&&/^tab\w+$/.test(e.data.tab||'')&&document.getElementById(e.data.tab)) switchTab(e.data.tab);
